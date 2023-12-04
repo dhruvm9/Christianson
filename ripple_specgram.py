@@ -12,6 +12,7 @@ import os, sys
 import matplotlib.pyplot as plt 
 import nwbmatic as ntm
 import pynapple as nap
+import pickle
 import matplotlib.cm as cm
 import matplotlib.colors as colors
 from scipy.signal import fftconvolve
@@ -72,6 +73,9 @@ for r,s in enumerate(datasets):
     
     file = os.path.join(path, s +'.evt.py.rip')
     rip_ep = data.read_neuroscope_intervals(name = 'rip', path2file = file)
+    
+    with open(os.path.join(path, 'riptsd.pickle'), 'rb') as pickle_file:
+        rip_tsd = pickle.load(pickle_file)
     
 #%%         
      
