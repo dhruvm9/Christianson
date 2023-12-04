@@ -149,46 +149,46 @@ specgram_m_ko = all_pspec_median_ko.groupby(all_pspec_median_ko.index).mean()
 
 # ## Z-scored 
 
-# labels = [100, 150, 200, 250, 300]
-# # norm = colors.TwoSlopeNorm(vmin=specgram_z_wt[-0.2:0.2].values.min(),vcenter=0, vmax = specgram_z_wt[-0.2:0.2].values.max())
-# norm = colors.TwoSlopeNorm(vmin = -0.3, vcenter = 0, vmax = 2.2)
+labels = [100, 150, 200, 250, 300]
+# norm = colors.TwoSlopeNorm(vmin=specgram_z_wt[-0.2:0.2].values.min(),vcenter=0, vmax = specgram_z_wt[-0.2:0.2].values.max())
+norm = colors.TwoSlopeNorm(vmin = -0.3, vcenter = 0, vmax = 2.2)
        
-# fig, ax = plt.subplots()
-# plt.title('Z-scored spectrogram (WT)')
-# cax = ax.imshow(specgram_z_wt[-0.05:0.05].T, aspect = 'auto', cmap = 'seismic', interpolation='bilinear', 
-#             origin = 'lower',
-#             extent = [specgram_z_wt[-0.05:0.05].index.values[0], 
-#                       specgram_z_wt[-0.05:0.05].index.values[-1],
-#                       np.log10(specgram_z_wt.columns[0]),
-#                       np.log10(specgram_z_wt.columns[-1])], 
-#             norm = norm
-#             )
-# plt.xlabel('Time from SWR (s)')
-# plt.xticks([0, 0.025, 0.05])
-# plt.ylabel('Freq (Hz)')
-# plt.yticks(np.log10(labels), labels = labels)
-# cbar = fig.colorbar(cax, label = 'Power (z)', ticks = [-0.3, 0, 2.2])
-# plt.axvline(0, color = 'k',linestyle = '--')
-# plt.gca().set_box_aspect(1)
+fig, ax = plt.subplots()
+plt.title('Z-scored spectrogram (WT)')
+cax = ax.imshow(specgram_z_wt[0:0.06].T, aspect = 'auto', cmap = 'jet', interpolation='bilinear', 
+            origin = 'lower',
+            extent = [specgram_z_wt[0:0.06].index.values[0], 
+                      specgram_z_wt[0:0.06].index.values[-1],
+                      np.log10(specgram_z_wt.columns[0]),
+                      np.log10(specgram_z_wt.columns[-1])], 
+            norm = norm
+            )
+plt.xlabel('Time from SWR (s)')
+plt.xticks([0, 0.025, 0.06])
+plt.ylabel('Freq (Hz)')
+plt.yticks(np.log10(labels), labels = labels)
+cbar = fig.colorbar(cax, label = 'Power (z)', ticks = [-0.3, 0, 2.2])
+plt.axvline(0, color = 'k',linestyle = '--')
+plt.gca().set_box_aspect(1)
 
        
-# fig, ax = plt.subplots()
-# plt.title('Z-scored spectrogram (KO)')
-# cax = ax.imshow(specgram_z_ko[-0.05:0.05].T, aspect = 'auto', cmap = 'seismic', interpolation='bilinear', 
-#             origin = 'lower',
-#             extent = [specgram_z_ko[-0.05:0.05].index.values[0], 
-#                       specgram_z_ko[-0.05:0.05].index.values[-1],
-#                       np.log10(specgram_z_ko.columns[0]),
-#                       np.log10(specgram_z_ko.columns[-1])], 
-#             norm = norm
-#             )
-# plt.xlabel('Time from SWR (s)')
-# plt.xticks([0, 0.025, 0.05])
-# plt.ylabel('Freq (Hz)')
-# plt.yticks(np.log10(labels), labels = labels)
-# cbar = fig.colorbar(cax, label = 'Power (z)', ticks = [-0.3, 0, 2.2])
-# plt.axvline(0, color = 'k',linestyle = '--')
-# plt.gca().set_box_aspect(1)
+fig, ax = plt.subplots()
+plt.title('Z-scored spectrogram (KO)')
+cax = ax.imshow(specgram_z_ko[0:0.06].T, aspect = 'auto', cmap = 'jet', interpolation='bilinear', 
+            origin = 'lower',
+            extent = [specgram_z_ko[0:0.06].index.values[0], 
+                      specgram_z_ko[0:0.06].index.values[-1],
+                      np.log10(specgram_z_ko.columns[0]),
+                      np.log10(specgram_z_ko.columns[-1])], 
+            norm = norm
+            )
+plt.xlabel('Time from SWR (s)')
+plt.xticks([0, 0.025, 0.06])
+plt.ylabel('Freq (Hz)')
+plt.yticks(np.log10(labels), labels = labels)
+cbar = fig.colorbar(cax, label = 'Power (z)', ticks = [-0.3, 0, 2.2])
+plt.axvline(0, color = 'k',linestyle = '--')
+plt.gca().set_box_aspect(1)
 
 
 # ## Median Normalized
