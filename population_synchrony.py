@@ -89,7 +89,7 @@ for r,s in enumerate(datasets):
     spikes_by_celltype = spikes.getby_category('celltype')
     if 'pyr' in spikes._metadata['celltype'].values:
         pyr = spikes_by_celltype['pyr']
-    
+       
     if 'fs' in spikes._metadata['celltype'].values:
         fs = spikes_by_celltype['fs']
            
