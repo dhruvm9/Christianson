@@ -77,7 +77,7 @@ for r,s in enumerate(datasets):
     
 #%% 
 
-    low_thres = 1
+    low_thres = 5
     high_thres = 10
 
     # nSS2 = {}
@@ -156,9 +156,9 @@ for r,s in enumerate(datasets):
 
 #%% 
 
-    # data.write_neuroscope_intervals(extension = '.evt.py.rip', isets = rip_ep, name = 'rip') 
+    data.write_neuroscope_intervals(extension = '.evt.py5sd.rip', isets = rip_ep, name = 'rip') 
     
-    with open(os.path.join(path, 'riptsd.pickle'), 'wb') as pickle_file:
+    with open(os.path.join(path, 'riptsd_5sd.pickle'), 'wb') as pickle_file:
         pickle.dump(rip_tsd, pickle_file)
     
     # data.save_nwb_intervals(rip_ep, 'sleep_ripples')

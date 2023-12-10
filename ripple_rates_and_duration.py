@@ -44,8 +44,14 @@ for s in datasets:
     file = os.path.join(path, s +'.rem.evt')
     rem_ep = data.read_neuroscope_intervals(name = 'REM', path2file = file)
     
-    file = os.path.join(path, s +'.evt.py.rip')
-    rip_ep = data.read_neuroscope_intervals(name = 'rip', path2file = file)
+    # file = os.path.join(path, s +'.evt.py.rip')
+    # rip_ep = data.read_neuroscope_intervals(name = 'rip', path2file = file)
+    
+    # file = os.path.join(path, s +'.evt.py3sd.rip')
+    # rip_ep = data.read_neuroscope_intervals(path2file = file)
+    
+    file = os.path.join(path, s +'.evt.py5sd.rip')
+    rip_ep = data.read_neuroscope_intervals(path2file = file)
     
     # rip_ep = data.load_nwb_intervals('sleep_ripples')
     # rip_tsd = data.load_nwb_timeseries('sleep_ripples')

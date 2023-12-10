@@ -64,11 +64,25 @@ for r,s in enumerate(datasets):
     file = os.path.join(path, s +'.rem.evt')
     rem_ep = data.read_neuroscope_intervals(name = 'REM', path2file = file)
     
-    file = os.path.join(path, s +'.evt.py.rip')
-    rip_ep = data.read_neuroscope_intervals(name = 'rip', path2file = file)
+    # file = os.path.join(path, s +'.evt.py.rip')
+    # rip_ep = data.read_neuroscope_intervals(name = 'rip', path2file = file)
     
-    with open(os.path.join(path, 'riptsd.pickle'), 'rb') as pickle_file:
+    # with open(os.path.join(path, 'riptsd.pickle'), 'rb') as pickle_file:
+    #     rip_tsd = pickle.load(pickle_file)
+    
+    # file = os.path.join(path, s +'.evt.py3sd.rip')
+    # rip_ep = data.read_neuroscope_intervals(name = 'py3sd', path2file = file)
+    
+    # with open(os.path.join(path, 'riptsd_3sd.pickle'), 'rb') as pickle_file:
+    #       rip_tsd = pickle.load(pickle_file)
+    
+    file = os.path.join(path, s +'.evt.py5sd.rip')
+    rip_ep = data.read_neuroscope_intervals(name = 'py5sd', path2file = file)
+    
+    with open(os.path.join(path, 'riptsd_5sd.pickle'), 'rb') as pickle_file:
         rip_tsd = pickle.load(pickle_file)
+  
+    
     
 #%% Load classified spikes 
 
@@ -193,56 +207,56 @@ s4 = pd.DataFrame(data = [allsyncs_celltype, types2], index = ['sync', 'type']).
 
 #%% Plotting for population
 
-# plt.figure()
-# plt.title('Population synchrony by session')
-# sns.set_style('white')
-# palette = ['royalblue', 'indianred']
-# ax = sns.violinplot( x = s1['genotype'], y=s1['sync'].astype(float) , data = s1, dodge=False,
-#                     palette = palette,cut = 2,
-#                     scale="width", inner=None)
-# ax.tick_params(bottom=True, left=True)
-# xlim = ax.get_xlim()
-# ylim = ax.get_ylim()
-# for violin in ax.collections:
-#     x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
-#     violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
-# sns.boxplot(x = s1['genotype'], y=s1['sync'] , data = s1, saturation=1, showfliers=False,
-#             width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
-# old_len_collections = len(ax.collections)
-# sns.swarmplot(x = s1['genotype'], y=s1['sync'], data = s1, color = 'k', dodge=False, ax=ax)
-# # sns.stripplot(x = wakedf['type'], y = wakedf['rate'].astype(float), data = wakedf, color = 'k', dodge=False, ax=ax)
-# for dots in ax.collections[old_len_collections:]:
-#     dots.set_offsets(dots.get_offsets())
-# ax.set_xlim(xlim)
-# ax.set_ylim(ylim)
-# plt.ylabel('Population Synchrony during ripple')
-# ax.set_box_aspect(1)
+plt.figure()
+plt.title('Population synchrony by session')
+sns.set_style('white')
+palette = ['royalblue', 'indianred']
+ax = sns.violinplot( x = s1['genotype'], y=s1['sync'].astype(float) , data = s1, dodge=False,
+                    palette = palette,cut = 2,
+                    scale="width", inner=None)
+ax.tick_params(bottom=True, left=True)
+xlim = ax.get_xlim()
+ylim = ax.get_ylim()
+for violin in ax.collections:
+    x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
+    violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
+sns.boxplot(x = s1['genotype'], y=s1['sync'] , data = s1, saturation=1, showfliers=False,
+            width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
+old_len_collections = len(ax.collections)
+sns.swarmplot(x = s1['genotype'], y=s1['sync'], data = s1, color = 'k', dodge=False, ax=ax)
+# sns.stripplot(x = wakedf['type'], y = wakedf['rate'].astype(float), data = wakedf, color = 'k', dodge=False, ax=ax)
+for dots in ax.collections[old_len_collections:]:
+    dots.set_offsets(dots.get_offsets())
+ax.set_xlim(xlim)
+ax.set_ylim(ylim)
+plt.ylabel('Population Synchrony during ripple')
+ax.set_box_aspect(1)
 
-# plt.figure()
-# plt.title('Population synchrony by event')
-# sns.set_style('white')
-# palette = ['royalblue', 'indianred']
-# ax = sns.violinplot( x = s2['genotype'], y=s2['sync'].astype(float) , data = s2, dodge=False,
-#                     palette = palette,cut = 2,
-#                     scale="width", inner=None)
-# ax.tick_params(bottom=True, left=True)
-# xlim = ax.get_xlim()
-# ylim = ax.get_ylim()
-# for violin in ax.collections:
-#     x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
-#     violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
-# sns.boxplot(x = s2['genotype'], y=s2['sync'] , data = s2, saturation=1, showfliers=False,
-#             width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
+plt.figure()
+plt.title('Population synchrony by event')
+sns.set_style('white')
+palette = ['royalblue', 'indianred']
+ax = sns.violinplot( x = s2['genotype'], y=s2['sync'].astype(float) , data = s2, dodge=False,
+                    palette = palette,cut = 2,
+                    scale="width", inner=None)
+ax.tick_params(bottom=True, left=True)
+xlim = ax.get_xlim()
+ylim = ax.get_ylim()
+for violin in ax.collections:
+    x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
+    violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
+sns.boxplot(x = s2['genotype'], y=s2['sync'] , data = s2, saturation=1, showfliers=False,
+            width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
 
-# plt.ylabel('Population Synchrony during ripple')
-# ax.set_box_aspect(1)
+plt.ylabel('Population Synchrony during ripple')
+ax.set_box_aspect(1)
 
 #%% Stats 
 
 ### For population
 
-# t, p = mannwhitneyu(s1[s1['genotype']=='WT']['sync'].values.astype(float), s1[s1['genotype']=='KO']['sync'].values.astype(float))
-# t2, p2 = mannwhitneyu(s2[s2['genotype']=='WT']['sync'].values.astype(float), s2[s2['genotype']=='KO']['sync'].values.astype(float))
+t, p = mannwhitneyu(s1[s1['genotype']=='WT']['sync'].values.astype(float), s1[s1['genotype']=='KO']['sync'].values.astype(float))
+t2, p2 = mannwhitneyu(s2[s2['genotype']=='WT']['sync'].values.astype(float), s2[s2['genotype']=='KO']['sync'].values.astype(float))
 
 
 ### For Celltype (Pyr)
