@@ -15,7 +15,7 @@ import pickle
 
 #%% 
 
-data_directory = '/media/dhruv/Ultra Touch/Dhruv-Jamie/Processed'
+data_directory = '/media/dhruv/Expansion/Processed'
 datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
 
 isWT = []
@@ -24,9 +24,9 @@ for s in datasets:
     print(s)
     name = s.split('/')[-1]
         
-    if name == 'B2613' or 'B2618':
-        isWT.append(0)
-    else: isWT.append(1)
+    if name == 'B2613' or name == 'B2618':
+        isWT = 0
+    else: isWT = 1
     
     path = os.path.join(data_directory, s)
     
@@ -34,13 +34,13 @@ for s in datasets:
     spikes = data.spikes
     epochs = data.epochs
     
-    meanwf, maxch = data.load_mean_waveforms()
+    # meanwf, maxch = data.load_mean_waveforms()
     
-    with open(os.path.join(path, 'meanwf.pickle'), 'wb') as pickle_file:
-        pickle.dump(meanwf, pickle_file)
+    # with open(os.path.join(path, 'meanwf.pickle'), 'wb') as pickle_file:
+    #     pickle.dump(meanwf, pickle_file)
         
-    with open(os.path.join(path, 'maxch.pickle'), 'wb') as pickle_file:
-        pickle.dump(maxch, pickle_file)
+    # with open(os.path.join(path, 'maxch.pickle'), 'wb') as pickle_file:
+    #     pickle.dump(maxch, pickle_file)
         
     with open(os.path.join(path, 'meanwf.pickle'), 'rb') as pickle_file:
         meanwf = pickle.load(pickle_file)
@@ -125,6 +125,8 @@ for s in datasets:
             celltype[i] = 'fs'
         else: celltype[i] = 'other'
     
+    
+        
     # with open(os.path.join(path, 'celltype.pickle'), 'wb') as pickle_file:
     #     pickle.dump(celltype, pickle_file)
     
@@ -142,6 +144,7 @@ for s in datasets:
     
     if 'other' in celltype.values == True:
         oth = spikes_by_celltype['other']
+   
 
 #%% Plotting firing rate v/s tr2pk
     
@@ -163,7 +166,10 @@ for s in datasets:
     plt.legend(loc = 'upper right')
     
     spikes.save(os.path.join(path, 'spikedata.npz'))
-   
+
+#%% 
+
+
 #Load the npz file 
     # sp2 = np.load(os.path.join(path, 'spikedata.npz'), allow_pickle = True)
     # time_support = nap.IntervalSet(sp2['start'], sp2['end'])

@@ -80,16 +80,16 @@ for s in datasets:
 
 #%% Plot tuning curves 
     
-    if name != 'B2618':
-        plt.figure()
-        plt.suptitle(s)
-        for n in range(len(spikes)):
-            plt.subplot(9,8,n+1)
-            plt.title(spikes._metadata['celltype'][n])
-            plt.imshow(placefields[n], extent=(binsxy[1][0],binsxy[1][-1],binsxy[0][0],binsxy[0][-1]), cmap = 'jet')        
-            plt.colorbar()
+    # if name != 'B2618':
+    #     plt.figure()
+    #     plt.suptitle(s)
+    #     for n in range(len(spikes)):
+    #         plt.subplot(9,8,n+1)
+    #         plt.title(spikes._metadata['celltype'][n])
+    #         plt.imshow(placefields[n], extent=(binsxy[1][0],binsxy[1][-1],binsxy[0][0],binsxy[0][-1]), cmap = 'jet')        
+    #         plt.colorbar()
         
-    multipage(data_directory + '/' + 'Allcells.pdf', dpi=250)
+    # multipage(data_directory + '/' + 'Allcells.pdf', dpi=250)
     
 #%% Organize spatial information data 
 
@@ -106,30 +106,30 @@ allinfos = pd.DataFrame(data = [sinfos, genotype], index = ['SI', 'genotype']).T
 
 #%% Plotting 
 
-# plt.figure()
-# sns.set_style('white')
-# palette = ['royalblue', 'indianred'] 
-# ax = sns.violinplot( x = allinfos['genotype'], y=allinfos['SI'].astype(float) , data = allinfos, dodge=False,
-#                     palette = palette,cut = 2,
-#                     scale="width", inner=None)
-# ax.tick_params(bottom=True, left=True)
-# xlim = ax.get_xlim()
-# ylim = ax.get_ylim()
-# for violin in ax.collections:
-#     x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
-#     violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
-# sns.boxplot(x = allinfos['genotype'], y=allinfos['SI'].astype(float) , data = allinfos, saturation=1, showfliers=False,
-#             width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
-# old_len_collections = len(ax.collections)
-# sns.stripplot(x = allinfos['genotype'], y = allinfos['SI'].astype(float), data = allinfos, color = 'k', dodge=False, ax=ax, alpha = 0.2)
-# # sns.swarmplot(x = wakedf['type'], y = wakedf['rate'].astype(float), data = wakedf, color = 'k', dodge=False, ax=ax)
-# for dots in ax.collections[old_len_collections:]:
-#     dots.set_offsets(dots.get_offsets())
-# ax.set_xlim(xlim)
-# ax.set_ylim(ylim)
-# plt.ylabel('Spatial Information (bits per spike)')
-# ax.set_box_aspect(1)
+plt.figure()
+sns.set_style('white')
+palette = ['royalblue', 'indianred'] 
+ax = sns.violinplot( x = allinfos['genotype'], y=allinfos['SI'].astype(float) , data = allinfos, dodge=False,
+                    palette = palette,cut = 2,
+                    scale="width", inner=None)
+ax.tick_params(bottom=True, left=True)
+xlim = ax.get_xlim()
+ylim = ax.get_ylim()
+for violin in ax.collections:
+    x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
+    violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
+sns.boxplot(x = allinfos['genotype'], y=allinfos['SI'].astype(float) , data = allinfos, saturation=1, showfliers=False,
+            width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
+old_len_collections = len(ax.collections)
+sns.stripplot(x = allinfos['genotype'], y = allinfos['SI'].astype(float), data = allinfos, color = 'k', dodge=False, ax=ax, alpha = 0.2)
+# sns.swarmplot(x = wakedf['type'], y = wakedf['rate'].astype(float), data = wakedf, color = 'k', dodge=False, ax=ax)
+for dots in ax.collections[old_len_collections:]:
+    dots.set_offsets(dots.get_offsets())
+ax.set_xlim(xlim)
+ax.set_ylim(ylim)
+plt.ylabel('Spatial Information (bits per spike)')
+ax.set_box_aspect(1)
 
 #%% Stats
 
-# t, p = mannwhitneyu(allspatialinfo_wt, allspatialinfo_ko)
+t, p = mannwhitneyu(allspatialinfo_wt, allspatialinfo_ko)

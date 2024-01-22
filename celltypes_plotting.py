@@ -7,9 +7,12 @@ Created on Tue Nov  7 16:00:04 2023
 """
 
 import numpy as np 
+import pandas as pd
 import pynapple as nap
+import seaborn as sns
 import os, sys
 import matplotlib.pyplot as plt 
+from scipy.stats import mannwhitneyu
 
 #%% 
 
@@ -23,13 +26,16 @@ rates = []
 celltype = []
 genotype = []
 
+cellratios_wt = []
+cellratios_ko = []
+
 for s in datasets:
     print(s)
     name = s.split('-')[0]
         
     if name == 'B2613' or name == 'B2618':
-        isWT.append(0)
-    else: isWT.append(1)
+        isWT = 0
+    else: isWT = 1
     
     path = os.path.join(data_directory, s)
 
@@ -48,8 +54,67 @@ for s in datasets:
     if name == 'B2613' or name == 'B2618':
         genotype.extend(np.zeros_like(spikes._metadata['rate'].values, dtype = 'bool'))
     else: genotype.extend(np.ones_like(spikes._metadata['rate'].values, dtype ='bool'))
+
+#%% Ratio of FS versus broad waveform cells
+            
+    if 'fs' in spikes.getby_category('celltype').keys():
+        fscells = spikes.getby_category('celltype')['fs']
+            
+        bwf = 0 
+        for i in spikes._metadata['tr2pk']: 
+            if i > 0.38:
+                bwf += 1
     
-   
+        fs2bwf = len(fscells) / bwf
+        
+        if isWT == 1: 
+            cellratios_wt.append(fs2bwf)
+        
+        else: cellratios_ko.append(fs2bwf)
+
+#%% Sorting the ratio of FS to broad waveform cells
+
+wt = np.array(['WT' for x in range(len(cellratios_wt))])
+ko = np.array(['KO' for x in range(len(cellratios_ko))])    
+
+genotype = np.hstack([wt, ko])
+
+
+sess_ratios = []
+sess_ratios.extend(cellratios_wt)
+sess_ratios.extend(cellratios_ko)
+
+summ = pd.DataFrame(data = [sess_ratios, genotype], index = ['cellratio', 'genotype']).T
+    
+#%% Plotting cell ratios by session 
+
+plt.figure()
+plt.title('Ratio of FS to broad waveform cells')
+sns.set_style('white')
+palette = ['royalblue', 'indianred']
+ax = sns.violinplot( x = summ['genotype'], y = summ['cellratio'].astype(float) , data = summ, dodge = False,
+                    palette = palette,cut = 2,
+                    scale = "width", inner = None)
+ax.tick_params(bottom=True, left=True)
+xlim = ax.get_xlim()
+ylim = ax.get_ylim()
+for violin in ax.collections:
+    x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
+    violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
+sns.boxplot(x = summ['genotype'], y = summ['cellratio'] , data = summ, saturation = 1, showfliers = False,
+            width = 0.3, boxprops = {'zorder': 3, 'facecolor': 'none'}, ax = ax)
+old_len_collections = len(ax.collections)
+sns.swarmplot(x = summ['genotype'], y=summ['cellratio'], data = summ, color = 'k', dodge = False, ax = ax)
+# sns.stripplot(x = wakedf['type'], y = wakedf['rate'].astype(float), data = wakedf, color = 'k', dodge=False, ax=ax)
+for dots in ax.collections[old_len_collections:]:
+    dots.set_offsets(dots.get_offsets())
+ax.set_xlim(xlim)
+ax.set_ylim(ylim)
+plt.ylabel('Ratio of FS to broad waveform cells')
+ax.set_box_aspect(1)
+
+t, p = mannwhitneyu(cellratios_wt, cellratios_ko)
+
 #%% Sorting by genotype and plotting
 
 t2p_wt = np.array(t2p)[genotype]
