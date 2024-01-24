@@ -71,24 +71,24 @@ for r,s in enumerate(datasets):
     file = os.path.join(path, s +'.rem.evt')
     rem_ep = data.read_neuroscope_intervals(name = 'REM', path2file = file)
     
-    # file = os.path.join(path, s +'.evt.py.rip')
-    # rip_ep = data.read_neuroscope_intervals(name = 'rip', path2file = file)
+    file = os.path.join(path, s +'.evt.py.rip')
+    rip_ep = data.read_neuroscope_intervals(name = 'rip', path2file = file)
     
-    # with open(os.path.join(path, 'riptsd.pickle'), 'rb') as pickle_file:
-    #     rip_tsd = pickle.load(pickle_file)
+    with open(os.path.join(path, 'riptsd.pickle'), 'rb') as pickle_file:
+        rip_tsd = pickle.load(pickle_file)
     
-    file = os.path.join(path, s +'.evt.py3sd.rip')
-    rip_ep = data.read_neuroscope_intervals(name = 'py3sd', path2file = file)
+    # file = os.path.join(path, s +'.evt.py3sd.rip')
+    # rip_ep = data.read_neuroscope_intervals(name = 'py3sd', path2file = file)
    
-    with open(os.path.join(path, 'riptsd_3sd.pickle'), 'rb') as pickle_file:
-         rip_tsd = pickle.load(pickle_file)
+    # with open(os.path.join(path, 'riptsd_3sd.pickle'), 'rb') as pickle_file:
+    #      rip_tsd = pickle.load(pickle_file)
    
             
-   # file = os.path.join(path, s +'.evt.py5sd.rip')
-   # rip_ep = data.read_neuroscope_intervals(name = 'py5sd', path2file = file)
+    # file = os.path.join(path, s +'.evt.py5sd.rip')
+    # rip_ep = data.read_neuroscope_intervals(name = 'py5sd', path2file = file)
    
-   # with open(os.path.join(path, 'riptsd_5sd.pickle'), 'rb') as pickle_file:
-   #     rip_tsd = pickle.load(pickle_file)
+    # with open(os.path.join(path, 'riptsd_5sd.pickle'), 'rb') as pickle_file:
+    #     rip_tsd = pickle.load(pickle_file)
     
    
     
@@ -158,11 +158,11 @@ specgram_m_ko = all_pspec_median_ko.groupby(all_pspec_median_ko.index).mean()
 
 #%% Save 
 
-specgram_z_wt.to_pickle(data_directory + '/specgram_z3_wt.pkl')
-specgram_z_ko.to_pickle(data_directory + '/specgram_z3_ko.pkl')
+specgram_z_wt.to_pickle(data_directory + '/specgram_z_wt.pkl')
+specgram_z_ko.to_pickle(data_directory + '/specgram_z_ko.pkl')
 
-specgram_m_wt.to_pickle(data_directory + '/specgram_m3_wt.pkl')
-specgram_m_ko.to_pickle(data_directory + '/specgram_m3_ko.pkl')
+specgram_m_wt.to_pickle(data_directory + '/specgram_m_wt.pkl')
+specgram_m_ko.to_pickle(data_directory + '/specgram_m_ko.pkl')
 
 #%% Plotting 
 
@@ -170,20 +170,20 @@ specgram_m_ko.to_pickle(data_directory + '/specgram_m3_ko.pkl')
 
 # labels = [100, 150, 200, 250, 300]
 # # norm = colors.TwoSlopeNorm(vmin=specgram_z_wt[-0.2:0.2].values.min(),vcenter=0, vmax = specgram_z_wt[-0.2:0.2].values.max())
-# norm = colors.TwoSlopeNorm(vmin = -0.3, vcenter = 0, vmax = 2.2)
+# norm = colors.TwoSlopeNorm(vmin = -0.3, vcenter = 0, vmax = 3.76)
        
 # fig, ax = plt.subplots()
 # plt.title('Z-scored spectrogram (WT)')
-# cax = ax.imshow(specgram_z_wt[0:0.06].T, aspect = 'auto', cmap = 'jet', interpolation='bilinear', 
+# cax = ax.imshow(specgram_z_wt[-0.032:0.032].T, aspect = 'auto', cmap = 'jet', interpolation='bilinear', 
 #             origin = 'lower',
-#             extent = [specgram_z_wt[0:0.06].index.values[0], 
-#                       specgram_z_wt[0:0.06].index.values[-1],
+#             extent = [specgram_z_wt[-0.032:0.032].index.values[0], 
+#                       specgram_z_wt[-0.032:0.032].index.values[-1],
 #                       np.log10(specgram_z_wt.columns[0]),
 #                       np.log10(specgram_z_wt.columns[-1])], 
 #             norm = norm
 #             )
 # plt.xlabel('Time from SWR (s)')
-# plt.xticks([0, 0.025, 0.06])
+# plt.xticks([-0.032, 0, 0.032])
 # plt.ylabel('Freq (Hz)')
 # plt.yticks(np.log10(labels), labels = labels)
 # cbar = fig.colorbar(cax, label = 'Power (z)', ticks = [-0.3, 0, 2.2])
@@ -193,16 +193,16 @@ specgram_m_ko.to_pickle(data_directory + '/specgram_m3_ko.pkl')
        
 # fig, ax = plt.subplots()
 # plt.title('Z-scored spectrogram (KO)')
-# cax = ax.imshow(specgram_z_ko[0:0.06].T, aspect = 'auto', cmap = 'jet', interpolation='bilinear', 
+# cax = ax.imshow(specgram_z_ko[-0.032:0.032].T, aspect = 'auto', cmap = 'jet', interpolation='bilinear', 
 #             origin = 'lower',
-#             extent = [specgram_z_ko[0:0.06].index.values[0], 
-#                       specgram_z_ko[0:0.06].index.values[-1],
+#             extent = [specgram_z_ko[-0.032:0.032].index.values[0], 
+#                       specgram_z_ko[-0.032:0.032].index.values[-1],
 #                       np.log10(specgram_z_ko.columns[0]),
 #                       np.log10(specgram_z_ko.columns[-1])], 
 #             norm = norm
 #             )
 # plt.xlabel('Time from SWR (s)')
-# plt.xticks([0, 0.025, 0.06])
+# plt.xticks([-0.032, 0, 0.032])
 # plt.ylabel('Freq (Hz)')
 # plt.yticks(np.log10(labels), labels = labels)
 # cbar = fig.colorbar(cax, label = 'Power (z)', ticks = [-0.3, 0, 2.2])
@@ -212,44 +212,44 @@ specgram_m_ko.to_pickle(data_directory + '/specgram_m3_ko.pkl')
 
 # # ## Median Normalized
 
-# labels = [100, 150, 200, 250, 300]
-# # norm = colors.TwoSlopeNorm(vmin=specgram_m_wt[-0.2:0.2].values.min(), vmax = specgram_m_wt[-0.2:0.2].values.max())
-# norm = colors.TwoSlopeNorm(vmin = 1.05, vcenter = 3.25 , vmax = 5.45)
+labels = [100, 150, 200, 250, 300]
+# norm = colors.TwoSlopeNorm(vmin=specgram_m_wt[-0.2:0.2].values.min(), vmax = specgram_m_wt[-0.2:0.2].values.max())
+norm = colors.TwoSlopeNorm(vmin = 1, vcenter = 4.25 , vmax = 7.5)
        
-# fig, ax = plt.subplots()
-# plt.title('Median normalized spectrogram (WT)')
-# cax = ax.imshow(specgram_m_wt[0:0.06].T, aspect = 'auto', cmap = 'jet', interpolation='bilinear', 
-#             origin = 'lower',
-#             extent = [specgram_m_wt[0:0.06].index.values[0], 
-#                       specgram_m_wt[0:0.06].index.values[-1],
-#                       np.log10(specgram_m_wt.columns[0]),
-#                       np.log10(specgram_m_wt.columns[-1])], 
-#             norm = norm
-#             )
-# plt.xlabel('Time from SWR (s)')
-# plt.xticks([0, 0.025, 0.06])
-# plt.ylabel('Freq (Hz)')
-# plt.yticks(np.log10(labels), labels = labels)
-# cbar = fig.colorbar(cax, label = 'Power (median normalized)')
-# plt.axvline(0, color = 'k',linestyle = '--')
-# plt.gca().set_box_aspect(1)
+fig, ax = plt.subplots()
+plt.title('Median normalized spectrogram (WT)')
+cax = ax.imshow(specgram_m_wt[-0.032:0.032].T, aspect = 'auto', cmap = 'jet', interpolation='bilinear', 
+            origin = 'lower',
+            extent = [specgram_m_wt[-0.032:0.032].index.values[0], 
+                      specgram_m_wt[-0.032:0.032].index.values[-1],
+                      np.log10(specgram_m_wt.columns[0]),
+                      np.log10(specgram_m_wt.columns[-1])], 
+            norm = norm
+            )
+plt.xlabel('Time from SWR (s)')
+plt.xticks([-0.03, 0, 0.03])
+plt.ylabel('Freq (Hz)')
+plt.yticks(np.log10(labels), labels = labels)
+cbar = fig.colorbar(cax, label = 'Power (median normalized)')
+plt.axvline(0, color = 'k',linestyle = '--')
+plt.gca().set_box_aspect(1)
 
 
-# fig, ax = plt.subplots()
-# plt.title('Median normalized spectrogram (KO)')
-# cax = ax.imshow(specgram_m_ko[0:0.06].T, aspect = 'auto', cmap = 'jet', interpolation='bilinear', 
-#             origin = 'lower',
-#             extent = [specgram_m_ko[0:0.06].index.values[0], 
-#                       specgram_m_ko[0:0.06].index.values[-1],
-#                       np.log10(specgram_m_ko.columns[0]),
-#                       np.log10(specgram_m_ko.columns[-1])], 
-#             norm = norm
-#             )
-# plt.xlabel('Time from SWR (s)')
-# plt.xticks([0, 0.025, 0.06])
-# plt.ylabel('Freq (Hz)')
-# plt.yticks(np.log10(labels), labels = labels)
-# cbar = fig.colorbar(cax, label = 'Power (median normalized)')
-# plt.axvline(0, color = 'k',linestyle = '--')
-# plt.gca().set_box_aspect(1)
+fig, ax = plt.subplots()
+plt.title('Median normalized spectrogram (KO)')
+cax = ax.imshow(specgram_m_ko[-0.032:0.032].T, aspect = 'auto', cmap = 'jet', interpolation='bilinear', 
+            origin = 'lower',
+            extent = [specgram_m_ko[-0.032:0.032].index.values[0], 
+                      specgram_m_ko[-0.032:0.032].index.values[-1],
+                      np.log10(specgram_m_ko.columns[0]),
+                      np.log10(specgram_m_ko.columns[-1])], 
+            norm = norm
+            )
+plt.xlabel('Time from SWR (s)')
+plt.xticks([-0.03, 0, 0.03])
+plt.ylabel('Freq (Hz)')
+plt.yticks(np.log10(labels), labels = labels)
+cbar = fig.colorbar(cax, label = 'Power (median normalized)')
+plt.axvline(0, color = 'k',linestyle = '--')
+plt.gca().set_box_aspect(1)
        
