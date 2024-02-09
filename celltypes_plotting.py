@@ -29,7 +29,7 @@ genotype = []
 cellratios_wt = []
 cellratios_ko = []
 
-for s in datasets:
+for s in datasets[1:]:
     print(s)
     name = s.split('-')[0]
         

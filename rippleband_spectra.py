@@ -28,6 +28,9 @@ fs = 1250
 PSD_rip_wt = pd.DataFrame()
 PSD_rip_ko = pd.DataFrame()
 
+peakfreq_wt = []
+peakfreq_ko = []
+
 for r,s in enumerate(datasets):
     print(s)
     name = s.split('-')[0]
@@ -43,14 +46,14 @@ for r,s in enumerate(datasets):
     
     lfp = nap.load_eeg(path + '/' + s + '.eeg', channel = int(ripplechannels[r]), n_channels = 32, frequency = fs)
     
-    file = os.path.join(path, s +'.sws.evt')
-    sws_ep = data.read_neuroscope_intervals(name = 'SWS', path2file = file)
+    # file = os.path.join(path, s +'.sws.evt')
+    # sws_ep = data.read_neuroscope_intervals(name = 'SWS', path2file = file)
     
-    file = os.path.join(path, s +'.rem.evt')
-    rem_ep = data.read_neuroscope_intervals(name = 'REM', path2file = file)
+    # file = os.path.join(path, s +'.rem.evt')
+    # rem_ep = data.read_neuroscope_intervals(name = 'REM', path2file = file)
     
-    # file = os.path.join(path, s +'.evt.py.rip')
-    # rip_ep = data.read_neuroscope_intervals(name = 'rip', path2file = file)
+    file = os.path.join(path, s +'.evt.py.rip')
+    rip_ep = data.read_neuroscope_intervals(name = 'rip', path2file = file)
     
     # with open(os.path.join(path, 'riptsd.pickle'), 'rb') as pickle_file:
     #     rip_tsd = pickle.load(pickle_file)
@@ -63,16 +66,16 @@ for r,s in enumerate(datasets):
     #      rip_tsd = pickle.load(pickle_file)
     
              
-    file = os.path.join(path, s +'.evt.py5sd.rip')
-    rip_ep = data.read_neuroscope_intervals(name = 'py5sd', path2file = file)
+    # file = os.path.join(path, s +'.evt.py5sd.rip')
+    # rip_ep = data.read_neuroscope_intervals(name = 'py5sd', path2file = file)
     
-    with open(os.path.join(path, 'riptsd_5sd.pickle'), 'rb') as pickle_file:
-        rip_tsd = pickle.load(pickle_file)
+    # with open(os.path.join(path, 'riptsd_5sd.pickle'), 'rb') as pickle_file:
+    #     rip_tsd = pickle.load(pickle_file)
     
 #%% Restrict LFP
     
-    twin = 0.2
-    ripple_events = nap.IntervalSet(start = rip_tsd.index.values - twin, end = rip_tsd.index.values + twin)
+    # twin = 0.2
+    # ripple_events = nap.IntervalSet(start = rip_tsd.index.values - twin, end = rip_tsd.index.values + twin)
     
     # lfp_rip = lfp.restrict(nap.IntervalSet(ripple_events))
     lfp_rip = lfp.restrict(nap.IntervalSet(rip_ep))
@@ -81,16 +84,21 @@ for r,s in enumerate(datasets):
 #%% Power Spectral Density 
           
     freqs, P_xx = scipy.signal.welch(lfp_z, fs = fs)
+    
+    ix2 = np.where((freqs>=100) & (freqs <= 300))
+    peakfreq = freqs[ix2][np.argmax(P_xx[ix2])]
            
     if isWT == 1:
         PSD_rip_wt = pd.concat([PSD_rip_wt, pd.Series(P_xx)], axis = 1)
+        peakfreq_wt.append(peakfreq)
         
     else: 
         PSD_rip_ko = pd.concat([PSD_rip_ko, pd.Series(P_xx)], axis = 1)
+        peakfreq_ko.append(peakfreq)
         
 #%% Average spectrum 
 
-ix = np.where((freqs>=100) & (freqs <= 300))
+ix = np.where((freqs>=10) & (freqs <= 300))
 
 ##Wake 
 plt.figure()
@@ -110,3 +118,43 @@ plt.xlabel('Freq (Hz)')
 plt.ylabel('Power spectral density (dB/Hz)')
 plt.legend(loc = 'upper right')
 plt.grid(True)
+
+#%% Organize peak frequency data and plot
+
+wt = np.array(['WT' for x in range(len(peakfreq_wt))])
+ko = np.array(['KO' for x in range(len(peakfreq_ko))])
+
+genotype = np.hstack([wt, ko])
+
+allpeaks = []
+allpeaks.extend(peakfreq_wt)
+allpeaks.extend(peakfreq_ko)
+
+summ = pd.DataFrame(data = [allpeaks, genotype], index = ['freq', 'genotype']).T
+
+plt.figure()
+plt.title('Peak Frequency in Ripple Band')
+sns.set_style('white')
+palette = ['royalblue', 'indianred']
+ax = sns.violinplot( x = summ['genotype'], y=summ['freq'].astype(float) , data = summ, dodge=False,
+                    palette = palette,cut = 2,
+                    scale="width", inner=None)
+ax.tick_params(bottom=True, left=True)
+xlim = ax.get_xlim()
+ylim = ax.get_ylim()
+for violin in ax.collections:
+    x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
+    violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
+sns.boxplot(x = summ['genotype'], y=summ['freq'].astype(float) , data = summ, saturation=1, showfliers=False,
+            width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
+old_len_collections = len(ax.collections)
+sns.stripplot(x = summ['genotype'], y = summ['freq'].astype(float), data = summ, color = 'k', dodge=False, ax=ax)
+# sns.swarmplot(x = durdf['genotype'], y = durdf['dur'].astype(float), data = durdf, color = 'k', dodge=False, ax=ax)
+for dots in ax.collections[old_len_collections:]:
+    dots.set_offsets(dots.get_offsets())
+ax.set_xlim(xlim)
+ax.set_ylim(ylim)
+plt.ylabel('Peak Frequency (Hz)')
+ax.set_box_aspect(1)
+
+t, p = mannwhitneyu(peakfreq_wt, peakfreq_ko)

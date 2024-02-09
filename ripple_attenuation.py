@@ -21,7 +21,7 @@ from scipy.signal import hilbert
 
 #%% 
 
-data_directory = '/media/adrien/Expansion/Processed'
+data_directory = '/media/dhruv/Expansion/Processed'
 datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
 ripplechannels = np.genfromtxt(os.path.join(data_directory,'ripplechannel.list'), delimiter = '\n', dtype = str, comments = '#')
 refchannel = np.genfromtxt(os.path.join(data_directory,'rippleplus4.list'), delimiter = '\n', dtype = str, comments = '#')

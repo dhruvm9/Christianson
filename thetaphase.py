@@ -86,7 +86,7 @@ for r,s in enumerate(datasets):
         
 #%% 
     
-    lfp_wake = lfp.restrict(nap.IntervalSet(epochs['wake']))
+    lfp_wake = lfp.restrict(nap.IntervalSet(epochs['wake'].loc[[0]]))
     lfp_rem = lfp.restrict(nap.IntervalSet(rem_ep))    
 
     lfp_filt_theta_wake = pyna.eeg_processing.bandpass_filter(lfp_wake, 5, 12, 1250)

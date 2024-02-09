@@ -38,7 +38,7 @@ def MorletWavelet(f, ncyc, si):
 
 #%% 
 
-data_directory = '/media/adrien/Expansion/Processed'
+data_directory = '/media/dhruv/Expansion/Processed'
 datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
 ripplechannels = np.genfromtxt(os.path.join(data_directory,'ripplechannel.list'), delimiter = '\n', dtype = str, comments = '#')
 
@@ -218,7 +218,7 @@ norm = colors.TwoSlopeNorm(vmin = 1, vcenter = 4.25 , vmax = 7.5)
        
 fig, ax = plt.subplots()
 plt.title('Median normalized spectrogram (WT)')
-cax = ax.imshow(specgram_m_wt[-0.032:0.032].T, aspect = 'auto', cmap = 'jet', interpolation='bilinear', 
+cax = ax.imshow(specgram_m_wt[-0.032:0.032].T, aspect = 'auto', cmap = 'magma', interpolation='bilinear', 
             origin = 'lower',
             extent = [specgram_m_wt[-0.032:0.032].index.values[0], 
                       specgram_m_wt[-0.032:0.032].index.values[-1],
@@ -237,7 +237,7 @@ plt.gca().set_box_aspect(1)
 
 fig, ax = plt.subplots()
 plt.title('Median normalized spectrogram (KO)')
-cax = ax.imshow(specgram_m_ko[-0.032:0.032].T, aspect = 'auto', cmap = 'jet', interpolation='bilinear', 
+cax = ax.imshow(specgram_m_ko[-0.032:0.032].T, aspect = 'auto', cmap = 'magma', interpolation='bilinear', 
             origin = 'lower',
             extent = [specgram_m_ko[-0.032:0.032].index.values[0], 
                       specgram_m_ko[-0.032:0.032].index.values[-1],
