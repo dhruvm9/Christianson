@@ -62,7 +62,7 @@ for s in datasets[1:]:
     if 'pyr' in spikes._metadata['celltype'].values:
         pyr = spikes_by_celltype['pyr']
         
-        xc_pyr = nap.compute_eventcorrelogram(pyr, nap.Ts(rip_ep['start'].values), binsize = 0.005, windowsize = 0.1 , ep = nap.IntervalSet(sws_ep), norm = False)
+        xc_pyr = nap.compute_eventcorrelogram(pyr, nap.Ts(rip_ep['start'].values), binsize = 0.005, windowsize = 0.1 , ep = nap.IntervalSet(rip_ep), norm = False)
     
         if isWT == 1:
             all_xc_pyr_wt = pd.concat([all_xc_pyr_wt, xc_pyr], axis = 1)
@@ -74,7 +74,7 @@ for s in datasets[1:]:
     if 'fs' in spikes._metadata['celltype'].values:
         fs = spikes_by_celltype['fs']
         
-        xc_fs = nap.compute_eventcorrelogram(fs, nap.Ts(rip_ep['start'].values), binsize = 0.005, windowsize = 0.1 , ep = nap.IntervalSet(sws_ep), norm = False)
+        xc_fs = nap.compute_eventcorrelogram(fs, nap.Ts(rip_ep['start'].values), binsize = 0.005, windowsize = 0.1 , ep = nap.IntervalSet(rip_ep), norm = False)
         
         if isWT == 1:
             all_xc_fs_wt = pd.concat([all_xc_fs_wt, xc_fs], axis = 1)
