@@ -119,12 +119,17 @@ for s in datasets:
     
     celltype = pd.Series(index = spikes.keys(), dtype = 'string')
     for i in spikes:
-        if tr2pk[i]*1e3 > 0.38 and spikes[i].rate < 10:
+        # if tr2pk[i]*1e3 > 0.38 and spikes[i].rate < 10:
+        #     celltype[i] = 'pyr'
+        # elif tr2pk[i]*1e3 < 0.38 and spikes[i].rate > 10:
+        #     celltype[i] = 'fs'
+        # else: celltype[i] = 'other'
+    
+        if tr2pk[i]*1e3 > 0.55 and spikes[i].rate < 10:
             celltype[i] = 'pyr'
-        elif tr2pk[i]*1e3 < 0.38 and spikes[i].rate > 10:
+        elif tr2pk[i]*1e3 < 0.55 and spikes[i].rate > 10:
             celltype[i] = 'fs'
         else: celltype[i] = 'other'
-    
     
         
     # with open(os.path.join(path, 'celltype.pickle'), 'wb') as pickle_file:
@@ -160,12 +165,14 @@ for s in datasets:
         plt.scatter(oth._metadata['tr2pk'], oth._metadata['rate'], color = 'silver')
    
     plt.axhline(10, linestyle = '--', color = 'k')
-    plt.axvline(0.38, linestyle = '--', color = 'k')
+    # plt.axvline(0.38, linestyle = '--', color = 'k')
+    plt.axvline(0.55, linestyle = '--', color = 'k')
     plt.xlabel('Trough to peak (ms)')
     plt.ylabel('Firing rate (Hz)')   
     plt.legend(loc = 'upper right')
     
-    spikes.save(os.path.join(path, 'spikedata.npz'))
+    # spikes.save(os.path.join(path, 'spikedata.npz'))
+    spikes.save(os.path.join(path, 'spikedata_0.55.npz'))
 
 #%% 
 

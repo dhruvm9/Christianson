@@ -37,8 +37,10 @@ part_all_fs_wt = []
 part_all_pyr_ko = []
 part_all_fs_ko = []
 
-for r,s in enumerate(datasets):
+for s in datasets[1:]:
     print(s)
+    
+            
     name = s.split('-')[0]
     path = os.path.join(data_directory, s)
     
@@ -61,13 +63,14 @@ for r,s in enumerate(datasets):
     
 #%% Load classified spikes 
 
-    sp2 = np.load(os.path.join(path, 'spikedata.npz'), allow_pickle = True)
+    # sp2 = np.load(os.path.join(path, 'spikedata.npz'), allow_pickle = True)
+    sp2 = np.load(os.path.join(path, 'spikedata_0.55.npz'), allow_pickle = True)
     time_support = nap.IntervalSet(sp2['start'], sp2['end'])
     tsd = nap.Tsd(t=sp2['t'], d=sp2['index'], time_support = time_support)
     spikes = tsd.to_tsgroup()
     spikes.set_info(group = sp2['group'], location = sp2['location'], celltype = sp2['celltype'], tr2pk = sp2['tr2pk'])
     
-#%% Ripple participation by cell type
+#%% Ripple participation by cell type and genotype
 
     ripdur = rip_ep['end'] - rip_ep['start']        
 
@@ -77,11 +80,15 @@ for r,s in enumerate(datasets):
     spikes_by_celltype = spikes.getby_category('celltype')
     if 'pyr' in spikes._metadata['celltype'].values:
         pyr = spikes_by_celltype['pyr']
+    else: pyr = []        
        
     if 'fs' in spikes._metadata['celltype'].values:
         fs = spikes_by_celltype['fs']
+    else: fs = []        
+        
+    # print (fs)
            
-    if len(fs) > 0 and len(pyr) > 0:
+    if len(pyr) > 0: 
                
         for i in pyr:
             count = 0
@@ -94,6 +101,8 @@ for r,s in enumerate(datasets):
                     
             allpart_pyr.append(count / len(rip_ep))
             
+    if len(fs) > 0: 
+            
         for i in fs:
             count = 0
             
@@ -104,25 +113,29 @@ for r,s in enumerate(datasets):
                     count += 1
                     
             allpart_fs.append(count / len(rip_ep))
+            
+
 
 #%% Participation per session by genotype    
 
-        if isWT == 1:
-                      
-            part_all_pyr_wt.extend(allpart_pyr)
-            # sess_part_pyr_wt.append(np.mean(allpart_pyr))
-            
-            part_all_fs_wt.extend(allpart_fs)
-            # sess_part_fs_wt.append(np.mean(allpart_fs))
-            
-            
-        else: 
-            
-            part_all_pyr_ko.extend(allpart_pyr)
-            # sess_part_pyr_ko.append(np.mean(allpart_pyr))
-            
-            part_all_fs_ko.extend(allpart_fs)
-            # sess_part_fs_ko.append(np.mean(allpart_fs))
+    if isWT == 1:
+                  
+        part_all_pyr_wt.extend(allpart_pyr)
+        # sess_part_pyr_wt.append(np.mean(allpart_pyr))
+        
+        part_all_fs_wt.extend(allpart_fs)
+        # sess_part_fs_wt.append(np.mean(allpart_fs))
+        
+        
+    else: 
+        
+        part_all_pyr_ko.extend(allpart_pyr)
+        # sess_part_pyr_ko.append(np.mean(allpart_pyr))
+        
+        part_all_fs_ko.extend(allpart_fs)
+        # sess_part_fs_ko.append(np.mean(allpart_fs))
+        
+    del pyr, fs
 
 #%% Organize data by celltype 
 
@@ -215,7 +228,8 @@ ax.set_box_aspect(1)
 #%% 
 
 # s3.to_csv(data_directory + '/Ripple_participation_session_avg.csv')
-s4.to_csv(data_directory + '/Ripple_participation_single_units.csv')
+# s4.to_csv(data_directory + '/Ripple_participation_single_units.csv')
+s4.to_csv(data_directory + '/Ripple_participation_single_units_0.55.csv')
 
 #%% 
             

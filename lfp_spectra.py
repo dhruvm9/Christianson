@@ -13,7 +13,9 @@ import scipy.io
 import os, sys
 import seaborn as sns
 import matplotlib.pyplot as plt 
+import pynacollada as pyna
 from scipy.stats import mannwhitneyu
+from scipy.signal import hilbert
 
 #%% 
 
@@ -39,6 +41,7 @@ for r,s in enumerate(datasets):
     data = ntm.load_session(path, 'neurosuite')
     data.load_neurosuite_xml(path)
     epochs = data.epochs
+    position = data.position
     
     if name == 'B2613' or name == 'B2618':
         isWT = 0
@@ -51,11 +54,24 @@ for r,s in enumerate(datasets):
     
     file = os.path.join(path, s +'.rem.evt')
     rem_ep = data.read_neuroscope_intervals(name = 'REM', path2file = file)
+    
+#%% Moving epoch 
+
+    speedbinsize = np.diff(position.index.values)[0]
+    
+    time_bins = np.arange(position.index[0], position.index[-1] + speedbinsize, speedbinsize)
+    index = np.digitize(position.index.values, time_bins)
+    tmp = position.as_dataframe().groupby(index).mean()
+    tmp.index = time_bins[np.unique(index)-1]+(speedbinsize)/2
+    distance = np.sqrt(np.power(np.diff(tmp['x']), 2) + np.power(np.diff(tmp['z']), 2)) * 100 #in cm
+    speed = nap.Tsd(t = tmp.index.values[0:-1]+ speedbinsize/2, d = distance/speedbinsize) # in cm/s
+ 
+    moving_ep = nap.IntervalSet(speed.threshold(2).time_support) #Epochs in which speed is > 2 cm/s
         
 
 #%% Restrict LFP
     
-    lfp_wake = lfp.restrict(nap.IntervalSet(epochs['wake']))
+    lfp_wake = lfp.restrict(nap.IntervalSet(moving_ep))
     lfp_w_z = scipy.stats.zscore(lfp_wake)
     
     lfp_sws = lfp.restrict(nap.IntervalSet(sws_ep))
@@ -64,11 +80,26 @@ for r,s in enumerate(datasets):
     lfp_rem = lfp.restrict(nap.IntervalSet(rem_ep))
     lfp_r_z = scipy.stats.zscore(lfp_rem)
 
+#%% Filter LFP and do power ratios
+
+    # lfp_filt_delta = pyna.eeg_processing.bandpass_filter(lfp, 1, 4, 1250)
+    # lfp_filt_theta = pyna.eeg_processing.bandpass_filter(lfp, 6, 9, 1250)
+    # lfp_filt_gammalow = pyna.eeg_processing.bandpass_filter(lfp, 30, 50, 1250)
+    # lfp_filt_gammahigh = pyna.eeg_processing.bandpass_filter(lfp, 70, 90, 1250)
+
+    # delta_power = nap.Tsd(lfp_filt_delta.index.values, np.abs(hilbert(lfp_filt_delta.values)))
+    # theta_power = nap.Tsd(lfp_filt_theta.index.values, np.abs(hilbert(lfp_filt_theta.values)))
+    # gammalow_power = nap.Tsd(lfp_filt_gammalow.index.values, np.abs(hilbert(lfp_filt_gammalow.values)))
+    # gammahigh_power = nap.Tsd(lfp_filt_gammalow.index.values, np.abs(hilbert(lfp_filt_gammahigh.values)))
+    
+    
+
+
 #%% Power Spectral Density 
     
-    # freqs, P_wake = scipy.signal.welch(lfp_wake, fs = fs)
-    # _, P_sws = scipy.signal.welch(lfp_sws, fs = fs)
-    # _, P_rem = scipy.signal.welch(lfp_rem, fs = fs)
+    freqs, P_wake = scipy.signal.welch(lfp_wake, fs = fs)
+    _, P_sws = scipy.signal.welch(lfp_sws, fs = fs)
+    _, P_rem = scipy.signal.welch(lfp_rem, fs = fs)
     
     freqs, P_wake = scipy.signal.welch(lfp_w_z, fs = fs)
     _, P_sws = scipy.signal.welch(lfp_s_z, fs = fs)

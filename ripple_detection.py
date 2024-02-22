@@ -77,7 +77,7 @@ for r,s in enumerate(datasets):
     
 #%% 
 
-    low_thres = 5
+    low_thres = 1
     high_thres = 10
 
     # nSS2 = {}
@@ -96,19 +96,20 @@ for r,s in enumerate(datasets):
     
     # plt.figure(figsize=(15,5))
     # plt.subplot(311)
-    # plt.plot(lfpnrem.restrict(sws_ep).as_units('s'))
+    # plt.plot(lfpnrem.restrict(ex_ep).as_units('s'))
     # plt.subplot(312)
-    # plt.plot(signal.restrict(sws_ep).as_units('s'))
+    # plt.plot(signal.restrict(ex_ep).as_units('s'))
     # plt.subplot(313)
-    # plt.plot(nSS.restrict(sws_ep).as_units('s'))
+    # plt.plot(nSS.restrict(ex_ep).as_units('s'))
+    # plt.plot(nSS3.restrict(ex_ep).as_units('s'))
     
     # for i in nSS3.keys():
     #     plt.plot(nSS3[i].restrict(sws_ep).as_units('s'), '.')
         
         
-    # plt.axhline(low_thres, color = 'k')
-    # plt.xlabel("Time (s)")
-    # plt.tight_layout()
+    plt.axhline(low_thres, color = 'k')
+    plt.xlabel("Time (s)")
+    plt.tight_layout()
     
 #%% 
 
@@ -141,18 +142,18 @@ for r,s in enumerate(datasets):
     
     rip_tsd = nap.Tsd(t=rip_tsd, d=rip_max, time_support=lfpnrem.time_support)
     
-    # plt.figure(figsize=(15,5))
-    # plt.subplot(311)
-    # plt.plot(lfpnrem.restrict(ex_ep).as_units('s'))
-    # plt.subplot(312)
-    # plt.plot(signal.restrict(ex_ep).as_units('s'))
-    # plt.subplot(313)
-    # plt.plot(nSS.restrict(ex_ep).as_units('s'))
-    # plt.plot(nSS3.restrict(rip_ep.intersect(ex_ep)).as_units('s'), '.')
-    # [plt.axvline(t, color = 'green') for t in rip_tsd.restrict(ex_ep).as_units('s').index.values]
-    # plt.axhline(low_thres)
-    # plt.xlabel("Time (s)")
-    # plt.tight_layout()
+    plt.figure(figsize=(15,5))
+    plt.subplot(311)
+    plt.plot(lfpnrem.restrict(ex_ep).as_units('s'))
+    plt.subplot(312)
+    plt.plot(signal.restrict(ex_ep).as_units('s'))
+    plt.subplot(313)
+    plt.plot(nSS.restrict(ex_ep).as_units('s'))
+    plt.plot(nSS3.restrict(rip_ep.intersect(ex_ep)).as_units('s'), '.')
+    [plt.axvline(t, color = 'green') for t in rip_tsd.restrict(ex_ep).as_units('s').index.values]
+    plt.axhline(low_thres)
+    plt.xlabel("Time (s)")
+    plt.tight_layout()
 
 #%% 
 
