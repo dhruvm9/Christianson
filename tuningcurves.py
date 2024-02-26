@@ -184,12 +184,12 @@ for s in datasets:
         plt.figure()
         plt.subplot(121)
         plt.plot(rot_pos['x'], rot_pos['z'], color = 'grey')
-        spk_pos1 = pyr2[pyr2.index[10]].value_from(rot_pos)
+        spk_pos1 = pyr2[pyr2.index[7]].value_from(rot_pos)
         plt.plot(spk_pos1['x'], spk_pos1['z'], 'o', color = 'r', markersize = 5, alpha = 0.5)
         plt.gca().set_box_aspect(1)
         plt.subplot(122)
-        plt.title('SI = '  + str(round(spatialinfo['SI'].tolist()[10], 2)))
-        plt.imshow(placefields[pyr2.index[10]].T / placefields[pyr2.index[10]].max() , origin = 'lower', cmap = 'viridis') 
+        plt.title('SI = '  + str(round(spatialinfo['SI'].tolist()[7], 2)))
+        plt.imshow(placefields[pyr2.index[7]].T / placefields[pyr2.index[7]].max() , origin = 'lower', cmap = 'viridis') 
         plt.colorbar(label = 'Norm. Rate')
         plt.gca().set_box_aspect(1)
                 
@@ -198,15 +198,15 @@ for s in datasets:
     
     # if name != 'B2618':
     # if isWT != 0:
-    #     plt.figure()
-    #     plt.suptitle(s)
-    #     # for n in range(len(spikes)):
-    #     for i,n in enumerate(pyr2):
-    #         plt.subplot(9,8,n+1)
-    #         # plt.title(spikes._metadata['celltype'][n])
-    #         plt.title('SI = '  + str(round(spatialinfo['SI'].tolist()[i], 2)))
-    #         plt.imshow(placefields[n], extent=(binsxy[1][0],binsxy[1][-1],binsxy[0][0],binsxy[0][-1]), cmap = 'jet')        
-    #         plt.colorbar()
+        # plt.figure()
+        # plt.suptitle(s)
+        # # for n in range(len(spikes)):
+        # for i,n in enumerate(pyr2):
+        #     plt.subplot(9,8,n+1)
+        #     # plt.title(spikes._metadata['celltype'][n])
+        #     plt.title('SI = '  + str(round(spatialinfo['SI'].tolist()[i], 2)))
+        #     plt.imshow(placefields[n], extent=(binsxy[1][0],binsxy[1][-1],binsxy[0][0],binsxy[0][-1]), cmap = 'jet')        
+        #     plt.colorbar()
         
     # multipage(data_directory + '/' + 'Allcells.pdf', dpi=250)
     

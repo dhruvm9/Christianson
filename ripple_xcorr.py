@@ -54,6 +54,12 @@ for s in datasets[1:]:
     
     file = os.path.join(path, s +'.evt.py.rip')
     rip_ep = data.read_neuroscope_intervals(name = 'rip', path2file = file)
+    
+    # with open(os.path.join(path, 'riptsd.pickle'), 'rb') as pickle_file:
+        # rip_tsd = pickle.load(pickle_file)
+        
+    with open(os.path.join(path, 'riptrough.pickle'), 'rb') as pickle_file:
+        rip_trough = pickle.load(pickle_file)
           
 #%% Ripple cross corrs
 
@@ -62,7 +68,8 @@ for s in datasets[1:]:
     if 'pyr' in spikes._metadata['celltype'].values:
         pyr = spikes_by_celltype['pyr']
         
-        xc_pyr = nap.compute_eventcorrelogram(pyr, nap.Ts(rip_ep['start'].values), binsize = 0.005, windowsize = 0.1 , ep = nap.IntervalSet(rip_ep), norm = False)
+        # xc_pyr = nap.compute_eventcorrelogram(pyr, nap.Ts(rip_ep['start'].values), binsize = 0.0005, windowsize = 0.1 , ep = nap.IntervalSet(sws_ep), norm = True)
+        xc_pyr = nap.compute_eventcorrelogram(pyr, nap.Ts(np.array(rip_trough)), binsize = 0.0005, windowsize = 0.1 , ep = nap.IntervalSet(sws_ep), norm = True)
     
         if isWT == 1:
             all_xc_pyr_wt = pd.concat([all_xc_pyr_wt, xc_pyr], axis = 1)
@@ -74,7 +81,8 @@ for s in datasets[1:]:
     if 'fs' in spikes._metadata['celltype'].values:
         fs = spikes_by_celltype['fs']
         
-        xc_fs = nap.compute_eventcorrelogram(fs, nap.Ts(rip_ep['start'].values), binsize = 0.005, windowsize = 0.1 , ep = nap.IntervalSet(rip_ep), norm = False)
+        # xc_fs = nap.compute_eventcorrelogram(fs, nap.Ts(rip_ep['start'].values), binsize = 0.0005, windowsize = 0.1 , ep = nap.IntervalSet(sws_ep), norm = True)
+        xc_fs = nap.compute_eventcorrelogram(fs, nap.Ts(np.array(rip_trough)), binsize = 0.0005, windowsize = 0.1 , ep = nap.IntervalSet(sws_ep), norm = True)
         
         if isWT == 1:
             all_xc_fs_wt = pd.concat([all_xc_fs_wt, xc_fs], axis = 1)
@@ -98,6 +106,7 @@ for s in datasets[1:]:
     #     plt.plot(xc[n])
 
 plt.figure()
+plt.tight_layout()
 plt.suptitle('Ripple onset Cross-correlogram')       
 
 plt.subplot(121)
@@ -121,7 +130,7 @@ plt.plot(all_xc_fs_wt.mean(axis=1), color = 'indianred', label = 'WT')
 err = all_xc_fs_wt.sem(axis=1)
 plt.fill_between(all_xc_fs_wt.index.values, all_xc_fs_wt.mean(axis=1) - err, all_xc_fs_wt.mean(axis=1) + err, alpha = 0.2, color = 'indianred') 
 
-plt.plot(all_xc_pyr_ko.mean(axis=1), color = 'lightcoral', label = 'KO')
-err = all_xc_pyr_ko.sem(axis=1)
-plt.fill_between(all_xc_pyr_ko.index.values, all_xc_pyr_ko.mean(axis=1) - err, all_xc_pyr_ko.mean(axis=1) + err, alpha = 0.2, color = 'lightcoral') 
+plt.plot(all_xc_fs_ko.mean(axis=1), color = 'lightcoral', label = 'KO')
+err = all_xc_fs_ko.sem(axis=1)
+plt.fill_between(all_xc_fs_ko.index.values, all_xc_fs_ko.mean(axis=1) - err, all_xc_fs_ko.mean(axis=1) + err, alpha = 0.2, color = 'lightcoral') 
 plt.legend(loc = 'upper right')

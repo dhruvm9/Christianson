@@ -65,15 +65,15 @@ for r,s in enumerate(datasets):
     nSS = nap.Tsd(t = signal.index.values, d = nSS, time_support = signal.time_support)
     # nSS = nap.TsdFrame(t = signal.index.values, d = nSS, time_support = signal.time_support)
     
-    # plt.figure(figsize=(15,5))
-    # plt.subplot(311)
-    # plt.plot(lfpnrem.restrict(ex_ep))
-    # plt.subplot(312)
-    # plt.plot(signal.restrict(ex_ep))
-    # plt.subplot(313)
-    # plt.plot(nSS.restrict(ex_ep))
-    # plt.xlabel("Time (s)")
-    # plt.tight_layout()
+    plt.figure(figsize=(15,5))
+    plt.subplot(311)
+    plt.plot(lfpnrem.restrict(ex_ep))
+    plt.subplot(312)
+    plt.plot(signal.restrict(ex_ep))
+    plt.subplot(313)
+    plt.plot(nSS.restrict(ex_ep))
+    plt.xlabel("Time (s)")
+    plt.tight_layout()
     
 #%% 
 
