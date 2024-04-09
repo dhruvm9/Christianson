@@ -16,7 +16,8 @@ import pickle
 #%% 
 
 data_directory = '/media/dhruv/Expansion/Processed'
-datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
+# datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
+datasets = np.genfromtxt(os.path.join(data_directory,'dataset_test.list'), delimiter = '\n', dtype = str, comments = '#')
 
 isWT = []
 
@@ -34,19 +35,19 @@ for s in datasets:
     spikes = data.spikes
     epochs = data.epochs
     
-    # meanwf, maxch = data.load_mean_waveforms()
+    meanwf, maxch = data.load_mean_waveforms()
     
-    # with open(os.path.join(path, 'meanwf.pickle'), 'wb') as pickle_file:
-    #     pickle.dump(meanwf, pickle_file)
+    with open(os.path.join(path, 'meanwf.pickle'), 'wb') as pickle_file:
+        pickle.dump(meanwf, pickle_file)
         
-    # with open(os.path.join(path, 'maxch.pickle'), 'wb') as pickle_file:
-    #     pickle.dump(maxch, pickle_file)
+    with open(os.path.join(path, 'maxch.pickle'), 'wb') as pickle_file:
+        pickle.dump(maxch, pickle_file)
         
-    with open(os.path.join(path, 'meanwf.pickle'), 'rb') as pickle_file:
-        meanwf = pickle.load(pickle_file)
+    # with open(os.path.join(path, 'meanwf.pickle'), 'rb') as pickle_file:
+    #     meanwf = pickle.load(pickle_file)
     
-    with open(os.path.join(path, 'maxch.pickle'), 'rb') as pickle_file:
-        maxch = pickle.load(pickle_file)
+    # with open(os.path.join(path, 'maxch.pickle'), 'rb') as pickle_file:
+    #     maxch = pickle.load(pickle_file)
         
     spikes.set_info(maxch = maxch)
     

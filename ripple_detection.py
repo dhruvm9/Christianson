@@ -17,8 +17,10 @@ from scipy.signal import filtfilt
 #%%
 
 data_directory = '/media/dhruv/Expansion/Processed'
-datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
-ripplechannels = np.genfromtxt(os.path.join(data_directory,'ripplechannel.list'), delimiter = '\n', dtype = str, comments = '#')
+# datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
+datasets = np.genfromtxt(os.path.join(data_directory,'dataset_test.list'), delimiter = '\n', dtype = str, comments = '#')
+# ripplechannels = np.genfromtxt(os.path.join(data_directory,'ripplechannel.list'), delimiter = '\n', dtype = str, comments = '#')
+ripplechannels = np.genfromtxt(os.path.join(data_directory,'ripplechannel_test.list'), delimiter = '\n', dtype = str, comments = '#')
 
 for r,s in enumerate(datasets):
     print(s)
@@ -34,10 +36,10 @@ for r,s in enumerate(datasets):
     lfp = nap.load_eeg(path + '/' + s + '.eeg', channel = int(ripplechannels[r]), n_channels = 32, frequency = 1250)
     
     file = os.path.join(path, name +'.sws.evt')
-    sws_ep = nap.IntervalSet(data.read_neuroscope_intervals(name = 'SWS', path2file = file))
+    sws_ep = data.read_neuroscope_intervals(name = 'SWS', path2file = file)
     
     file = os.path.join(path, name +'.rem.evt')
-    rem_ep = nap.IntervalSet(data.read_neuroscope_intervals(name = 'REM', path2file = file))
+    rem_ep = data.read_neuroscope_intervals(name = 'REM', path2file = file)
         
 #%% 
          
@@ -126,7 +128,7 @@ for r,s in enumerate(datasets):
 
     minInterRippleInterval = 20 # ms
     rip_ep = rip_ep.merge_close_intervals(minInterRippleInterval, time_units = 'ms')
-    rip_ep = rip_ep.reset_index(drop=True)
+    # rip_ep = rip_ep.reset_index(drop=True)
 
 #%% 
 
@@ -157,9 +159,9 @@ for r,s in enumerate(datasets):
 
 #%% 
 
-    data.write_neuroscope_intervals(extension = '.evt.py5sd.rip', isets = rip_ep, name = 'rip') 
+    data.write_neuroscope_intervals(extension = '.evt.py.rip', isets = rip_ep, name = 'rip') 
     
-    with open(os.path.join(path, 'riptsd_5sd.pickle'), 'wb') as pickle_file:
+    with open(os.path.join(path, 'riptsd.pickle'), 'wb') as pickle_file:
         pickle.dump(rip_tsd, pickle_file)
     
     # data.save_nwb_intervals(rip_ep, 'sleep_ripples')

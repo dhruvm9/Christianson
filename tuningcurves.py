@@ -39,7 +39,8 @@ def rotate_via_numpy(xy, radians):
 #%% 
 
 data_directory = '/media/dhruv/Expansion/Processed'
-datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
+# datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
+datasets = np.genfromtxt(os.path.join(data_directory,'dataset_test.list'), delimiter = '\n', dtype = str, comments = '#')
 
 allspatialinfo_wt = []
 allspatialinfo_ko = []
@@ -57,7 +58,7 @@ for s in datasets:
         isWT = 0
     else: isWT = 1 
     
-    sp2 = np.load(os.path.join(path, 'spikedata.npz'), allow_pickle = True)
+    sp2 = np.load(os.path.join(path, 'spikedata_0.55.npz'), allow_pickle = True)
     time_support = nap.IntervalSet(sp2['start'], sp2['end'])
     tsd = nap.Tsd(t=sp2['t'], d=sp2['index'], time_support = time_support)
     spikes = tsd.to_tsgroup()
@@ -89,7 +90,7 @@ for s in datasets:
     keep = []
     
     for i in pyr.index:
-        if pyr.restrict(nap.IntervalSet(epochs['wake'].loc[[0]]))._metadata['rate'][i] > 0.5:
+        if pyr.restrict(nap.IntervalSet(epochs['wake'][0]))._metadata['rate'][i] > 0.5:
             keep.append(i)
 
     pyr2 = pyr[keep]
@@ -135,8 +136,8 @@ for s in datasets:
 
     ep2 = halves.intersect(moving_ep)
     
-    half1 = ep2.loc[0:len(ep2)/2]
-    half2 = ep2.loc[(len(ep2)/2)+1:]
+    half1 = ep2[0:len(ep2)/2]
+    half2 = ep2[(len(ep2)/2)+1:]
     
     pf1, binsxy = nap.compute_2d_tuning_curves(group = pyr2, features = rot_pos, ep = half1, nb_bins=20)  
     pf2, binsxy = nap.compute_2d_tuning_curves(group = pyr2, features = rot_pos, ep = half2, nb_bins=20)  
@@ -181,32 +182,32 @@ for s in datasets:
 #%% Plot tracking 
 
     # if name != 'B2618':
-        plt.figure()
-        plt.subplot(121)
-        plt.plot(rot_pos['x'], rot_pos['z'], color = 'grey')
-        spk_pos1 = pyr2[pyr2.index[7]].value_from(rot_pos)
-        plt.plot(spk_pos1['x'], spk_pos1['z'], 'o', color = 'r', markersize = 5, alpha = 0.5)
-        plt.gca().set_box_aspect(1)
-        plt.subplot(122)
-        plt.title('SI = '  + str(round(spatialinfo['SI'].tolist()[7], 2)))
-        plt.imshow(placefields[pyr2.index[7]].T / placefields[pyr2.index[7]].max() , origin = 'lower', cmap = 'viridis') 
-        plt.colorbar(label = 'Norm. Rate')
-        plt.gca().set_box_aspect(1)
+    #     plt.figure()
+    #     plt.subplot(121)
+    #     plt.plot(rot_pos['x'], rot_pos['z'], color = 'grey')
+    #     spk_pos1 = pyr2[pyr2.index[7]].value_from(rot_pos)
+    #     plt.plot(spk_pos1['x'], spk_pos1['z'], 'o', color = 'r', markersize = 5, alpha = 0.5)
+    #     plt.gca().set_box_aspect(1)
+    #     plt.subplot(122)
+    #     plt.title('SI = '  + str(round(spatialinfo['SI'].tolist()[7], 2)))
+    #     plt.imshow(placefields[pyr2.index[7]].T / placefields[pyr2.index[7]].max() , origin = 'lower', cmap = 'viridis') 
+    #     plt.colorbar(label = 'Norm. Rate')
+    #     plt.gca().set_box_aspect(1)
                 
 
 #%% Plot tuning curves 
     
-    # if name != 'B2618':
+    if name != 'B2618':
     # if isWT != 0:
-        # plt.figure()
-        # plt.suptitle(s)
-        # # for n in range(len(spikes)):
-        # for i,n in enumerate(pyr2):
-        #     plt.subplot(9,8,n+1)
-        #     # plt.title(spikes._metadata['celltype'][n])
-        #     plt.title('SI = '  + str(round(spatialinfo['SI'].tolist()[i], 2)))
-        #     plt.imshow(placefields[n], extent=(binsxy[1][0],binsxy[1][-1],binsxy[0][0],binsxy[0][-1]), cmap = 'jet')        
-        #     plt.colorbar()
+        plt.figure()
+        plt.suptitle(s)
+        # for n in range(len(spikes)):
+        for i,n in enumerate(pyr2):
+            plt.subplot(9,8,n+1)
+            # plt.title(spikes._metadata['celltype'][n])
+            plt.title('SI = '  + str(round(spatialinfo['SI'].tolist()[i], 2)))
+            plt.imshow(placefields[n], extent=(binsxy[1][0],binsxy[1][-1],binsxy[0][0],binsxy[0][-1]), cmap = 'jet')        
+            plt.colorbar()
         
     # multipage(data_directory + '/' + 'Allcells.pdf', dpi=250)
     

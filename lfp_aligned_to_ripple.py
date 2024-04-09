@@ -46,11 +46,11 @@ for r,s in enumerate(datasets):
     file = os.path.join(path, s +'.rem.evt')
     rem_ep = data.read_neuroscope_intervals(name = 'REM', path2file = file)
     
-    # file = os.path.join(path, s +'.evt.py.rip')
-    # rip_ep = data.read_neuroscope_intervals(name = 'rip', path2file = file)
+    file = os.path.join(path, s +'.evt.py.rip')
+    rip_ep = data.read_neuroscope_intervals(name = 'rip', path2file = file)
     
-    # with open(os.path.join(path, 'riptsd.pickle'), 'rb') as pickle_file:
-    #     rip_tsd = pickle.load(pickle_file)
+    with open(os.path.join(path, 'riptsd.pickle'), 'rb') as pickle_file:
+        rip_tsd = pickle.load(pickle_file)
         
     # file = os.path.join(path, s +'.evt.py3sd.rip')
     # rip_ep = data.read_neuroscope_intervals(name = 'py3sd', path2file = file)
@@ -58,16 +58,16 @@ for r,s in enumerate(datasets):
     # with open(os.path.join(path, 'riptsd_3sd.pickle'), 'rb') as pickle_file:
     #     rip_tsd = pickle.load(pickle_file)
     
-    file = os.path.join(path, s +'.evt.py5sd.rip')
-    rip_ep = data.read_neuroscope_intervals(name = 'py5sd', path2file = file)
+    # file = os.path.join(path, s +'.evt.py5sd.rip')
+    # rip_ep = data.read_neuroscope_intervals(name = 'py5sd', path2file = file)
     
-    with open(os.path.join(path, 'riptsd_5sd.pickle'), 'rb') as pickle_file:
-        rip_tsd = pickle.load(pickle_file)
+    # with open(os.path.join(path, 'riptsd_5sd.pickle'), 'rb') as pickle_file:
+    #     rip_tsd = pickle.load(pickle_file)
     
         
 #%% 
 
-    rip = nap.Ts(rip_ep['start'].values)
+    rip = nap.Ts(rip_ep['start'])
    
     realigned = lfp.as_series().index[lfp.as_series().index.get_indexer(rip.index.values, method='nearest')]
           

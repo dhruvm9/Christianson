@@ -71,13 +71,13 @@ for r,s in enumerate(datasets):
 
 #%% Restrict LFP
     
-    lfp_wake = lfp.restrict(nap.IntervalSet(moving_ep))
+    lfp_wake = lfp.restrict(moving_ep)
     lfp_w_z = scipy.stats.zscore(lfp_wake)
     
-    lfp_sws = lfp.restrict(nap.IntervalSet(sws_ep))
+    lfp_sws = lfp.restrict(sws_ep)
     lfp_s_z = scipy.stats.zscore(lfp_sws)
     
-    lfp_rem = lfp.restrict(nap.IntervalSet(rem_ep))
+    lfp_rem = lfp.restrict(rem_ep)
     lfp_r_z = scipy.stats.zscore(lfp_rem)
 
 #%% Filter LFP and do power ratios
