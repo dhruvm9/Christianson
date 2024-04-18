@@ -16,6 +16,7 @@ import pynacollada as pyna
 import pickle
 from scipy.signal import hilbert, fftconvolve
 from matplotlib.backends.backend_pdf import PdfPages    
+import matplotlib.colors as colors
 
 #%% 
 
@@ -46,12 +47,16 @@ def rounder(values):
 
 #%% 
 
-data_directory = '/media/dhruv/Expansion/Processed'
+# data_directory = '/media/dhruv/Expansion/Processed'
+data_directory = '/media/adrien/Expansion/Processed'
 datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
 # datasets = np.genfromtxt(os.path.join(data_directory,'dataset_test.list'), delimiter = '\n', dtype = str, comments = '#')
 ripplechannels = np.genfromtxt(os.path.join(data_directory,'ripplechannel.list'), delimiter = '\n', dtype = str, comments = '#')
 
 fs = 1250
+
+darr_wt = np.zeros((len(datasets),40,100))
+darr_ko = np.zeros((len(datasets),40,100))
 
 all_pspec_z_wt = pd.DataFrame()
 all_pspec_z_ko = pd.DataFrame()
@@ -107,23 +112,24 @@ for r,s in enumerate(datasets):
 
 #%% 
 
-    downsample = 10
+    downsample = 1
     binned_angles = np.linspace(0, 360, 40)
 
-    lfp_wake = lfp.restrict(moving_ep)
-    # lfp_wake = lfp.restrict(rem_ep)
+    # lfp_wake = lfp.restrict(moving_ep)
+    lfp_wake = lfp.restrict(rem_ep)
+    # lfp_wake = lfp
     
     lfp_filt_theta_wake = pyna.eeg_processing.bandpass_filter(lfp_wake, 6, 9, 1250)
     lfp_filt_gamma_wake = pyna.eeg_processing.bandpass_filter(lfp_wake, 30, 150, 1250)
            
     h_wake = nap.Tsd(t = lfp_filt_theta_wake.index.values, d = hilbert(lfp_filt_theta_wake))
-    
+        
     phase_wake = nap.Tsd(t = lfp_filt_theta_wake.index.values, d = (np.angle(h_wake.values, deg=True) + 360) % (360))
     phase_wake = phase_wake[::downsample]
             
-    tmp = rounder(binned_angles)(phase_wake.values)
+    # tmp = rounder(binned_angles)(phase_wake.values)
     
-    binned_phase = nap.Tsd(t = phase_wake.index.values, d = tmp)
+    # binned_phase = nap.Tsd(t = phase_wake.index.values, d = tmp)
     
     
 #%%
@@ -131,7 +137,7 @@ for r,s in enumerate(datasets):
     fmin = 30
     fmax = 150
     nfreqs = 100
-    ncyc = 3 #5
+    ncyc = 9
     si = 1/fs
         
     freqs = np.logspace(np.log10(fmin),np.log10(fmax),nfreqs)
@@ -146,37 +152,62 @@ for r,s in enumerate(datasets):
          tmpspec = fftconvolve(lfp_wake.values, wavelet, mode = 'same')
          wavespec[freqs[f]] = tmpspec [::downsample]
          temppower = abs(wavespec[freqs[f]]) #**2
-         powerspec[freqs[f]] = ((temppower.values - temppower.mean()) / temppower.std())
+         
+         ### Z-score
+         powerspec[freqs[f]] = ((temppower.values - temppower.mean()) / temppower.std()) #(temppower.values/np.median(temppower.values)) 
+                  
+         ###Modified Z-score
+         # absdiff = abs(temppower.values - temppower.median())        
+         # mad = np.median(absdiff)
+         # powerspec[freqs[f]] = (0.6745* (temppower.values - temppower.mean())) / mad
     
-    powerspec.index = binned_phase
-    tmp2 = powerspec.groupby(powerspec.index).mean()
+    gamma_power = nap.TsdFrame(powerspec)
+    
+    ###Change the EPOCH
+    # phasepref_wake = nap.compute_1d_tuning_curves_continuous(gamma_power, phase_wake, 40, moving_ep)
+    phasepref_wake = nap.compute_1d_tuning_curves_continuous(gamma_power, phase_wake, 40, rem_ep)
+    
+    # tmp2 = powerspec.groupby(powerspec.index).mean()
     
 #%% 
+    
 
-    # plt.figure()
-    # plt.title(s)
-    # plt.imshow(tmp2.T, aspect = 'auto', interpolation='bilinear', origin = 'lower', extent = [0, 360, 30, 150], cmap = 'seismic')
-    # plt.xlabel('Theta phase (deg)')
-    # plt.ylabel('Frequency (Hz)')
-    # plt.colorbar()
+    # norm = colors.TwoSlopeNorm(vmin = -1, vcenter = 0, vmax = 1)
+    if isWT == 0: 
+    
+        plt.figure()
+        plt.title(s)
+        # plt.imshow(tmp2.T, aspect = 'auto', interpolation='bilinear', origin = 'lower', extent = [0, 360, 30, 150], cmap = 'seismic')
+        # plt.imshow(tmp2.T, aspect = 'auto', interpolation='none', origin = 'lower', extent = [0, 360, 30, 150], cmap = 'seismic')
+        plt.imshow(phasepref_wake.T, aspect = 'auto', interpolation='bilinear', origin = 'lower', extent = [0, 360, 30, 150], cmap = 'seismic')
+        plt.xlabel('Theta phase (deg)')
+        plt.ylabel('Frequency (Hz)')
+        plt.colorbar()
     
 #%%
 
     if isWT == 1: 
-        all_pspec_z_wt = pd.concat((tmp2, all_pspec_z_wt))
+        # all_pspec_z_wt = pd.concat((phasepref_wake, all_pspec_z_wt))
+        darr_wt[r,:,:] = phasepref_wake
     else:     
-        all_pspec_z_ko = pd.concat((tmp2, all_pspec_z_ko))
+        # all_pspec_z_ko = pd.concat((phasepref_wake, all_pspec_z_ko))
+        darr_ko[r,:,:] = phasepref_wake
         
 #%% 
         
-specgram_z_wt = all_pspec_z_wt.groupby(all_pspec_z_wt.index).mean()
-specgram_z_ko = all_pspec_z_ko.groupby(all_pspec_z_ko.index).mean()
+# specgram_z_wt = all_pspec_z_wt.groupby(all_pspec_z_wt.index).mean()
+# specgram_z_ko = all_pspec_z_ko.groupby(all_pspec_z_ko.index).mean()
+
+specgram_z_wt = np.mean(darr_wt, axis = 0)
+specgram_z_ko = np.mean(darr_ko, axis = 0)
+
+norm = colors.TwoSlopeNorm(vmin = -0.04, vcenter = 0, vmax = 0.04)
 
 plt.figure()
 # plt.suptitle('Z-scored spectrogram')
 # plt.subplot(121)
 plt.title('WT')
-plt.imshow(specgram_z_wt.T, aspect = 'auto', interpolation='bilinear', origin = 'lower', extent = [0, 360, 30, 150], cmap = 'seismic')
+plt.imshow(specgram_z_wt.T, aspect = 'auto', interpolation='bilinear', origin = 'lower', extent = [0, 360, 30, 150], cmap = 'seismic', norm = norm)
 plt.xlabel('Theta phase (deg)')
 plt.ylabel('Frequency (Hz)')
 plt.colorbar()
@@ -185,10 +216,15 @@ plt.gca().set_box_aspect(1)
 plt.figure()
 # plt.subplot(122)
 plt.title('KO')
-plt.imshow(specgram_z_ko.T, aspect = 'auto', interpolation='bilinear', origin = 'lower', extent = [0, 360, 30, 150], cmap = 'seismic')
+plt.imshow(specgram_z_ko.T, aspect = 'auto', interpolation='bilinear', origin = 'lower', extent = [0, 360, 30, 150], cmap = 'seismic', norm = norm)
 plt.xlabel('Theta phase (deg)')
 plt.ylabel('Frequency (Hz)')
 plt.colorbar()
 plt.gca().set_box_aspect(1)
 
+#%% 
+
+# import pickle 
+# specgram_z_wt.to_pickle(data_directory + '/theta_wake_specgram_z_wt.pkl')
+# specgram_z_ko.to_pickle(data_directory + '/theta_wake_specgram_z_ko.pkl')
 

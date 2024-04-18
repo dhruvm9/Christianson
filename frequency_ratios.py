@@ -21,7 +21,8 @@ from scipy.signal import hilbert
 
 #%% 
 
-data_directory = '/media/dhruv/Expansion/Processed'
+# data_directory = '/media/dhruv/Expansion/Processed'
+data_directory = '/media/adrien/Expansion/Processed'
 datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
 ripplechannels = np.genfromtxt(os.path.join(data_directory,'ripplechannel.list'), delimiter = '\n', dtype = str, comments = '#')
 
@@ -164,18 +165,18 @@ e2 = np.array(['LowGamma/Theta (KO)' for x in range(len(glt_w_ko))])
 e3 = np.array(['HighGamma/Theta (WT)' for x in range(len(glt_w_wt))])
 e4 = np.array(['HighGamma/Theta (KO)' for x in range(len(glt_w_ko))])
 
-e5 = np.array(['Theta/Delta (WT)' for x in range(len(glt_w_wt))])
-e6 = np.array(['Theta/Delta (KO)' for x in range(len(glt_w_ko))])
+# e5 = np.array(['Theta/Delta (WT)' for x in range(len(glt_w_wt))])
+# e6 = np.array(['Theta/Delta (KO)' for x in range(len(glt_w_ko))])
 
-types = np.hstack([e, e2, e3, e4, e5, e6])
+types = np.hstack([e, e2, e3, e4])
 
 wakerates = []
 wakerates.extend(glt_w_wt)
 wakerates.extend(glt_w_ko)
 wakerates.extend(ght_w_wt)
 wakerates.extend(ght_w_ko)
-wakerates.extend(td_w_wt)
-wakerates.extend(td_w_ko)
+# wakerates.extend(td_w_wt)
+# wakerates.extend(td_w_ko)
 
 wakedf = pd.DataFrame(data = [wakerates, types], index = ['rate', 'type']).T
 
@@ -186,18 +187,18 @@ e2 = np.array(['LowGamma/Theta (KO)' for x in range(len(glt_n_ko))])
 e3 = np.array(['HighGamma/Theta (WT)' for x in range(len(glt_n_wt))])
 e4 = np.array(['HighGamma/Theta (KO)' for x in range(len(glt_n_ko))])
 
-e5 = np.array(['Theta/Delta (WT)' for x in range(len(glt_n_wt))])
-e6 = np.array(['Theta/Delta (KO)' for x in range(len(glt_n_ko))])
+# e5 = np.array(['Theta/Delta (WT)' for x in range(len(glt_n_wt))])
+# e6 = np.array(['Theta/Delta (KO)' for x in range(len(glt_n_ko))])
 
-types = np.hstack([e, e2, e3, e4, e5, e6])
+types = np.hstack([e, e2, e3, e4])
 
 nremrates = []
 nremrates.extend(glt_n_wt)
 nremrates.extend(glt_n_ko)
 nremrates.extend(ght_n_wt)
 nremrates.extend(ght_n_ko)
-nremrates.extend(td_n_wt)
-nremrates.extend(td_n_ko)
+# nremrates.extend(td_n_wt)
+# nremrates.extend(td_n_ko)
 
 nremdf = pd.DataFrame(data = [nremrates, types], index = ['rate', 'type']).T
 
@@ -211,15 +212,15 @@ e4 = np.array(['HighGamma/Theta (KO)' for x in range(len(glt_r_ko))])
 e5 = np.array(['Theta/Delta (WT)' for x in range(len(glt_r_wt))])
 e6 = np.array(['Theta/Delta (KO)' for x in range(len(glt_r_ko))])
 
-types = np.hstack([e, e2, e3, e4, e5, e6])
+types = np.hstack([e, e2, e3, e4])
 
 remrates = []
 remrates.extend(glt_r_wt)
 remrates.extend(glt_r_ko)
 remrates.extend(ght_r_wt)
 remrates.extend(ght_r_ko)
-remrates.extend(td_r_wt)
-remrates.extend(td_r_ko)
+# remrates.extend(td_r_wt)
+# remrates.extend(td_r_ko)
 
 remdf = pd.DataFrame(data = [remrates, types], index = ['rate', 'type']).T
 
@@ -295,3 +296,14 @@ for dots in ax.collections[old_len_collections:]:
 ax.set_xlim(xlim)
 plt.ylabel('Ratio')
 ax.set_box_aspect(1)
+
+#%% 
+
+t,p = mannwhitneyu(glt_w_wt, glt_w_ko)
+t,p = mannwhitneyu(glt_n_wt, glt_n_ko)
+t,p = mannwhitneyu(glt_r_wt, glt_r_ko)
+
+t,p = mannwhitneyu(ght_w_wt, ght_w_ko)
+t,p = mannwhitneyu(ght_n_wt, ght_n_ko)
+t,p = mannwhitneyu(ght_r_wt, ght_r_ko)
+

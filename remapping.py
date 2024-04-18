@@ -39,13 +39,18 @@ def rotate_via_numpy(xy, radians):
     
 #%% 
 
-data_directory = '/media/dhruv/Expansion/Processed'
+# data_directory = '/media/dhruv/Expansion/Processed'
+data_directory = '/media/adrien/Expansion/Processed'
 datasets = np.genfromtxt(os.path.join(data_directory,'remapping_DM.list'), delimiter = '\n', dtype = str, comments = '#')
 
-env_stability = []
+env_stability_wt = []
+env_stability_ko = []
 
-halfsession1_corr = []
-halfsession2_corr = []
+halfsession1_corr_wt = []
+halfsession1_corr_ko = []
+
+halfsession2_corr_wt = []
+halfsession2_corr_ko = []
 
 for s in datasets:
     print(s)
@@ -57,7 +62,7 @@ for s in datasets:
         isWT = 0
     else: isWT = 1 
 
-    sp2 = np.load(os.path.join(path, 'spikedata.npz'), allow_pickle = True)
+    sp2 = np.load(os.path.join(path, 'spikedata_0.55.npz'), allow_pickle = True)
     time_support = nap.IntervalSet(sp2['start'], sp2['end'])
     tsd = nap.Tsd(t=sp2['t'], d=sp2['index'], time_support = time_support)
     spikes = tsd.to_tsgroup()
@@ -189,12 +194,12 @@ for s in datasets:
     
     ep_wake1 = halves1.intersect(moving_ep)
     ep_wake2 = halves2.intersect(moving_ep)
+        
+    half1_wake1 = ep_wake1[0:len(ep_wake1)//2]
+    half2_wake1 = ep_wake1[(len(ep_wake1)//2)+1:]
     
-    half1_wake1 = ep_wake1.loc[0:len(ep_wake1)/2]
-    half2_wake1 = ep_wake1.loc[(len(ep_wake1)/2)+1:]
-    
-    half1_wake2 = ep_wake2.loc[0:len(ep_wake2)/2]
-    half2_wake2 = ep_wake2.loc[(len(ep_wake2)/2)+1:]
+    half1_wake2 = ep_wake2[0:len(ep_wake2)//2]
+    half2_wake2 = ep_wake2[(len(ep_wake2)//2)+1:]
         
     pf1, binsxy = nap.compute_2d_tuning_curves(group = pyr2, features = rot_pos[['x', 'z']], ep = half1_wake1, nb_bins=20)  
     pf2, binsxy = nap.compute_2d_tuning_curves(group = pyr2, features = rot_pos[['x', 'z']], ep = half2_wake1, nb_bins=20)  
@@ -211,19 +216,28 @@ for s in datasets:
         good = np.logical_and(np.isfinite(placefields1[k].flatten()), np.isfinite(placefields2[k].flatten()))
         corr, p = scipy.stats.pearsonr(placefields1[k].flatten()[good], placefields2[k].flatten()[good]) 
         
-        env_stability.append(corr)
+        if isWT == 1:
+            env_stability_wt.append(corr)
+        else: 
+            env_stability_ko.append(corr)
         
         ###Between 2 halves of first wake 
         good2 = np.logical_and(np.isfinite(pf1[k].flatten()), np.isfinite(pf2[k].flatten()))
         corr2, p2 = scipy.stats.pearsonr(pf1[k].flatten()[good2], pf2[k].flatten()[good2]) 
         
-        halfsession1_corr.append(corr2)
+        if isWT == 1:
+            halfsession1_corr_wt.append(corr2)
+        else:
+            halfsession1_corr_ko.append(corr2)
         
         ###Between 2 halves of second wake 
         good3 = np.logical_and(np.isfinite(pf3[k].flatten()), np.isfinite(pf4[k].flatten()))
         corr3, p3 = scipy.stats.pearsonr(pf3[k].flatten()[good3], pf4[k].flatten()[good3]) 
         
-        halfsession2_corr.append(corr3)
+        if isWT == 1:
+            halfsession2_corr_wt.append(corr3)
+        else: 
+            halfsession2_corr_ko.append(corr3)
         
 ### PLOT EXAMPLES ARENA 1 
 
@@ -300,36 +314,36 @@ for s in datasets:
         
 #%% Plot Example cells 
 
-examples = [4,5,8,10]
+# examples = [4,5,8,10]
 
-for n in examples:
-    plt.figure()
-    peakfreq = max(placefields1[n].max(), placefields2[n].max()) 
-    pf1 = placefields1[n] / peakfreq
-    pf2 = placefields2[n] / peakfreq
+# for n in examples:
+#     plt.figure()
+#     peakfreq = max(placefields1[n].max(), placefields2[n].max()) 
+#     pf1 = placefields1[n] / peakfreq
+#     pf2 = placefields2[n] / peakfreq
     
     
-    plt.subplot(1,2,1)
-    plt.imshow(pf1.T, cmap = 'viridis', aspect = 'auto', origin = 'lower', vmin = 0, vmax = 1)   
-    plt.tight_layout()
-    plt.gca().set_box_aspect(1)
-    plt.subplot(1,2,2)
-    plt.imshow(pf2.T, cmap = 'viridis', aspect = 'auto', origin = 'lower', vmin = 0, vmax = 1)   
-    # plt.colorbar()
-    plt.gca().set_box_aspect(1)
-    plt.tight_layout()
+#     plt.subplot(1,2,1)
+#     plt.imshow(pf1.T, cmap = 'viridis', aspect = 'auto', origin = 'lower', vmin = 0, vmax = 1)   
+#     plt.tight_layout()
+#     plt.gca().set_box_aspect(1)
+#     plt.subplot(1,2,2)
+#     plt.imshow(pf2.T, cmap = 'viridis', aspect = 'auto', origin = 'lower', vmin = 0, vmax = 1)   
+#     # plt.colorbar()
+#     plt.gca().set_box_aspect(1)
+#     plt.tight_layout()
     
     
-plt.figure()
-plt.subplot(121)
-plt.plot(rot_pos['x'].restrict(ep1), rot_pos['z'].restrict(ep1), color = 'grey')
-spk_pos1 = pyr2[examples[1]].value_from(rot_pos.restrict(ep1))
-plt.plot(spk_pos1['x'], spk_pos1['z'], 'o', color = 'r', markersize = 5, alpha = 0.5)
-plt.gca().set_box_aspect(1)
-plt.subplot(122)
-plt.plot(rot_pos['x'].restrict(ep2), rot_pos['z'].restrict(ep2), color = 'grey')
-spk_pos2 = pyr2[examples[1]].value_from(rot_pos.restrict(ep2))
-plt.plot(spk_pos2['x'], spk_pos2['z'], 'o', color = 'r', markersize = 5, alpha = 0.5)
-plt.gca().set_box_aspect(1)    
+# plt.figure()
+# plt.subplot(121)
+# plt.plot(rot_pos['x'].restrict(ep1), rot_pos['z'].restrict(ep1), color = 'grey')
+# spk_pos1 = pyr2[examples[1]].value_from(rot_pos.restrict(ep1))
+# plt.plot(spk_pos1['x'], spk_pos1['z'], 'o', color = 'r', markersize = 5, alpha = 0.5)
+# plt.gca().set_box_aspect(1)
+# plt.subplot(122)
+# plt.plot(rot_pos['x'].restrict(ep2), rot_pos['z'].restrict(ep2), color = 'grey')
+# spk_pos2 = pyr2[examples[1]].value_from(rot_pos.restrict(ep2))
+# plt.plot(spk_pos2['x'], spk_pos2['z'], 'o', color = 'r', markersize = 5, alpha = 0.5)
+# plt.gca().set_box_aspect(1)    
     
     

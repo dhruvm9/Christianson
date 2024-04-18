@@ -19,7 +19,7 @@ import pickle
 
 #%% 
 
-data_directory = '/media/dhruv/Expansion/Processed'
+data_directory = '/media/adrien/Expansion/Processed'
 datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
 ripplechannels = np.genfromtxt(os.path.join(data_directory,'ripplechannel.list'), delimiter = '\n', dtype = str, comments = '#')
 
@@ -54,6 +54,9 @@ evdiff_10_ko = []
 evdiff_20_ko = []
 evdiff_rest_ko = []
 
+pre_dur = []
+post_dur = []
+
 
 for s in datasets[1:]:
     print(s)
@@ -76,6 +79,9 @@ for s in datasets[1:]:
     
     file = os.path.join(path, s +'.sws.evt')
     sws_ep = nap.IntervalSet(data.read_neuroscope_intervals(name = 'SWS', path2file = file))
+    
+    pre_dur.append(sws_ep.intersect(epochs['sleep'].loc[[0]]).tot_length())
+    post_dur.append(sws_ep.intersect(epochs['sleep'].loc[[1]]).tot_length())
     
     # file = os.path.join(path, s +'.rem.evt')
     # rem_ep = nap.IntervalSet(data.read_neuroscope_intervals(name = 'REM', path2file = file))
@@ -105,7 +111,7 @@ for s in datasets[1:]:
     keep = []
     
     for i in pyr.index:
-        if pyr.restrict(epochs['wake'].loc[[0]])._metadata['rate'][i] > 0.5:
+        if pyr.restrict(nap.IntervalSet(epochs['wake'].loc[[0]]))._metadata['rate'][i] > 0.5:
             keep.append(i)
               
             
@@ -173,117 +179,84 @@ for s in datasets[1:]:
         # ripp_pre = sub_nrem_ep.intersect(rip_ep)
     
     ### Last 10 min 
-        # sub_nrem_ep = nap.IntervalSet(start = epochs['sleep'].loc[[0]].intersect(sws_ep).iloc[-1]['start'], end = epochs['sleep'].loc[[0]].intersect(sws_ep).iloc[-1]['end'])
-        # tStart = epochs['sleep'].loc[[0]].intersect(sws_ep).iloc[-1]['start']
-        # tEnd = epochs['sleep'].loc[[0]].intersect(sws_ep).iloc[-1]['end']
+        sub_nrem_ep = nap.IntervalSet(start = epochs['sleep'].loc[[0]].intersect(sws_ep).iloc[-1]['start'], end = epochs['sleep'].loc[[0]].intersect(sws_ep).iloc[-1]['end'])
+        tStart = epochs['sleep'].loc[[0]].intersect(sws_ep).iloc[-1]['start']
+        tEnd = epochs['sleep'].loc[[0]].intersect(sws_ep).iloc[-1]['end']
         
-        # epcount = -1
-        
-        # sub_nrem_length = tEnd - tStart
-        
-        # while sub_nrem_length < 600:
-        #     sub_nrem_ep = sub_nrem_ep.union(nap.IntervalSet(start = tStart, end = tEnd))
-            
-        #     epcount -= 1
-                        
-        #     tStart = epochs['sleep'].loc[[0]].intersect(sws_ep).iloc[epcount]['start']
-        #     tEnd = epochs['sleep'].loc[[0]].intersect(sws_ep).iloc[epcount]['end']
-        #     sub_nrem_length = sub_nrem_ep.tot_length() + (tEnd - tStart)
-            
-        # remainder_time = 600 - sub_nrem_ep.tot_length()
-        # sub_nrem_ep = sub_nrem_ep.union(nap.IntervalSet(start = tEnd - remainder_time, end = tEnd))
-        
-        # ripp_pre = sub_nrem_ep.intersect(rip_ep)
-    
-    ### All PRE 
-        ripp_pre = epochs['sleep'].loc[[0]].intersect(sws_ep).intersect(rip_ep)
-        
-   ###POST (first 10 min)
-           
-        sub_nrem_ep = nap.IntervalSet(start = epochs['sleep'].loc[[1]].intersect(sws_ep).loc[[0]]['start'], end = epochs['sleep'].loc[[1]].intersect(sws_ep).loc[[0]]['end'])
-        tStart = epochs['sleep'].loc[[1]].intersect(sws_ep).loc[[0]]['start']
-        tEnd = epochs['sleep'].loc[[1]].intersect(sws_ep).loc[[0]]['end']
-        
-        epcount = 0
+        epcount = -1
         
         sub_nrem_length = tEnd - tStart
         
-        while sub_nrem_length.values[0] < 600:
+        while sub_nrem_length < 600:
             sub_nrem_ep = sub_nrem_ep.union(nap.IntervalSet(start = tStart, end = tEnd))
             
-            epcount += 1
+            epcount -= 1
                         
-            tStart = epochs['sleep'].loc[[1]].intersect(sws_ep).loc[[epcount]]['start']
-            tEnd = epochs['sleep'].loc[[1]].intersect(sws_ep).loc[[epcount]]['end']
+            tStart = epochs['sleep'].loc[[0]].intersect(sws_ep).iloc[epcount]['start']
+            tEnd = epochs['sleep'].loc[[0]].intersect(sws_ep).iloc[epcount]['end']
             sub_nrem_length = sub_nrem_ep.tot_length() + (tEnd - tStart)
             
         remainder_time = 600 - sub_nrem_ep.tot_length()
-        sub_nrem_ep = sub_nrem_ep.union(nap.IntervalSet(start = tStart, end = tStart + remainder_time))
+        sub_nrem_ep = sub_nrem_ep.union(nap.IntervalSet(start = tEnd - remainder_time, end = tEnd))
         
-        ripp_post_10 = sub_nrem_ep.intersect(rip_ep)
+        ripp_pre = sub_nrem_ep.intersect(rip_ep)
+    
+    ### All PRE 
+        # ripp_pre = epochs['sleep'].loc[[0]].intersect(sws_ep).intersect(nap.IntervalSet(rip_ep))
+        
+   ###POST (first 10 min)
+           
+        # sub_nrem_ep = nap.IntervalSet(start = epochs['sleep'].loc[[1]].intersect(sws_ep).loc[[0]]['start'], end = epochs['sleep'].loc[[1]].intersect(sws_ep).loc[[0]]['end'])
+        # tStart = epochs['sleep'].loc[[1]].intersect(sws_ep).loc[[0]]['start']
+        # tEnd = epochs['sleep'].loc[[1]].intersect(sws_ep).loc[[0]]['end']
+        
+        # epcount = 0
+        
+        # sub_nrem_length = tEnd - tStart
+        
+        # while sub_nrem_length.values[0] < 1200: #600:
+        #     sub_nrem_ep = sub_nrem_ep.union(nap.IntervalSet(start = tStart, end = tEnd))
+            
+        #     epcount += 1
+                        
+        #     tStart = epochs['sleep'].loc[[1]].intersect(sws_ep).loc[[epcount]]['start']
+        #     tEnd = epochs['sleep'].loc[[1]].intersect(sws_ep).loc[[epcount]]['end']
+        #     sub_nrem_length = sub_nrem_ep.tot_length() + (tEnd - tStart)
+            
+        # remainder_time = 1200 - sub_nrem_ep.tot_length() ###CHECK 
+        # sub_nrem_ep = sub_nrem_ep.union(nap.IntervalSet(start = tStart, end = tStart + remainder_time))
+        
+        # ripp_post_10 = sub_nrem_ep.intersect(nap.IntervalSet(rip_ep))
+        ripp_post_10 = epochs['sleep'].loc[[1]].intersect(sws_ep).intersect(nap.IntervalSet(rip_ep))
     
     ###POST (10-20 min)
                   
     
-        sub_nrem_ep2 = nap.IntervalSet(start = sub_nrem_ep.iloc[-1]['end'], end = tEnd)
-        tStart = sub_nrem_ep.iloc[-1]['end']
-        tEnd = tEnd
+        # sub_nrem_ep2 = nap.IntervalSet(start = sub_nrem_ep.iloc[-1]['end'], end = tEnd)
+        # tStart = sub_nrem_ep.iloc[-1]['end']
+        # tEnd = tEnd
                        
-        sub_nrem_length = tEnd - tStart
+        # sub_nrem_length = tEnd - tStart
         
-        while sub_nrem_length.values[0] < 600:
-            sub_nrem_ep2 = sub_nrem_ep2.union(nap.IntervalSet(start = tStart, end = tEnd))
+        # while sub_nrem_length.values[0] < 600:
+        #     sub_nrem_ep2 = sub_nrem_ep2.union(nap.IntervalSet(start = tStart, end = tEnd))
             
-            epcount += 1
+        #     epcount += 1
                         
-            tStart = epochs['sleep'].loc[[1]].intersect(sws_ep).loc[[epcount]]['start'] 
-            tEnd = epochs['sleep'].loc[[1]].intersect(sws_ep).loc[[epcount]]['end']
-            sub_nrem_length = sub_nrem_ep.tot_length() - tStart + tEnd
+        #     tStart = epochs['sleep'].loc[[1]].intersect(sws_ep).loc[[epcount]]['start'] 
+        #     tEnd = epochs['sleep'].loc[[1]].intersect(sws_ep).loc[[epcount]]['end']
+        #     sub_nrem_length = sub_nrem_ep.tot_length() - tStart + tEnd
             
-        remainder_time = 600 - sub_nrem_ep2.tot_length()
-        sub_nrem_ep2 = sub_nrem_ep2.union(nap.IntervalSet(start = tStart, end = tStart + remainder_time))
+        # remainder_time = 600 - sub_nrem_ep2.tot_length()
+        # sub_nrem_ep2 = sub_nrem_ep2.union(nap.IntervalSet(start = tStart, end = tStart + remainder_time))
         
-        ripp_post_20 = sub_nrem_ep2.intersect(rip_ep)
+        # ripp_post_20 = sub_nrem_ep2.intersect(nap.IntervalSet(rip_ep))
         
     ###POST (20+ min)
          
-        ripp_post_rest = rip_ep.intersect(nap.IntervalSet(start = sub_nrem_ep2.iloc[-1]['end'], end = epochs['sleep'].loc[[1]].intersect(sws_ep).iloc[-1]['end']))
-       
-        
-    ### IGNORE
-        
-        # pre_int = epochs['sleep'].loc[[0]].intersect(sws_ep).intersect(
-        #     nap.IntervalSet(start = epochs['sleep'].loc[[0]].intersect(sws_ep).loc[[0]]['start'],
-        #                                                   end = epochs['sleep'].loc[[0]].intersect(sws_ep).iloc[-1]['end'] ))
-        
-        # pre_int = epochs['sleep'].loc[[0]].intersect(sws_ep).intersect(
-        #     nap.IntervalSet(start = epochs['sleep'].loc[[0]].intersect(sws_ep).loc[[0]]['start'],
-        #                                                   end = epochs['sleep'].loc[[0]].intersect(sws_ep).loc[[0]]['start']+ 600))
-        
-        # # pre_int = epochs['sleep'].loc[[0]].intersect(sws_ep).intersect(
-        # #     nap.IntervalSet(start = epochs['sleep'].loc[[0]].intersect(sws_ep).iloc[-1]['end'] - 1200,
-        # #                                                   end = epochs['sleep'].loc[[0]].intersect(sws_ep).iloc[-1]['end'] ))
-        
-        # post_int_10 = epochs['sleep'].loc[[1]].intersect(nap.IntervalSet(start = epochs['sleep'].loc[[1]].intersect(sws_ep).loc[[0]]['start'],
-        #                                               end = epochs['sleep'].loc[[1]].intersect(sws_ep).loc[[0]]['start'] + 600 ))
-        
-        # post_int_20 = epochs['sleep'].loc[[1]].intersect(nap.IntervalSet(start = epochs['sleep'].loc[[1]].intersect(sws_ep).loc[[0]]['start'] + 600,
-        #                                               end = epochs['sleep'].loc[[1]].intersect(sws_ep).loc[[0]]['start'] + 1200 ))
-        
-        # post_int_rest = epochs['sleep'].loc[[1]].intersect(nap.IntervalSet(start = epochs['sleep'].loc[[1]].intersect(sws_ep).loc[[0]]['start'] + 1200,
-        #                                               end = epochs['sleep'].loc[[1]].intersect(sws_ep).iloc[-1]['end']))
-        
-        
-        
-        # pre_int = epochs['sleep'].loc[[0]].intersect(sws_ep).intersect(
-        #     nap.IntervalSet(start = epochs['sleep'].loc[[0]].intersect(sws_ep).loc[[1]]['start'],
-        #                                                   end = epochs['sleep'].loc[[0]].intersect(sws_ep).loc[[1]]['end']))
-        
-        
-        # post_int = epochs['sleep'].loc[[1]].intersect(nap.IntervalSet(start = epochs['sleep'].loc[[1]].intersect(sws_ep).loc[[1]]['start'],
-        #                                               end = epochs['sleep'].loc[[1]].intersect(sws_ep).loc[[1]]['end'] + 1200))
-        
-    
+        # ripp_post_rest = rip_ep.intersect(nap.IntervalSet(start = sub_nrem_ep2.iloc[-1]['end'], end = epochs['sleep'].loc[[1]].intersect(sws_ep).iloc[-1]['end']))
+        # ripp_post_rest = rip_ep.intersect(nap.IntervalSet(start = sub_nrem_ep.iloc[-1]['end'], end = epochs['sleep'].loc[[1]].intersect(sws_ep).iloc[-1]['end']))
+          
         
 #%% 
       
@@ -291,33 +264,21 @@ for s in datasets[1:]:
         # t = time.time()
         
         # print(time.time() - t)
-               
-        #Remove any cells with all 0 bins
-        # tokeep = []
-        
-        # for i in range(len(binned_wake.columns)):
-        #     if np.count_nonzero(binned_pre.as_dataframe().iloc[:,i]) != 0 and np.count_nonzero(binned_wake.as_dataframe().iloc[:,i]) != 0  and np.count_nonzero(binned_post_10.as_dataframe().iloc[:,i]) != 0 and np.count_nonzero(binned_post_20.as_dataframe().iloc[:,i]) != 0 and np.count_nonzero(binned_post_rest.as_dataframe().iloc[:,i]) != 0:
-        #         tokeep.append(i)
-                
-        # binned_pre2 = binned_pre.as_dataframe().iloc[:,tokeep]
-        # binned_wake2 = binned_wake.as_dataframe().iloc[:,tokeep]
-        # binned_post2_10 = binned_post_10.as_dataframe().iloc[:,tokeep]
-        # binned_post2_20 = binned_post_20.as_dataframe().iloc[:,tokeep]
-        # binned_post2_rest = binned_post_rest.as_dataframe().iloc[:,tokeep]
+                    
 
-        binned_pre2 = binned_spikes.restrict(ripp_pre).as_dataframe()
-        binned_wake2 = binned_spikes.restrict(moving_ep).as_dataframe()
-        binned_post2_10 = binned_spikes.restrict(ripp_post_10).as_dataframe()
-        binned_post2_20 = binned_spikes.restrict(ripp_post_20).as_dataframe()
-        binned_post2_rest = binned_spikes.restrict(ripp_post_rest).as_dataframe()
+        binned_pre2 = binned_spikes.restrict(nap.IntervalSet(ripp_pre)).as_dataframe()
+        binned_wake2 = binned_spikes.restrict(nap.IntervalSet(moving_ep)).as_dataframe()
+        binned_post2_10 = binned_spikes.restrict(nap.IntervalSet(ripp_post_10)).as_dataframe()
+        # binned_post2_20 = binned_spikes.restrict(nap.IntervalSet(ripp_post_20)).as_dataframe()
+        # binned_post2_rest = binned_spikes.restrict(nap.IntervalSet(ripp_post_rest)).as_dataframe()
 
         
         # t = time.time()
         Cpre =  np.corrcoef(binned_pre2.T) 
         Cwake = np.corrcoef(binned_wake2.T)
         Cpost_10 = np.corrcoef(binned_post2_10.T)
-        Cpost_20 = np.corrcoef(binned_post2_20.T)
-        Cpost_rest = np.corrcoef(binned_post2_rest.T)
+        # Cpost_20 = np.corrcoef(binned_post2_20.T)
+        # Cpost_rest = np.corrcoef(binned_post2_rest.T)
         # print(time.time() - t)
         
         ix = np.triu_indices(Cpre.shape[1])
@@ -325,41 +286,43 @@ for s in datasets[1:]:
         uptr_pre = Cpre[ix].flatten() 
         uptr_wake = Cwake[ix].flatten() 
         uptr_post_10 = Cpost_10[ix].flatten()
-        uptr_post_20 = Cpost_20[ix].flatten()
-        uptr_post_rest = Cpost_rest[ix].flatten()
+        # uptr_post_20 = Cpost_20[ix].flatten()
+        # uptr_post_rest = Cpost_rest[ix].flatten()
         
         Rwpost_10, _ = pearsonr(uptr_wake, uptr_post_10)
-        Rwpost_20, _ = pearsonr(uptr_wake, uptr_post_20)
-        Rwpost_rest, _ = pearsonr(uptr_wake, uptr_post_rest)
+        # Rwpost_20, _ = pearsonr(uptr_wake, uptr_post_20)
+        # Rwpost_rest, _ = pearsonr(uptr_wake, uptr_post_rest)
         Rwpre, _ = pearsonr(uptr_wake, uptr_pre)
         Rprepost_10, _ = pearsonr(uptr_pre, uptr_post_10)
-        Rprepost_20, _ = pearsonr(uptr_pre, uptr_post_20)
-        Rprepost_rest, _ = pearsonr(uptr_pre, uptr_post_rest)
+        # Rprepost_20, _ = pearsonr(uptr_pre, uptr_post_20)
+        # Rprepost_rest, _ = pearsonr(uptr_pre, uptr_post_rest)
         
         EV_10 = ((Rwpost_10 - (Rwpre * Rprepost_10)) / np.sqrt((1 - Rwpre**2) * (1 - Rprepost_10**2)))**2
         REV_10 = ((Rwpre - (Rwpost_10 * Rprepost_10)) / np.sqrt((1 - Rwpost_10**2) * (1 - Rprepost_10**2)))**2
         
-        EV_20 = ((Rwpost_20 - (Rwpre * Rprepost_20)) / np.sqrt((1 - Rwpre**2) * (1 - Rprepost_20**2)))**2
-        REV_20 = ((Rwpre - (Rwpost_20 * Rprepost_20)) / np.sqrt((1 - Rwpost_20**2) * (1 - Rprepost_20**2)))**2
+        # EV_20 = ((Rwpost_20 - (Rwpre * Rprepost_20)) / np.sqrt((1 - Rwpre**2) * (1 - Rprepost_20**2)))**2
+        # REV_20 = ((Rwpre - (Rwpost_20 * Rprepost_20)) / np.sqrt((1 - Rwpost_20**2) * (1 - Rprepost_20**2)))**2
         
-        EV_rest = ((Rwpost_rest - (Rwpre * Rprepost_rest)) / np.sqrt((1 - Rwpre**2) * (1 - Rprepost_rest**2)))**2
-        REV_rest = ((Rwpre - (Rwpost_rest * Rprepost_rest)) / np.sqrt((1 - Rwpost_rest**2) * (1 - Rprepost_rest**2)))**2
+        # EV_rest = ((Rwpost_rest - (Rwpre * Rprepost_rest)) / np.sqrt((1 - Rwpre**2) * (1 - Rprepost_rest**2)))**2
+        # REV_rest = ((Rwpre - (Rwpost_rest * Rprepost_rest)) / np.sqrt((1 - Rwpost_rest**2) * (1 - Rprepost_rest**2)))**2
                
         
-        if np.isnan(EV_10) == False and np.isnan(REV_10) == False and np.isnan(EV_20) == False and np.isnan(REV_20) == False and np.isnan(EV_rest) == False and np.isnan(REV_rest) == False:
+        # if np.isnan(EV_10) == False and np.isnan(REV_10) == False and np.isnan(EV_20) == False and np.isnan(REV_20) == False and np.isnan(EV_rest) == False and np.isnan(REV_rest) == False:
+        # if np.isnan(EV_10) == False and np.isnan(REV_10) == False  and np.isnan(EV_rest) == False and np.isnan(REV_rest) == False:
+        if np.isnan(EV_10) == False and np.isnan(REV_10) == False  :
         
             if isWT == 1:
                 
                 evdiff_10_wt.append(EV_10 - REV_10)
-                evdiff_20_wt.append(EV_20 - REV_20)
-                evdiff_rest_wt.append(EV_rest - REV_rest)
+                # evdiff_20_wt.append(EV_20 - REV_20)
+                # evdiff_rest_wt.append(EV_rest - REV_rest)
                 
                 ev_wt_10.append(EV_10)
                 rev_wt_10.append(REV_10)
-                ev_wt_20.append(EV_20)
-                rev_wt_20.append(REV_20)
-                ev_wt_rest.append(EV_rest)
-                rev_wt_rest.append(REV_rest)
+                # ev_wt_20.append(EV_20)
+                # rev_wt_20.append(REV_20)
+                # ev_wt_rest.append(EV_rest)
+                # rev_wt_rest.append(REV_rest)
                 
                 
                 ncells_wt.append(len(pyr))
@@ -367,15 +330,15 @@ for s in datasets[1:]:
             else:
                 
                 evdiff_10_ko.append(EV_10 - REV_10)
-                evdiff_20_ko.append(EV_20 - REV_20)
-                evdiff_rest_ko.append(EV_rest - REV_rest)
+                # evdiff_20_ko.append(EV_20 - REV_20)
+                # evdiff_rest_ko.append(EV_rest - REV_rest)
                 
                 ev_ko_10.append(EV_10)
                 rev_ko_10.append(REV_10)
-                ev_ko_20.append(EV_20)
-                rev_ko_20.append(REV_20)
-                ev_ko_rest.append(EV_rest)
-                rev_ko_rest.append(REV_rest)
+                # ev_ko_20.append(EV_20)
+                # rev_ko_20.append(REV_20)
+                # ev_ko_rest.append(EV_rest)
+                # rev_ko_rest.append(REV_rest)
 
                 
                 ncells_ko.append(len(pyr))
@@ -456,7 +419,7 @@ x = [0, 0.35]# the label locations
 width = 0.3  # the width of the bars
 
 plt.figure()
-plt.suptitle('Reactivation - 10 min post')
+plt.suptitle('Reactivation - last 10 min pre; all post')
 plt.subplot(121)
 plt.boxplot(ev_wt_10, positions=[0], showfliers=False, patch_artist=True, boxprops=dict(facecolor='royalblue', color='royalblue'),
             capprops=dict(color='royalblue'),
