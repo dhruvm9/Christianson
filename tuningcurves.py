@@ -36,6 +36,7 @@ def rotate_via_numpy(xy, radians):
 
     return float(m.T[0]), float(m.T[1])
     
+
 #%% 
 
 data_directory = '/media/dhruv/Expansion/Processed'
@@ -67,7 +68,8 @@ for s in datasets:
     data = ntm.load_session(path, 'neurosuite')
     epochs = data.epochs
     position = data.position
-
+    
+    
 #%% Rotate position 
 
     rot_pos = []
@@ -79,7 +81,8 @@ for s in datasets:
         rot_pos.append((newx, newy))
         
     rot_pos = nap.TsdFrame(t = position.index.values, d = rot_pos, columns = ['x', 'z'])
-                                     
+    
+                                         
 #%% Get cells with wake rate more then 0.5Hz
         
     spikes_by_celltype = spikes.getby_category('celltype')

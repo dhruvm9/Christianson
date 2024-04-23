@@ -17,7 +17,7 @@ import seaborn as sns
 from scipy.stats import mannwhitneyu
 from matplotlib.backends.backend_pdf import PdfPages    
 
-#%% #%% 
+#%% 
 
 def multipage(filename, figs=None, dpi=200):
     pp = PdfPages(filename)
@@ -36,11 +36,54 @@ def rotate_via_numpy(xy, radians):
     m = np.dot(j, [x, y])
 
     return float(m.T[0]), float(m.T[1])
+
+def occupancy_prob(position, ep, nb_bins=20):
+    pos= position[['x','z']]
+    position_tsd = pos.restrict(ep)
+    xpos = position_tsd[:,0]
+    ypos = position_tsd[:,1]
+    xbins = np.linspace(xpos.min(), xpos.max()+1e-6, nb_bins+1)
+    ybins = np.linspace(ypos.min(), ypos.max()+1e-6, nb_bins+1) 
+    occupancy, _, _ = np.histogram2d(ypos, xpos, [ybins,xbins])
+    norm_occu = scipy.ndimage.gaussian_filter(occupancy/sum(occupancy),sigma = 1.5, mode = "nearest")
+    masked_array = np.ma.masked_where(occupancy == 0, norm_occu) 
+    masked_array = np.flipud(masked_array)
+    return masked_array
+
+def sparsity(rate_map, px):
+    '''
+    Compute sparsity of a rate map, The sparsity  measure is an adaptation
+    to space. The adaptation measures the fraction of the environment  in which
+    a cell is  active. A sparsity of, 0.1 means that the place field of the
+    cell occupies 1/10 of the area the subject traverses [2]_
+
+    Parameters
+    ----------
+    rate_map : normalized numpy.ndarray
+        A firing rate map, any number of dimensions.
+
+    Returns
+    -------
+    out : float
+        sparsity
+
+    References
+    ----------
+    .. [2] Skaggs, W. E., McNaughton, B. L., Wilson, M., & Barnes, C. (1996).
+       Theta phase precession in hippocampal neuronal populations and the
+       compression of temporal sequences. Hippocampus, 6, 149-172.
+    '''
+    tmp_rate_map = rate_map.copy()
+    tmp_rate_map[np.isnan(tmp_rate_map)] = 0
+    avg_rate = np.sum(np.ravel(tmp_rate_map * px))
+    avg_sqr_rate = np.sum(np.ravel(tmp_rate_map**2 * px))
+    return avg_rate**2 / avg_sqr_rate
+
     
 #%% 
 
-# data_directory = '/media/dhruv/Expansion/Processed'
-data_directory = '/media/adrien/Expansion/Processed'
+data_directory = '/media/dhruv/Expansion/Processed'
+# data_directory = '/media/adrien/Expansion/Processed'
 datasets = np.genfromtxt(os.path.join(data_directory,'remapping_DM.list'), delimiter = '\n', dtype = str, comments = '#')
 
 env_stability_wt = []
@@ -51,6 +94,19 @@ halfsession1_corr_ko = []
 
 halfsession2_corr_wt = []
 halfsession2_corr_ko = []
+
+SI1_wt = []
+SI1_ko = []
+
+SI2_wt = []
+SI2_ko = []
+
+SI3_wt = []
+SI3_ko = []
+
+SI4_wt = []
+SI4_ko = []
+
 
 for s in datasets:
     print(s)
@@ -77,9 +133,13 @@ for s in datasets:
     rot_pos = []
         
     xypos = np.array(position[['x', 'z']])
-      
+    
+    if isWT == 1:
+        rad = 0.6
+    else: rad = 1
+    
     for i in range(len(xypos)):
-        newx, newy = rotate_via_numpy(xypos[i], 1.05)
+        newx, newy = rotate_via_numpy(xypos[i], rad)
         rot_pos.append((newx, newy))
         
     rot_pos = nap.TsdFrame(t = position.index.values, d = rot_pos, columns = ['x', 'z'])
@@ -94,7 +154,7 @@ for s in datasets:
     keep = []
     
     for i in pyr.index:
-        if pyr.restrict(nap.IntervalSet(epochs['wake'].loc[[0]]))._metadata['rate'][i] > 0.5:
+        if pyr.restrict(nap.IntervalSet(epochs['wake'][0]))._metadata['rate'][i] > 0.5:
             keep.append(i)
 
     pyr2 = pyr[keep]
@@ -118,8 +178,8 @@ for s in datasets:
            
 #%% 
     
-    # w1 = nap.IntervalSet(start = epochs['wake'].loc[0]['start'], end = epochs['wake'].loc[0]['end'])
-    # w2 = nap.IntervalSet(start = epochs['wake'].loc[1]['start'], end = epochs['wake'].loc[1]['end'])
+    w1 = nap.IntervalSet(start = epochs['wake'][0]['start'], end = epochs['wake'][0]['end'])
+    w2 = nap.IntervalSet(start = epochs['wake'][1]['start'], end = epochs['wake'][1]['end'])
                                      
     placefields1, binsxy1 = nap.compute_2d_tuning_curves(group = pyr2, 
                                                        features = rot_pos[['x', 'z']], 
@@ -149,21 +209,21 @@ for s in datasets:
     
 #%% Plot remapping 
 
-    plt.figure()
-    plt.suptitle(s + ' Wake1')
-    for i,n in enumerate(pyr2):
-        plt.subplot(9,8,n+1)
-        # plt.title(spikes._metadata['celltype'][i])
-        plt.imshow(placefields1[n], extent=(binsxy1[1][0],binsxy1[1][-1],binsxy1[0][0],binsxy1[0][-1]), cmap = 'jet')        
-        plt.colorbar()
+    # plt.figure()
+    # plt.suptitle(s + ' Wake1')
+    # for i,n in enumerate(pyr2):
+    #     plt.subplot(9,8,n+1)
+    #     # plt.title(spikes._metadata['celltype'][i])
+    #     plt.imshow(placefields1[n], extent=(binsxy1[1][0],binsxy1[1][-1],binsxy1[0][0],binsxy1[0][-1]), cmap = 'jet')        
+    #     plt.colorbar()
 
-    plt.figure()
-    plt.suptitle(s + ' Wake2')
-    for i,n in enumerate(pyr2):
-        plt.subplot(9,8,n+1)
-        # plt.title(spikes._metadata['celltype'][i])
-        plt.imshow(placefields2[n], extent=(binsxy2[1][0],binsxy2[1][-1],binsxy2[0][0],binsxy2[0][-1]), cmap = 'jet')        
-        plt.colorbar()
+    # plt.figure()
+    # plt.suptitle(s + ' Wake2')
+    # for i,n in enumerate(pyr2):
+    #     plt.subplot(9,8,n+1)
+    #     # plt.title(spikes._metadata['celltype'][i])
+    #     plt.imshow(placefields2[n], extent=(binsxy2[1][0],binsxy2[1][-1],binsxy2[0][0],binsxy2[0][-1]), cmap = 'jet')        
+    #     plt.colorbar()
     
     
 ###EXAMPLES 
@@ -202,11 +262,37 @@ for s in datasets:
     half2_wake2 = ep_wake2[(len(ep_wake2)//2)+1:]
         
     pf1, binsxy = nap.compute_2d_tuning_curves(group = pyr2, features = rot_pos[['x', 'z']], ep = half1_wake1, nb_bins=20)  
+    spatialinfo1 = nap.compute_2d_mutual_info(pf1, rot_pos[['x', 'z']], ep = half1_wake1)
+    px1 = occupancy_prob(rot_pos, half1_wake1)
+    
+    sp1 = []
+    for k in pyr2:
+        tmp = sparsity(pf1[k], px1)
+        sp1.append(tmp)
+    
     pf2, binsxy = nap.compute_2d_tuning_curves(group = pyr2, features = rot_pos[['x', 'z']], ep = half2_wake1, nb_bins=20)  
+    spatialinfo2 = nap.compute_2d_mutual_info(pf2, rot_pos[['x', 'z']], ep = half2_wake1)
+    px2 = occupancy_prob(rot_pos, half2_wake1)
 
     pf3, binsxy = nap.compute_2d_tuning_curves(group = pyr2, features = rot_pos[['x', 'z']], ep = half1_wake2, nb_bins=20)  
+    spatialinfo3 = nap.compute_2d_mutual_info(pf3, rot_pos[['x', 'z']], ep = half1_wake2)
+    px3 = occupancy_prob(rot_pos, half1_wake2)
+    
     pf4, binsxy = nap.compute_2d_tuning_curves(group = pyr2, features = rot_pos[['x', 'z']], ep = half2_wake2, nb_bins=20)  
-
+    spatialinfo4 = nap.compute_2d_mutual_info(pf4, rot_pos[['x', 'z']], ep = half2_wake2)
+    px4 = occupancy_prob(rot_pos, half2_wake2)
+       
+    
+    if isWT == 1:
+        SI1_wt.extend(spatialinfo1.values)
+        SI2_wt.extend(spatialinfo2.values)
+        SI3_wt.extend(spatialinfo3.values)
+        SI4_wt.extend(spatialinfo4.values)
+    else: 
+        SI1_ko.extend(spatialinfo1.values)
+        SI2_ko.extend(spatialinfo2.values)
+        SI3_ko.extend(spatialinfo3.values)
+        SI4_ko.extend(spatialinfo4.values)
         
 #%% Quantify spatial maps between 2 environments 
 
@@ -247,11 +333,14 @@ for s in datasets:
     #     corr, _ = scipy.stats.pearsonr(pf1[n].flatten()[good], pf2[n].flatten()[good]) 
     #     plt.suptitle('R = '  + str(round(corr, 2)))
     #     plt.subplot(121)
+    #     plt.title(round(spatialinfo1['SI'][n],2))
     #     plt.imshow(pf1[n], extent=(binsxy[1][0],binsxy[1][-1],binsxy[0][0],binsxy[0][-1]), cmap = 'jet')        
     #     plt.colorbar()
     #     plt.subplot(122)
+    #     plt.title(round(spatialinfo2['SI'][n],2))
     #     plt.imshow(pf2[n], extent=(binsxy[1][0],binsxy[1][-1],binsxy[0][0],binsxy[0][-1]), cmap = 'jet')        
     #     plt.colorbar()
+        
         
 ### PLOT EXAMPLES ARENA 2
     
@@ -261,9 +350,11 @@ for s in datasets:
     #     corr, _ = scipy.stats.pearsonr(pf3[n].flatten()[good], pf4[n].flatten()[good]) 
     #     plt.suptitle('R = '  + str(round(corr, 2)))
     #     plt.subplot(121)
+    #     plt.title(spatialinfo3[n])
     #     plt.imshow(pf3[n], extent=(binsxy[1][0],binsxy[1][-1],binsxy[0][0],binsxy[0][-1]), cmap = 'jet')        
     #     plt.colorbar()
     #     plt.subplot(122)
+    #     plt.title(spatialinfo4[n])
     #     plt.imshow(pf4[n], extent=(binsxy[1][0],binsxy[1][-1],binsxy[0][0],binsxy[0][-1]), cmap = 'jet')        
     #     plt.colorbar()
         
@@ -271,46 +362,131 @@ for s in datasets:
         
 #%% Organize and plot environment stability data 
     
-# env = np.array(['A v/s B' for x in range(len(env_stability))])
-# h1 = np.array(['A1 v/s B1' for x in range(len(halfsession1_corr))])
-# h2 = np.array(['A2 v/s B2' for x in range(len(halfsession2_corr))])
+###Across 2 envs
 
-# corrtype = np.hstack([env, h1, h2])
+wt = np.array(['WT' for x in range(len(env_stability_wt))])
+ko = np.array(['KO' for x in range(len(env_stability_ko))])
 
-# sinfos = []
-# sinfos.extend(env_stability)
-# sinfos.extend(halfsession1_corr)
-# sinfos.extend(halfsession2_corr)
+genotype = np.hstack([wt, ko])
 
-# allinfos = pd.DataFrame(data = [sinfos, corrtype], index = ['corr', 'type']).T
+sinfos = []
+sinfos.extend(env_stability_wt)
+sinfos.extend(env_stability_ko)
 
-# plt.figure()
-# plt.title('Remapping Quantification')
-# sns.set_style('white')
-# palette = ['orangered', 'coral', 'darksalmon'] 
-# ax = sns.violinplot( x = allinfos['type'], y=allinfos['corr'].astype(float) , data = allinfos, dodge=False,
-#                     palette = palette,cut = 2,
-#                     scale="width", inner=None)
-# ax.tick_params(bottom=True, left=True)
-# xlim = ax.get_xlim()
-# ylim = ax.get_ylim()
-# for violin in ax.collections:
-#     x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
-#     violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
-# sns.boxplot(x = allinfos['type'], y=allinfos['corr'].astype(float) , data = allinfos, saturation=1, showfliers=False,
-#             width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
-# old_len_collections = len(ax.collections)
-# sns.stripplot(x = allinfos['type'], y = allinfos['corr'].astype(float), data = allinfos, color = 'k', dodge=False, ax=ax)
-# # sns.swarmplot(x = wakedf['type'], y = wakedf['rate'].astype(float), data = wakedf, color = 'k', dodge=False, ax=ax)
-# for dots in ax.collections[old_len_collections:]:
-#     dots.set_offsets(dots.get_offsets())
-# ax.set_xlim(xlim)
-# ax.set_ylim(ylim)
-# plt.ylabel('Spatial Map Correlation')
-# ax.set_box_aspect(1)
-    
-# t, p = mannwhitneyu(env_stability_wt, env_stability_ko)
-    
+allinfos = pd.DataFrame(data = [sinfos, genotype], index = ['corr', 'type']).T
+
+###Half-session corr: 1st env
+
+wt = np.array(['WT' for x in range(len(halfsession1_corr_wt))])
+ko = np.array(['KO' for x in range(len(halfsession1_corr_ko))])
+
+genotype2 = np.hstack([wt, ko])
+
+sinfos2 = []
+sinfos2.extend(halfsession1_corr_wt)
+sinfos2.extend(halfsession1_corr_ko)
+
+allinfos2 = pd.DataFrame(data = [sinfos2, genotype2], index = ['corr', 'type']).T
+
+###Half-session corr: 2nd env 
+
+wt = np.array(['WT' for x in range(len(halfsession2_corr_wt))])
+ko = np.array(['KO' for x in range(len(halfsession2_corr_ko))])
+
+genotype3 = np.hstack([wt, ko])
+
+sinfos3 = []
+sinfos3.extend(halfsession2_corr_wt)
+sinfos3.extend(halfsession2_corr_ko)
+
+allinfos3 = pd.DataFrame(data = [sinfos3, genotype3], index = ['corr', 'type']).T
+
+#%% 
+
+plt.figure()
+plt.suptitle('Remapping')
+
+plt.subplot(131)
+plt.title('A v/s B')
+sns.set_style('white')
+palette = ['royalblue', 'indianred']
+ax = sns.violinplot( x = allinfos['type'], y=allinfos['corr'].astype(float) , data = allinfos, dodge=False,
+                    palette = palette,cut = 2,
+                    scale="width", inner=None)
+ax.tick_params(bottom=True, left=True)
+xlim = ax.get_xlim()
+ylim = ax.get_ylim()
+for violin in ax.collections:
+    x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
+    violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
+sns.boxplot(x = allinfos['type'], y=allinfos['corr'].astype(float) , data = allinfos, saturation=1, showfliers=False,
+            width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
+old_len_collections = len(ax.collections)
+sns.stripplot(x = allinfos['type'], y = allinfos['corr'].astype(float), data = allinfos, color = 'k', dodge=False, ax=ax)
+# sns.swarmplot(x = durdf['genotype'], y = durdf['dur'].astype(float), data = durdf, color = 'k', dodge=False, ax=ax)
+for dots in ax.collections[old_len_collections:]:
+    dots.set_offsets(dots.get_offsets())
+ax.set_xlim(xlim)
+ax.set_ylim(ylim)
+plt.ylabel('Correlation (R)')
+ax.set_box_aspect(1)
+
+plt.subplot(132)
+plt.title('A1 v/s A2')
+sns.set_style('white')
+palette = ['royalblue', 'indianred']
+ax = sns.violinplot( x = allinfos2['type'], y=allinfos2['corr'].astype(float) , data = allinfos2, dodge=False,
+                    palette = palette,cut = 2,
+                    scale="width", inner=None)
+ax.tick_params(bottom=True, left=True)
+xlim = ax.get_xlim()
+ylim = ax.get_ylim()
+for violin in ax.collections:
+    x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
+    violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
+sns.boxplot(x = allinfos2['type'], y=allinfos2['corr'].astype(float) , data = allinfos2, saturation=1, showfliers=False,
+            width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
+old_len_collections = len(ax.collections)
+sns.stripplot(x = allinfos2['type'], y = allinfos2['corr'].astype(float), data = allinfos2, color = 'k', dodge=False, ax=ax)
+# sns.swarmplot(x = durdf['genotype'], y = durdf['dur'].astype(float), data = durdf, color = 'k', dodge=False, ax=ax)
+for dots in ax.collections[old_len_collections:]:
+    dots.set_offsets(dots.get_offsets())
+ax.set_xlim(xlim)
+ax.set_ylim(ylim)
+plt.ylabel('Correlation (R)')
+ax.set_box_aspect(1)
+
+plt.subplot(133)
+plt.title('B1 v/s B2')
+sns.set_style('white')
+palette = ['royalblue', 'indianred']
+ax = sns.violinplot( x = allinfos3['type'], y=allinfos3['corr'].astype(float) , data = allinfos3, dodge=False,
+                    palette = palette,cut = 2,
+                    scale="width", inner=None)
+ax.tick_params(bottom=True, left=True)
+xlim = ax.get_xlim()
+ylim = ax.get_ylim()
+for violin in ax.collections:
+    x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
+    violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
+sns.boxplot(x = allinfos3['type'], y=allinfos3['corr'].astype(float) , data = allinfos3, saturation=1, showfliers=False,
+            width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
+old_len_collections = len(ax.collections)
+sns.stripplot(x = allinfos3['type'], y = allinfos3['corr'].astype(float), data = allinfos3, color = 'k', dodge=False, ax=ax)
+# sns.swarmplot(x = durdf['genotype'], y = durdf['dur'].astype(float), data = durdf, color = 'k', dodge=False, ax=ax)
+for dots in ax.collections[old_len_collections:]:
+    dots.set_offsets(dots.get_offsets())
+ax.set_xlim(xlim)
+ax.set_ylim(ylim)
+plt.ylabel('Correlation (R)')
+ax.set_box_aspect(1)
+
+
+#%% 
+
+t, p = mannwhitneyu(env_stability_wt, env_stability_ko)    
+t2, p2 = mannwhitneyu(halfsession1_corr_wt, halfsession1_corr_ko)
+t3, p3 = mannwhitneyu(halfsession2_corr_wt, halfsession2_corr_ko)
         
 #%% Plot Example cells 
 
