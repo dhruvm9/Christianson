@@ -94,7 +94,7 @@ for s in datasets[1:]:
 #%% Load classified spikes 
 
     # t = time.time()
-    sp2 = np.load(os.path.join(path, 'spikedata.npz'), allow_pickle = True)
+    sp2 = np.load(os.path.join(path, 'spikedata_0.55.npz'), allow_pickle = True)
     time_support = nap.IntervalSet(sp2['start'], sp2['end'])
     tsd = nap.Tsd(t=sp2['t'], d=sp2['index'], time_support = time_support)
     spikes = tsd.to_tsgroup()

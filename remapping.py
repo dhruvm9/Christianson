@@ -14,7 +14,7 @@ import pynapple as nap
 import os, sys
 import matplotlib.pyplot as plt 
 import seaborn as sns
-from scipy.stats import mannwhitneyu
+from scipy.stats import mannwhitneyu, wilcoxon
 from matplotlib.backends.backend_pdf import PdfPages    
 
 #%% 
@@ -37,7 +37,7 @@ def rotate_via_numpy(xy, radians):
 
     return float(m.T[0]), float(m.T[1])
 
-def occupancy_prob(position, ep, nb_bins=20):
+def occupancy_prob(position, ep, nb_bins=24, norm = False):
     pos= position[['x','z']]
     position_tsd = pos.restrict(ep)
     xpos = position_tsd[:,0]
@@ -45,8 +45,11 @@ def occupancy_prob(position, ep, nb_bins=20):
     xbins = np.linspace(xpos.min(), xpos.max()+1e-6, nb_bins+1)
     ybins = np.linspace(ypos.min(), ypos.max()+1e-6, nb_bins+1) 
     occupancy, _, _ = np.histogram2d(ypos, xpos, [ybins,xbins])
-    norm_occu = scipy.ndimage.gaussian_filter(occupancy/sum(occupancy),sigma = 1.5, mode = "nearest")
-    masked_array = np.ma.masked_where(occupancy == 0, norm_occu) 
+    
+    if norm is True:
+        occupancy = occupancy/sum(occupancy)
+        
+    masked_array = np.ma.masked_where(occupancy == 0, occupancy) 
     masked_array = np.flipud(masked_array)
     return masked_array
 
@@ -107,6 +110,11 @@ SI3_ko = []
 SI4_wt = []
 SI4_ko = []
 
+allspatialinfo_env1_wt = []
+allspatialinfo_env2_wt = []
+
+allspatialinfo_env1_ko = []
+allspatialinfo_env2_ko = []
 
 for s in datasets:
     print(s)
@@ -144,7 +152,7 @@ for s in datasets:
         
     rot_pos = nap.TsdFrame(t = position.index.values, d = rot_pos, columns = ['x', 'z'])
     
-   #%% Get cells with wake rate more then 0.5Hz
+#%% Get cells with wake rate more then 0.5Hz
         
     spikes_by_celltype = spikes.getby_category('celltype')
     
@@ -176,7 +184,7 @@ for s in datasets:
         ep1 = moving_ep.intersect(epochs['wake'].loc[[0]])
         ep2 = moving_ep.intersect(epochs['wake'].loc[[1]])
            
-#%% 
+#%% Compute place fields in the 2 arenas
     
     w1 = nap.IntervalSet(start = epochs['wake'][0]['start'], end = epochs['wake'][0]['end'])
     w2 = nap.IntervalSet(start = epochs['wake'][1]['start'], end = epochs['wake'][1]['end'])
@@ -184,19 +192,43 @@ for s in datasets:
     placefields1, binsxy1 = nap.compute_2d_tuning_curves(group = pyr2, 
                                                        features = rot_pos[['x', 'z']], 
                                                        ep = ep1, 
-                                                       nb_bins=20)      
+                                                       nb_bins=24)      
+    px1 = occupancy_prob(rot_pos, ep1, nb_bins=24)
+    
+        
+    
     
     placefields2, binsxy2 = nap.compute_2d_tuning_curves(group = pyr2, 
                                                        features = rot_pos[['x', 'z']], 
                                                        ep = ep2, 
-                                                       nb_bins=20)
+                                                       nb_bins=24)
+    px2 = occupancy_prob(rot_pos, ep2, nb_bins=24)
+    
+    SI_1 = nap.compute_2d_mutual_info(placefields1, rot_pos[['x', 'z']], ep = ep1)
+    SI_2 = nap.compute_2d_mutual_info(placefields2, rot_pos[['x', 'z']], ep = ep2)
+
+    spatialinfo_env1 = nap.compute_2d_mutual_info(placefields1, rot_pos[['x', 'z']], ep = ep1)
+    spatialinfo_env2 = nap.compute_2d_mutual_info(placefields2, rot_pos[['x', 'z']], ep = ep2)
+
+    if isWT == 1:
+        allspatialinfo_env1_wt.extend(spatialinfo_env1['SI'].tolist())
+        allspatialinfo_env2_wt.extend(spatialinfo_env2['SI'].tolist())
+    else: 
+        allspatialinfo_env1_ko.extend(spatialinfo_env1['SI'].tolist())
+        allspatialinfo_env2_ko.extend(spatialinfo_env2['SI'].tolist())
     
     for i in pyr2.keys(): 
         placefields1[i][np.isnan(placefields1[i])] = 0
-        placefields1[i] = scipy.ndimage.gaussian_filter(placefields1[i], 1)
+        placefields1[i] = scipy.ndimage.gaussian_filter(placefields1[i], 1.5, mode = 'nearest')
+        masked_array = np.ma.masked_where(px1 == 0, placefields1[i]) #should work fine without it 
+        placefields1[i] = masked_array
         
         placefields2[i][np.isnan(placefields2[i])] = 0
-        placefields2[i] = scipy.ndimage.gaussian_filter(placefields2[i], 1)
+        placefields2[i] = scipy.ndimage.gaussian_filter(placefields2[i], 1.5, mode = 'nearest')
+        masked_array = np.ma.masked_where(px2 == 0, placefields2[i]) #should work fine without it 
+        placefields2[i] = masked_array
+        
+    
 
 #%% Plot tracking 
 
@@ -208,11 +240,15 @@ for s in datasets:
     # plt.plot(rot_pos['x'].restrict(w2), rot_pos['z'].restrict(w2))
     
 #%% Plot remapping 
+    
+    # ref = pyr2.keys()
+    # nrows = int(np.sqrt(len(ref)))
+    # ncols = int(len(ref)/nrows)+1
 
     # plt.figure()
     # plt.suptitle(s + ' Wake1')
     # for i,n in enumerate(pyr2):
-    #     plt.subplot(9,8,n+1)
+    #     plt.subplot(nrows, ncols, i+1)
     #     # plt.title(spikes._metadata['celltype'][i])
     #     plt.imshow(placefields1[n], extent=(binsxy1[1][0],binsxy1[1][-1],binsxy1[0][0],binsxy1[0][-1]), cmap = 'jet')        
     #     plt.colorbar()
@@ -220,7 +256,7 @@ for s in datasets:
     # plt.figure()
     # plt.suptitle(s + ' Wake2')
     # for i,n in enumerate(pyr2):
-    #     plt.subplot(9,8,n+1)
+    #     plt.subplot(nrows, ncols, i+1)
     #     # plt.title(spikes._metadata['celltype'][i])
     #     plt.imshow(placefields2[n], extent=(binsxy2[1][0],binsxy2[1][-1],binsxy2[0][0],binsxy2[0][-1]), cmap = 'jet')        
     #     plt.colorbar()
@@ -242,13 +278,13 @@ for s in datasets:
     
 #%% Split both wake epochs into halves 
 
-    center1 = rot_pos.restrict(nap.IntervalSet(epochs['wake'].loc[[0]])).time_support.get_intervals_center()
-    center2 = rot_pos.restrict(nap.IntervalSet(epochs['wake'].loc[[1]])).time_support.get_intervals_center()
+    center1 = rot_pos.restrict(nap.IntervalSet(epochs['wake'][0])).time_support.get_intervals_center()
+    center2 = rot_pos.restrict(nap.IntervalSet(epochs['wake'][1])).time_support.get_intervals_center()
     
-    halves1 = nap.IntervalSet( start = [rot_pos.restrict(nap.IntervalSet(epochs['wake'].loc[[0]])).time_support.start[0], center1.t[0]],
+    halves1 = nap.IntervalSet(start = [rot_pos.restrict(nap.IntervalSet(epochs['wake'].loc[[0]])).time_support.start[0], center1.t[0]],
                               end = [center1.t[0], rot_pos.restrict(nap.IntervalSet(epochs['wake'].loc[[0]])).time_support.end[0]])
 
-    halves2 = nap.IntervalSet( start = [rot_pos.restrict(nap.IntervalSet(epochs['wake'].loc[[1]])).time_support.start[0], center2.t[0]],
+    halves2 = nap.IntervalSet(start = [rot_pos.restrict(nap.IntervalSet(epochs['wake'].loc[[1]])).time_support.start[0], center2.t[0]],
                               end = [center2.t[0], rot_pos.restrict(nap.IntervalSet(epochs['wake'].loc[[1]])).time_support.end[0]])
 
     
@@ -261,27 +297,54 @@ for s in datasets:
     half1_wake2 = ep_wake2[0:len(ep_wake2)//2]
     half2_wake2 = ep_wake2[(len(ep_wake2)//2)+1:]
         
-    pf1, binsxy = nap.compute_2d_tuning_curves(group = pyr2, features = rot_pos[['x', 'z']], ep = half1_wake1, nb_bins=20)  
+    pf1, binsxy = nap.compute_2d_tuning_curves(group = pyr2, features = rot_pos[['x', 'z']], ep = half1_wake1, nb_bins=24)  
+    px1 = occupancy_prob(rot_pos, half1_wake1, nb_bins=24)
     spatialinfo1 = nap.compute_2d_mutual_info(pf1, rot_pos[['x', 'z']], ep = half1_wake1)
-    px1 = occupancy_prob(rot_pos, half1_wake1)
+    
+    norm_px1 = occupancy_prob(rot_pos, half1_wake1, nb_bins=24, norm=True)
+    norm_px2 = occupancy_prob(rot_pos, half1_wake2, nb_bins=24, norm=True)
+    norm_px3 = occupancy_prob(rot_pos, half2_wake1, nb_bins=24, norm=True)
+    norm_px4 = occupancy_prob(rot_pos, half2_wake2, nb_bins=24, norm=True)
     
     sp1 = []
     for k in pyr2:
         tmp = sparsity(pf1[k], px1)
         sp1.append(tmp)
+   
     
-    pf2, binsxy = nap.compute_2d_tuning_curves(group = pyr2, features = rot_pos[['x', 'z']], ep = half2_wake1, nb_bins=20)  
+    pf2, binsxy = nap.compute_2d_tuning_curves(group = pyr2, features = rot_pos[['x', 'z']], ep = half2_wake1, nb_bins=24)  
+    px2 = occupancy_prob(rot_pos, half2_wake1, nb_bins=24)
     spatialinfo2 = nap.compute_2d_mutual_info(pf2, rot_pos[['x', 'z']], ep = half2_wake1)
-    px2 = occupancy_prob(rot_pos, half2_wake1)
 
-    pf3, binsxy = nap.compute_2d_tuning_curves(group = pyr2, features = rot_pos[['x', 'z']], ep = half1_wake2, nb_bins=20)  
+    pf3, binsxy = nap.compute_2d_tuning_curves(group = pyr2, features = rot_pos[['x', 'z']], ep = half1_wake2, nb_bins=24)  
+    px3 = occupancy_prob(rot_pos, half1_wake2, nb_bins=24)
     spatialinfo3 = nap.compute_2d_mutual_info(pf3, rot_pos[['x', 'z']], ep = half1_wake2)
-    px3 = occupancy_prob(rot_pos, half1_wake2)
-    
-    pf4, binsxy = nap.compute_2d_tuning_curves(group = pyr2, features = rot_pos[['x', 'z']], ep = half2_wake2, nb_bins=20)  
+        
+    pf4, binsxy = nap.compute_2d_tuning_curves(group = pyr2, features = rot_pos[['x', 'z']], ep = half2_wake2, nb_bins=24)  
+    px4 = occupancy_prob(rot_pos, half2_wake2, nb_bins=24)
     spatialinfo4 = nap.compute_2d_mutual_info(pf4, rot_pos[['x', 'z']], ep = half2_wake2)
-    px4 = occupancy_prob(rot_pos, half2_wake2)
-       
+    
+    for i in pyr2.keys(): 
+        pf1[i][np.isnan(pf1[i])] = 0
+        pf1[i] = scipy.ndimage.gaussian_filter(pf1[i], 1.5, mode = 'nearest')
+        masked_array = np.ma.masked_where(px1 == 0, pf1[i]) #should work fine without it 
+        pf1[i] = masked_array
+        
+        pf2[i][np.isnan(pf2[i])] = 0
+        pf2[i] = scipy.ndimage.gaussian_filter(pf2[i], 1.5, mode = 'nearest')
+        masked_array = np.ma.masked_where(px2 == 0, pf2[i]) #should work fine without it 
+        pf2[i] = masked_array
+        
+        pf3[i][np.isnan(pf3[i])] = 0
+        pf3[i] = scipy.ndimage.gaussian_filter(pf3[i], 1.5, mode = 'nearest')
+        masked_array = np.ma.masked_where(px3 == 0, pf3[i]) #should work fine without it 
+        pf3[i] = masked_array
+        
+        pf4[i][np.isnan(pf4[i])] = 0
+        pf4[i] = scipy.ndimage.gaussian_filter(pf4[i], 1.5, mode = 'nearest')
+        masked_array = np.ma.masked_where(px4 == 0, pf4[i]) #should work fine without it 
+        pf4[i] = masked_array
+                
     
     if isWT == 1:
         SI1_wt.extend(spatialinfo1.values)
@@ -293,6 +356,9 @@ for s in datasets:
         SI2_ko.extend(spatialinfo2.values)
         SI3_ko.extend(spatialinfo3.values)
         SI4_ko.extend(spatialinfo4.values)
+        
+        
+   
         
 #%% Quantify spatial maps between 2 environments 
 
@@ -350,11 +416,11 @@ for s in datasets:
     #     corr, _ = scipy.stats.pearsonr(pf3[n].flatten()[good], pf4[n].flatten()[good]) 
     #     plt.suptitle('R = '  + str(round(corr, 2)))
     #     plt.subplot(121)
-    #     plt.title(spatialinfo3[n])
+    #     plt.title(round(spatialinfo3['SI'][n],2))
     #     plt.imshow(pf3[n], extent=(binsxy[1][0],binsxy[1][-1],binsxy[0][0],binsxy[0][-1]), cmap = 'jet')        
     #     plt.colorbar()
     #     plt.subplot(122)
-    #     plt.title(spatialinfo4[n])
+    #     plt.title(round(spatialinfo4['SI'][n],2))
     #     plt.imshow(pf4[n], extent=(binsxy[1][0],binsxy[1][-1],binsxy[0][0],binsxy[0][-1]), cmap = 'jet')        
     #     plt.colorbar()
         
@@ -429,6 +495,7 @@ for dots in ax.collections[old_len_collections:]:
 ax.set_xlim(xlim)
 ax.set_ylim(ylim)
 plt.ylabel('Correlation (R)')
+plt.axhline(0, linestyle = '--', color = 'silver')
 ax.set_box_aspect(1)
 
 plt.subplot(132)
@@ -482,9 +549,13 @@ plt.ylabel('Correlation (R)')
 ax.set_box_aspect(1)
 
 
-#%% 
+#%% Stats for remapping 
 
 t, p = mannwhitneyu(env_stability_wt, env_stability_ko)    
+
+z_wt, p_wt = wilcoxon(np.array(env_stability_wt)-0)
+z_ko, p_ko = wilcoxon(np.array(env_stability_ko)-0)
+
 t2, p2 = mannwhitneyu(halfsession1_corr_wt, halfsession1_corr_ko)
 t3, p3 = mannwhitneyu(halfsession2_corr_wt, halfsession2_corr_ko)
         
@@ -522,4 +593,97 @@ t3, p3 = mannwhitneyu(halfsession2_corr_wt, halfsession2_corr_ko)
 # plt.plot(spk_pos2['x'], spk_pos2['z'], 'o', color = 'r', markersize = 5, alpha = 0.5)
 # plt.gca().set_box_aspect(1)    
     
-    
+
+# plt.figure()
+# for i,n in enumerate(spikes):
+#     plt.subplot(4,5,i+1)
+#     plt.plot(rot_pos['x'].restrict(ep2), rot_pos['z'].restrict(ep2), color = 'grey')    
+#     spk_pos1 = spikes[i].value_from(rot_pos.restrict(ep2))    
+#     plt.plot(spk_pos1['x'], spk_pos1['z'], 'o', color = 'r', markersize = 0.32, alpha = 0.5)
+#     plt.gca().set_box_aspect(1)
+   
+
+#%% Organize spatial information data 
+
+wt1 = np.array(['WT' for x in range(len(allspatialinfo_env1_wt))])
+ko1 = np.array(['KO' for x in range(len(allspatialinfo_env1_ko))])
+
+genotype = np.hstack([wt1, ko1])
+
+sinfos1 = []
+sinfos1.extend(allspatialinfo_env1_wt)
+sinfos1.extend(allspatialinfo_env1_ko)
+
+allinfos1 = pd.DataFrame(data = [sinfos1, genotype], index = ['SI', 'genotype']).T
+
+wt2 = np.array(['WT' for x in range(len(allspatialinfo_env2_wt))])
+ko2 = np.array(['KO' for x in range(len(allspatialinfo_env2_ko))])
+
+genotype = np.hstack([wt2, ko2])
+
+sinfos2 = []
+sinfos2.extend(allspatialinfo_env2_wt)
+sinfos2.extend(allspatialinfo_env2_ko)
+
+allinfos2 = pd.DataFrame(data = [sinfos2, genotype], index = ['SI', 'genotype']).T
+
+
+#%% Plotting SI
+
+plt.figure()
+
+plt.subplot(121)
+plt.title('Square arena')
+sns.set_style('white')
+palette = ['royalblue', 'indianred'] 
+ax = sns.violinplot( x = allinfos1['genotype'], y=allinfos1['SI'].astype(float) , data = allinfos1, dodge=False,
+                    palette = palette,cut = 2,
+                    scale="width", inner=None)
+ax.tick_params(bottom=True, left=True)
+xlim = ax.get_xlim()
+ylim = ax.get_ylim()
+for violin in ax.collections:
+    x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
+    violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
+sns.boxplot(x = allinfos1['genotype'], y=allinfos1['SI'].astype(float) , data = allinfos1, saturation=1, showfliers=False,
+            width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
+old_len_collections = len(ax.collections)
+sns.stripplot(x = allinfos1['genotype'], y = allinfos1['SI'].astype(float), data = allinfos1, color = 'k', dodge=False, ax=ax, alpha = 0.2)
+# sns.swarmplot(x = wakedf['type'], y = wakedf['rate'].astype(float), data = wakedf, color = 'k', dodge=False, ax=ax)
+for dots in ax.collections[old_len_collections:]:
+    dots.set_offsets(dots.get_offsets())
+ax.set_xlim(xlim)
+ax.set_ylim(ylim)
+plt.ylabel('Spatial Information (bits per spike)')
+ax.set_box_aspect(1)
+
+plt.subplot(122)
+plt.title('Circular arena')
+sns.set_style('white')
+palette = ['royalblue', 'indianred'] 
+ax = sns.violinplot( x = allinfos2['genotype'], y=allinfos2['SI'].astype(float) , data = allinfos2, dodge=False,
+                    palette = palette,cut = 2,
+                    scale="width", inner=None)
+ax.tick_params(bottom=True, left=True)
+xlim = ax.get_xlim()
+ylim = ax.get_ylim()
+for violin in ax.collections:
+    x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
+    violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
+sns.boxplot(x = allinfos2['genotype'], y=allinfos2['SI'].astype(float) , data = allinfos2, saturation=1, showfliers=False,
+            width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
+old_len_collections = len(ax.collections)
+sns.stripplot(x = allinfos2['genotype'], y = allinfos2['SI'].astype(float), data = allinfos2, color = 'k', dodge=False, ax=ax, alpha = 0.2)
+# sns.swarmplot(x = wakedf['type'], y = wakedf['rate'].astype(float), data = wakedf, color = 'k', dodge=False, ax=ax)
+for dots in ax.collections[old_len_collections:]:
+    dots.set_offsets(dots.get_offsets())
+ax.set_xlim(xlim)
+ax.set_ylim(ylim)
+plt.ylabel('Spatial Information (bits per spike)')
+ax.set_box_aspect(1)
+
+
+#%% Stats
+
+t_env1, p_env1 = mannwhitneyu(allspatialinfo_env1_wt, allspatialinfo_env1_ko)
+t_env2, p_env2 = mannwhitneyu(allspatialinfo_env2_wt, allspatialinfo_env2_ko)    
