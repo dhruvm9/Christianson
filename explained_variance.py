@@ -19,7 +19,7 @@ import pickle
 
 #%% 
 
-data_directory = '/media/adrien/Expansion/Processed'
+data_directory = '/media/dhruv/Expansion/Processed'
 datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
 ripplechannels = np.genfromtxt(os.path.join(data_directory,'ripplechannel.list'), delimiter = '\n', dtype = str, comments = '#')
 
@@ -58,7 +58,7 @@ pre_dur = []
 post_dur = []
 
 
-for s in datasets[1:]:
+for s in datasets:
     print(s)
     
     # t = time.time()
@@ -80,8 +80,8 @@ for s in datasets[1:]:
     file = os.path.join(path, s +'.sws.evt')
     sws_ep = nap.IntervalSet(data.read_neuroscope_intervals(name = 'SWS', path2file = file))
     
-    pre_dur.append(sws_ep.intersect(epochs['sleep'].loc[[0]]).tot_length())
-    post_dur.append(sws_ep.intersect(epochs['sleep'].loc[[1]]).tot_length())
+    pre_dur.append(sws_ep.intersect(epochs['sleep'][0]).tot_length())
+    post_dur.append(sws_ep.intersect(epochs['sleep'][1]).tot_length())
     
     # file = os.path.join(path, s +'.rem.evt')
     # rem_ep = nap.IntervalSet(data.read_neuroscope_intervals(name = 'REM', path2file = file))
@@ -111,7 +111,7 @@ for s in datasets[1:]:
     keep = []
     
     for i in pyr.index:
-        if pyr.restrict(nap.IntervalSet(epochs['wake'].loc[[0]]))._metadata['rate'][i] > 0.5:
+        if pyr.restrict(nap.IntervalSet(epochs['wake'][0]))._metadata['rate'][i] > 0.5:
             keep.append(i)
               
             
@@ -178,10 +178,10 @@ for s in datasets[1:]:
         
         # ripp_pre = sub_nrem_ep.intersect(rip_ep)
     
-    ### Last 10 min 
-        sub_nrem_ep = nap.IntervalSet(start = epochs['sleep'].loc[[0]].intersect(sws_ep).iloc[-1]['start'], end = epochs['sleep'].loc[[0]].intersect(sws_ep).iloc[-1]['end'])
-        tStart = epochs['sleep'].loc[[0]].intersect(sws_ep).iloc[-1]['start']
-        tEnd = epochs['sleep'].loc[[0]].intersect(sws_ep).iloc[-1]['end']
+    ### Last 20 min 
+        sub_nrem_ep = nap.IntervalSet(start = epochs['sleep'][0].intersect(sws_ep)[-1]['start'], end = epochs['sleep'][0].intersect(sws_ep)[-1]['end'])
+        tStart = epochs['sleep'][0].intersect(sws_ep)[-1]['start']
+        tEnd = epochs['sleep'][0].intersect(sws_ep)[-1]['end']
         
         epcount = -1
         
@@ -192,8 +192,8 @@ for s in datasets[1:]:
             
             epcount -= 1
                         
-            tStart = epochs['sleep'].loc[[0]].intersect(sws_ep).iloc[epcount]['start']
-            tEnd = epochs['sleep'].loc[[0]].intersect(sws_ep).iloc[epcount]['end']
+            tStart = epochs['sleep'][0].intersect(sws_ep)[epcount]['start']
+            tEnd = epochs['sleep'][0].intersect(sws_ep)[epcount]['end']
             sub_nrem_length = sub_nrem_ep.tot_length() + (tEnd - tStart)
             
         remainder_time = 600 - sub_nrem_ep.tot_length()
@@ -204,30 +204,31 @@ for s in datasets[1:]:
     ### All PRE 
         # ripp_pre = epochs['sleep'].loc[[0]].intersect(sws_ep).intersect(nap.IntervalSet(rip_ep))
         
-   ###POST (first 10 min)
+   ###POST (first 20 min)
            
-        # sub_nrem_ep = nap.IntervalSet(start = epochs['sleep'].loc[[1]].intersect(sws_ep).loc[[0]]['start'], end = epochs['sleep'].loc[[1]].intersect(sws_ep).loc[[0]]['end'])
-        # tStart = epochs['sleep'].loc[[1]].intersect(sws_ep).loc[[0]]['start']
-        # tEnd = epochs['sleep'].loc[[1]].intersect(sws_ep).loc[[0]]['end']
+        sub_nrem_ep = nap.IntervalSet(start = epochs['sleep'][1].intersect(sws_ep)[0]['start'], end = epochs['sleep'][1].intersect(sws_ep)[0]['end'])
+        tStart = epochs['sleep'][1].intersect(sws_ep)[0]['start']
+        tEnd = epochs['sleep'][1].intersect(sws_ep)[0]['end']
         
-        # epcount = 0
+        epcount = 0
         
-        # sub_nrem_length = tEnd - tStart
+        sub_nrem_length = tEnd - tStart
         
-        # while sub_nrem_length.values[0] < 1200: #600:
-        #     sub_nrem_ep = sub_nrem_ep.union(nap.IntervalSet(start = tStart, end = tEnd))
+        while sub_nrem_length[0] < 600: #600:
+            sub_nrem_ep = sub_nrem_ep.union(nap.IntervalSet(start = tStart, end = tEnd))
             
-        #     epcount += 1
+            epcount += 1
                         
-        #     tStart = epochs['sleep'].loc[[1]].intersect(sws_ep).loc[[epcount]]['start']
-        #     tEnd = epochs['sleep'].loc[[1]].intersect(sws_ep).loc[[epcount]]['end']
-        #     sub_nrem_length = sub_nrem_ep.tot_length() + (tEnd - tStart)
+            tStart = epochs['sleep'][1].intersect(sws_ep)[epcount]['start']
+            tEnd = epochs['sleep'][1].intersect(sws_ep)[epcount]['end']
+            sub_nrem_length = sub_nrem_ep.tot_length() + (tEnd - tStart)
             
-        # remainder_time = 1200 - sub_nrem_ep.tot_length() ###CHECK 
-        # sub_nrem_ep = sub_nrem_ep.union(nap.IntervalSet(start = tStart, end = tStart + remainder_time))
+        remainder_time = 600 - sub_nrem_ep.tot_length() ###CHECK 
+        sub_nrem_ep = sub_nrem_ep.union(nap.IntervalSet(start = tStart, end = tStart + remainder_time))
         
-        # ripp_post_10 = sub_nrem_ep.intersect(nap.IntervalSet(rip_ep))
-        ripp_post_10 = epochs['sleep'].loc[[1]].intersect(sws_ep).intersect(nap.IntervalSet(rip_ep))
+        ripp_post_10 = sub_nrem_ep.intersect(nap.IntervalSet(rip_ep))
+        
+        # ripp_post_10 = epochs['sleep'].loc[[1]].intersect(sws_ep).intersect(nap.IntervalSet(rip_ep))
     
     ###POST (10-20 min)
                   
@@ -364,22 +365,23 @@ for s in datasets[1:]:
 #%% Organize and plot EV differences 
 
 e1 = np.array(['ev_10_wt' for x in range(len(evdiff_10_wt))])
-e2 = np.array(['ev_20_wt' for x in range(len(evdiff_20_wt))])
-e3 = np.array(['ev_rest_wt' for x in range(len(evdiff_rest_wt))])
+# e2 = np.array(['ev_20_wt' for x in range(len(evdiff_20_wt))])
+# e3 = np.array(['ev_rest_wt' for x in range(len(evdiff_rest_wt))])
 
 e4 = np.array(['ev_10_ko' for x in range(len(evdiff_10_ko))])
-e5 = np.array(['ev_20_ko' for x in range(len(evdiff_20_ko))])
-e6 = np.array(['ev_rest_ko' for x in range(len(evdiff_rest_ko))])
+# e5 = np.array(['ev_20_ko' for x in range(len(evdiff_20_ko))])
+# e6 = np.array(['ev_rest_ko' for x in range(len(evdiff_rest_ko))])
 
-types = np.hstack([e1, e4, e2, e5, e3, e6])
+# types = np.hstack([e1, e4, e2, e5, e3, e6])
+types = np.hstack([e1, e4])
 
 allEV = []
 allEV.extend(evdiff_10_wt)
 allEV.extend(evdiff_10_ko)
-allEV.extend(evdiff_20_wt)
-allEV.extend(evdiff_20_ko)
-allEV.extend(evdiff_rest_wt)
-allEV.extend(evdiff_rest_ko)
+# allEV.extend(evdiff_20_wt)
+# allEV.extend(evdiff_20_ko)
+# allEV.extend(evdiff_rest_wt)
+# allEV.extend(evdiff_rest_ko)
 
 summ = pd.DataFrame(data = [allEV, types], index = ['EV', 'type']).T
 
@@ -457,82 +459,82 @@ plt.plot(x, np.vstack(p2), 'o-', color = 'k', zorder = 3, markersize = 3, linewi
 plt.gca().set_box_aspect(1)
 
 
-plt.figure()
-plt.suptitle('Reactivation - 10-20 min post')
-plt.subplot(121)
-plt.boxplot(ev_wt_20, positions=[0], showfliers=False, patch_artist=True, boxprops=dict(facecolor='royalblue', color='royalblue'),
-            capprops=dict(color='royalblue'),
-            whiskerprops=dict(color='royalblue'),
-            medianprops=dict(color='white', linewidth = 2))
-plt.boxplot(rev_wt_20, positions=[0.3], showfliers=False, patch_artist=True, boxprops=dict(facecolor='lightsteelblue', color='lightsteelblue'),
-            capprops=dict(color='lightsteelblue'),
-            whiskerprops=dict(color='lightsteelblue'),
-            medianprops=dict(color='white', linewidth = 2))
+# plt.figure()
+# plt.suptitle('Reactivation - 10-20 min post')
+# plt.subplot(121)
+# plt.boxplot(ev_wt_20, positions=[0], showfliers=False, patch_artist=True, boxprops=dict(facecolor='royalblue', color='royalblue'),
+#             capprops=dict(color='royalblue'),
+#             whiskerprops=dict(color='royalblue'),
+#             medianprops=dict(color='white', linewidth = 2))
+# plt.boxplot(rev_wt_20, positions=[0.3], showfliers=False, patch_artist=True, boxprops=dict(facecolor='lightsteelblue', color='lightsteelblue'),
+#             capprops=dict(color='lightsteelblue'),
+#             whiskerprops=dict(color='lightsteelblue'),
+#             medianprops=dict(color='white', linewidth = 2))
 
-plt.xticks([0, 0.3],['EV', 'REV'])
-plt.ylim([-0.1,1])
-plt.title('WT')
-plt.ylabel('Explained Variance')
-pval = np.vstack([(ev_wt_20), (rev_wt_20)])
-plt.plot(x, np.vstack(pval), 'o-', color = 'k', zorder = 3, markersize = 3, linewidth = 1 )
-plt.gca().set_box_aspect(1)
+# plt.xticks([0, 0.3],['EV', 'REV'])
+# plt.ylim([-0.1,1])
+# plt.title('WT')
+# plt.ylabel('Explained Variance')
+# pval = np.vstack([(ev_wt_20), (rev_wt_20)])
+# plt.plot(x, np.vstack(pval), 'o-', color = 'k', zorder = 3, markersize = 3, linewidth = 1 )
+# plt.gca().set_box_aspect(1)
 
-plt.subplot(122)
-plt.boxplot(ev_ko_20, positions=[0], showfliers=False, patch_artist=True, boxprops=dict(facecolor='indianred', color='indianred'),
-            capprops=dict(color='indianred'),
-            whiskerprops=dict(color='indianred'),
-            medianprops=dict(color='white', linewidth = 2))
-plt.boxplot(rev_ko_20, positions=[0.3], showfliers=False, patch_artist=True, boxprops=dict(facecolor='lightcoral', color='lightcoral'),
-            capprops=dict(color='lightcoral'),
-            whiskerprops=dict(color='lightcoral'),
-            medianprops=dict(color='white', linewidth = 2))
+# plt.subplot(122)
+# plt.boxplot(ev_ko_20, positions=[0], showfliers=False, patch_artist=True, boxprops=dict(facecolor='indianred', color='indianred'),
+#             capprops=dict(color='indianred'),
+#             whiskerprops=dict(color='indianred'),
+#             medianprops=dict(color='white', linewidth = 2))
+# plt.boxplot(rev_ko_20, positions=[0.3], showfliers=False, patch_artist=True, boxprops=dict(facecolor='lightcoral', color='lightcoral'),
+#             capprops=dict(color='lightcoral'),
+#             whiskerprops=dict(color='lightcoral'),
+#             medianprops=dict(color='white', linewidth = 2))
 
-plt.xticks([0, 0.3],['EV', 'REV'])
-plt.title('KO')
-plt.ylabel('Explained Variance')
-plt.ylim([-0.1,1])
-p2 = np.vstack([(ev_ko_20), (rev_ko_20)])
-plt.plot(x, np.vstack(p2), 'o-', color = 'k', zorder = 3, markersize = 3, linewidth = 1 )
-plt.gca().set_box_aspect(1)
+# plt.xticks([0, 0.3],['EV', 'REV'])
+# plt.title('KO')
+# plt.ylabel('Explained Variance')
+# plt.ylim([-0.1,1])
+# p2 = np.vstack([(ev_ko_20), (rev_ko_20)])
+# plt.plot(x, np.vstack(p2), 'o-', color = 'k', zorder = 3, markersize = 3, linewidth = 1 )
+# plt.gca().set_box_aspect(1)
 
 
-plt.figure()
-plt.suptitle('Reactivation - 20+ min post')
-plt.subplot(121)
-plt.boxplot(ev_wt_rest, positions=[0], showfliers=False, patch_artist=True, boxprops=dict(facecolor='royalblue', color='royalblue'),
-            capprops=dict(color='royalblue'),
-            whiskerprops=dict(color='royalblue'),
-            medianprops=dict(color='white', linewidth = 2))
-plt.boxplot(rev_wt_rest, positions=[0.3], showfliers=False, patch_artist=True, boxprops=dict(facecolor='lightsteelblue', color='lightsteelblue'),
-            capprops=dict(color='lightsteelblue'),
-            whiskerprops=dict(color='lightsteelblue'),
-            medianprops=dict(color='white', linewidth = 2))
+# plt.figure()
+# plt.suptitle('Reactivation - 20+ min post')
+# plt.subplot(121)
+# plt.boxplot(ev_wt_rest, positions=[0], showfliers=False, patch_artist=True, boxprops=dict(facecolor='royalblue', color='royalblue'),
+#             capprops=dict(color='royalblue'),
+#             whiskerprops=dict(color='royalblue'),
+#             medianprops=dict(color='white', linewidth = 2))
+# plt.boxplot(rev_wt_rest, positions=[0.3], showfliers=False, patch_artist=True, boxprops=dict(facecolor='lightsteelblue', color='lightsteelblue'),
+#             capprops=dict(color='lightsteelblue'),
+#             whiskerprops=dict(color='lightsteelblue'),
+#             medianprops=dict(color='white', linewidth = 2))
 
-plt.xticks([0, 0.3],['EV', 'REV'])
-plt.ylim([-0.1,1])
-plt.title('WT')
-plt.ylabel('Explained Variance')
-pval = np.vstack([(ev_wt_rest), (rev_wt_rest)])
-plt.plot(x, np.vstack(pval), 'o-', color = 'k', zorder = 3, markersize = 3, linewidth = 1 )
-plt.gca().set_box_aspect(1)
+# plt.xticks([0, 0.3],['EV', 'REV'])
+# plt.ylim([-0.1,1])
+# plt.title('WT')
+# plt.ylabel('Explained Variance')
+# pval = np.vstack([(ev_wt_rest), (rev_wt_rest)])
+# plt.plot(x, np.vstack(pval), 'o-', color = 'k', zorder = 3, markersize = 3, linewidth = 1 )
+# plt.gca().set_box_aspect(1)
 
-plt.subplot(122)
-plt.boxplot(ev_ko_rest, positions=[0], showfliers=False, patch_artist=True, boxprops=dict(facecolor='indianred', color='indianred'),
-            capprops=dict(color='indianred'),
-            whiskerprops=dict(color='indianred'),
-            medianprops=dict(color='white', linewidth = 2))
-plt.boxplot(rev_ko_rest, positions=[0.3], showfliers=False, patch_artist=True, boxprops=dict(facecolor='lightcoral', color='lightcoral'),
-            capprops=dict(color='lightcoral'),
-            whiskerprops=dict(color='lightcoral'),
-            medianprops=dict(color='white', linewidth = 2))
+# plt.subplot(122)
+# plt.boxplot(ev_ko_rest, positions=[0], showfliers=False, patch_artist=True, boxprops=dict(facecolor='indianred', color='indianred'),
+#             capprops=dict(color='indianred'),
+#             whiskerprops=dict(color='indianred'),
+#             medianprops=dict(color='white', linewidth = 2))
+# plt.boxplot(rev_ko_rest, positions=[0.3], showfliers=False, patch_artist=True, boxprops=dict(facecolor='lightcoral', color='lightcoral'),
+#             capprops=dict(color='lightcoral'),
+#             whiskerprops=dict(color='lightcoral'),
+#             medianprops=dict(color='white', linewidth = 2))
 
-plt.xticks([0, 0.3],['EV', 'REV'])
-plt.title('KO')
-plt.ylabel('Explained Variance')
-plt.ylim([-0.1,1])
-p2 = np.vstack([(ev_ko_rest), (rev_ko_rest)])
-plt.plot(x, np.vstack(p2), 'o-', color = 'k', zorder = 3, markersize = 3, linewidth = 1 )
-plt.gca().set_box_aspect(1)
+# plt.xticks([0, 0.3],['EV', 'REV'])
+# plt.title('KO')
+# plt.ylabel('Explained Variance')
+# plt.ylim([-0.1,1])
+# p2 = np.vstack([(ev_ko_rest), (rev_ko_rest)])
+# plt.plot(x, np.vstack(p2), 'o-', color = 'k', zorder = 3, markersize = 3, linewidth = 1 )
+# plt.gca().set_box_aspect(1)
 
 #%% Stats 
 
@@ -541,12 +543,12 @@ plt.gca().set_box_aspect(1)
 
 #%% 
 
-# evdiff_wt = [i - j for i, j in zip(ev_wt, rev_wt)]
-# evdiff_ko = [i - j for i, j in zip(ev_ko, rev_ko)]
+evdiff_wt = [i - j for i, j in zip(ev_wt_10, rev_wt_10)]
+evdiff_ko = [i - j for i, j in zip(ev_ko_10, rev_ko_10)]
 
-# plt.figure()
-# plt.scatter(ncells_wt, evdiff_wt, color = 'royalblue', label = 'WT')
-# plt.scatter(ncells_ko, evdiff_ko, color = 'indianred', label = 'KO')
-# plt.xlabel('#PYR cells')
-# plt.ylabel('EV - REV')
-# plt.legend(loc = 'upper right')
+plt.figure()
+plt.scatter(ncells_wt, evdiff_wt, color = 'royalblue', label = 'WT')
+plt.scatter(ncells_ko, evdiff_ko, color = 'indianred', label = 'KO')
+plt.xlabel('#PYR cells')
+plt.ylabel('EV - REV')
+plt.legend(loc = 'upper right')

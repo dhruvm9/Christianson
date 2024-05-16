@@ -85,7 +85,7 @@ for r,s in enumerate(datasets):
           
     freqs, P_xx = scipy.signal.welch(lfp_z, fs = fs)
     
-    ix2 = np.where((freqs>=100) & (freqs <= 300))
+    ix2 = np.where((freqs>=100) & (freqs <= 200))
     peakfreq = freqs[ix2][np.argmax(P_xx[ix2])]
            
     if isWT == 1:
@@ -98,7 +98,7 @@ for r,s in enumerate(datasets):
         
 #%% Average spectrum 
 
-ix = np.where((freqs>=10) & (freqs <= 300))
+ix = np.where((freqs >= 100) & (freqs <= 200))
 
 ##Wake 
 plt.figure()
