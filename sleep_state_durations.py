@@ -18,8 +18,8 @@ from scipy.stats import mannwhitneyu
 
 #%% 
 
-data_directory = '/media/dhruv/Expansion/Processed'
-datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
+data_directory = '/media/adrien/Expansion/Processed/NoExplo'
+datasets = np.genfromtxt(os.path.join(data_directory,'dataset_sleep.list'), delimiter = '\n', dtype = str, comments = '#')
 
 allwakedurs_wt = []
 allnremdurs_wt = []
@@ -42,7 +42,7 @@ for s in datasets:
     name = s.split('-')[0]
     path = os.path.join(data_directory, s)
     
-    if name == 'B2613' or name == 'B2618':
+    if name == 'B3900' or name == 'B3901':
         isWT = 0
     else: isWT = 1 
        
@@ -100,7 +100,7 @@ nr = np.array(['NREM' for x in range(len(sess_nremdur_wt))])
 nr2 = np.array(['NREM' for x in range(len(sess_nremdur_ko))])
 
 rm = np.array(['REM' for x in range(len(sess_remdur_wt))])
-rm2 = np.array(['REM' for x in range(len(sess_remdur_wt))])
+rm2 = np.array(['REM' for x in range(len(sess_remdur_ko))])
 
 state = np.hstack([wk, wk2, nr, nr2, rm, rm2])
 

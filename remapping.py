@@ -85,8 +85,8 @@ def sparsity(rate_map, px):
     
 #%% 
 
-data_directory = '/media/dhruv/Expansion/Processed'
-# data_directory = '/media/adrien/Expansion/Processed'
+# data_directory = '/media/dhruv/Expansion/Processed'
+data_directory = '/media/adrien/Expansion/Processed'
 datasets = np.genfromtxt(os.path.join(data_directory,'remapping_DM.list'), delimiter = '\n', dtype = str, comments = '#')
 
 env_stability_wt = []

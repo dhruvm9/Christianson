@@ -17,8 +17,8 @@ from scipy.stats import mannwhitneyu
 
 #%% 
 
-data_directory = '/media/dhruv/Expansion/Processed'
-datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
+data_directory = '/media/adrien/Expansion/Processed/NoExplo'
+datasets = np.genfromtxt(os.path.join(data_directory,'dataset_sleep.list'), delimiter = '\n', dtype = str, comments = '#')
 
 SFI_wt = []
 SFI_ko = []
@@ -48,7 +48,7 @@ for s in datasets:
     name = s.split('-')[0]
     path = os.path.join(data_directory, s)
     
-    if name == 'B2613' or name == 'B2618':
+    if name == 'B3900' or name == 'B3901':
         isWT = 0
     else: isWT = 1 
        
