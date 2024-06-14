@@ -29,7 +29,7 @@ genotype = []
 cellratios_wt = []
 cellratios_ko = []
 
-for s in datasets[1:]:
+for s in datasets:
     print(s)
     name = s.split('-')[0]
         
@@ -58,110 +58,113 @@ for s in datasets[1:]:
 
 #%% Ratio of FS versus broad waveform cells
             
-    # if 'fs' in spikes.getby_category('celltype').keys():
-    #     fscells = spikes.getby_category('celltype')['fs']
+    if 'fs' in spikes.getby_category('celltype').keys():
+        fscells = spikes.getby_category('celltype')['fs']
             
-    #     bwf = 0 
-    #     for i in spikes._metadata['tr2pk']: 
-    #         if i > 0.38:
-    #             bwf += 1
+        bwf = 0 
+        for i in spikes._metadata['tr2pk']: 
+            if i > 0.38:
+                bwf += 1
     
-    #     fs2bwf = len(fscells) / bwf
+        fs2bwf = len(fscells) / bwf
         
-    #     if isWT == 1: 
-    #         cellratios_wt.append(fs2bwf)
+        if isWT == 1: 
+            cellratios_wt.append(fs2bwf)
         
-    #     else: cellratios_ko.append(fs2bwf)
+        else: cellratios_ko.append(fs2bwf)
 
 #%% Sorting the ratio of FS to broad waveform cells
 
-# wt = np.array(['WT' for x in range(len(cellratios_wt))])
-# ko = np.array(['KO' for x in range(len(cellratios_ko))])    
+wt = np.array(['WT' for x in range(len(cellratios_wt))])
+ko = np.array(['KO' for x in range(len(cellratios_ko))])    
 
-# genotype = np.hstack([wt, ko])
+genotype = np.hstack([wt, ko])
 
 
-# sess_ratios = []
-# sess_ratios.extend(cellratios_wt)
-# sess_ratios.extend(cellratios_ko)
+sess_ratios = []
+sess_ratios.extend(cellratios_wt)
+sess_ratios.extend(cellratios_ko)
 
-# summ = pd.DataFrame(data = [sess_ratios, genotype], index = ['cellratio', 'genotype']).T
+summ = pd.DataFrame(data = [sess_ratios, genotype], index = ['cellratio', 'genotype']).T
     
 #%% Plotting cell ratios by session 
 
-# plt.figure()
+plt.figure()
 # plt.title('Ratio of FS to broad waveform cells')
-# sns.set_style('white')
-# palette = ['royalblue', 'indianred']
-# ax = sns.violinplot( x = summ['genotype'], y = summ['cellratio'].astype(float) , data = summ, dodge = False,
-#                     palette = palette,cut = 2,
-#                     scale = "width", inner = None)
-# ax.tick_params(bottom=True, left=True)
-# xlim = ax.get_xlim()
-# ylim = ax.get_ylim()
-# for violin in ax.collections:
-#     x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
-#     violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
-# sns.boxplot(x = summ['genotype'], y = summ['cellratio'] , data = summ, saturation = 1, showfliers = False,
-#             width = 0.3, boxprops = {'zorder': 3, 'facecolor': 'none'}, ax = ax)
-# old_len_collections = len(ax.collections)
-# sns.swarmplot(x = summ['genotype'], y=summ['cellratio'], data = summ, color = 'k', dodge = False, ax = ax)
-# # sns.stripplot(x = wakedf['type'], y = wakedf['rate'].astype(float), data = wakedf, color = 'k', dodge=False, ax=ax)
-# for dots in ax.collections[old_len_collections:]:
-#     dots.set_offsets(dots.get_offsets())
-# ax.set_xlim(xlim)
-# ax.set_ylim(ylim)
-# plt.ylabel('Ratio of FS to broad waveform cells')
-# ax.set_box_aspect(1)
+sns.set_style('white')
+palette = ['royalblue', 'indianred']
+ax = sns.violinplot( x = summ['genotype'], y = summ['cellratio'].astype(float) , data = summ, dodge = False,
+                    palette = palette,cut = 2,
+                    scale = "width", inner = None)
+ax.tick_params(bottom=True, left=True)
+xlim = ax.get_xlim()
+ylim = ax.get_ylim()
+for violin in ax.collections:
+    x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
+    violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
+sns.boxplot(x = summ['genotype'], y = summ['cellratio'] , data = summ, saturation = 1, showfliers = False,
+            width = 0.3, boxprops = {'zorder': 3, 'facecolor': 'none'}, ax = ax)
+old_len_collections = len(ax.collections)
+sns.swarmplot(x = summ['genotype'], y=summ['cellratio'], data = summ, color = 'k', dodge = False, ax = ax)
+# sns.stripplot(x = wakedf['type'], y = wakedf['rate'].astype(float), data = wakedf, color = 'k', dodge=False, ax=ax)
+for dots in ax.collections[old_len_collections:]:
+    dots.set_offsets(dots.get_offsets())
+ax.set_xlim(xlim)
+ax.set_ylim(ylim)
+plt.ylabel('FS/EX ratio')
+plt.yticks([0, 0.2, 0.4])
+ax.set_box_aspect(1)
 
-# t, p = mannwhitneyu(cellratios_wt, cellratios_ko)
+t, p = mannwhitneyu(cellratios_wt, cellratios_ko)
 
 #%% Sorting by genotype and plotting
 
-t2p_wt = np.array(t2p)[genotype]
-rates_wt = np.array(rates)[genotype]
+# t2p_wt = np.array(t2p)[genotype]
+# rates_wt = np.array(rates)[genotype]
 
-pyr = [i for i, x in enumerate(np.array(celltype)[genotype]) if x == 'pyr']
-fs = [i for i, x in enumerate(np.array(celltype)[genotype]) if x == 'fs']
-oth = [i for i, x in enumerate(np.array(celltype)[genotype]) if x == 'other']
+# pyr = [i for i, x in enumerate(np.array(celltype)[genotype]) if x == 'pyr']
+# fs = [i for i, x in enumerate(np.array(celltype)[genotype]) if x == 'fs']
+# oth = [i for i, x in enumerate(np.array(celltype)[genotype]) if x == 'other']
 
-plt.figure()
-# plt.suptitle('Cell Type Classification')
+# plt.figure()
+# # plt.suptitle('Cell Type Classification')
 
-# plt.subplot(121)
-# plt.title('WT')
-plt.scatter([t2p_wt[i] for i in pyr], [rates_wt[i] for i in pyr] , marker = 'o', color = 'royalblue', label = 'WT EX', zorder = 3)        
-plt.scatter([t2p_wt[i] for i in fs], [rates_wt[i] for i in fs] , marker = 'o', color = 'indianred', label = 'WT FS', zorder = 3)        
-plt.scatter([t2p_wt[i] for i in oth], [rates_wt[i] for i in oth] , marker = 'o',  color = 'silver', label = 'WT Unclassified', zorder = 3)       
+# # plt.subplot(121)
+# # plt.title('WT')
+# plt.scatter([t2p_wt[i] for i in pyr], [rates_wt[i] for i in pyr] , marker = 'o', color = 'royalblue', label = 'WT EX', zorder = 3)        
+# plt.scatter([t2p_wt[i] for i in fs], [rates_wt[i] for i in fs] , marker = 'o', color = 'indianred', label = 'WT FS', zorder = 3)        
+# plt.scatter([t2p_wt[i] for i in oth], [rates_wt[i] for i in oth] , marker = 'o',  color = 'silver', label = 'WT Unclassified', zorder = 3)       
+
+# # plt.xlim([0, 1.5])
+# # plt.ylim([0, 50])
+# # plt.axhline(10, linestyle = '--', color = 'k')
+# # plt.axvline(0.38, linestyle = '--', color = 'k')
+# # plt.axvline(0.55, linestyle = '--', color = 'k')
+# # plt.xlabel('Trough to peak (ms)')
+# # plt.ylabel('Firing rate (Hz)')   
+# # plt.legend(loc = 'upper right') 
+
+# t2p_ko = np.array(t2p)[np.invert(genotype)]
+# rates_ko = np.array(rates)[np.invert(genotype)]
+
+# pyr = [i for i, x in enumerate(np.array(celltype)[np.invert(genotype)]) if x == 'pyr']
+# fs = [i for i, x in enumerate(np.array(celltype)[np.invert(genotype)]) if x == 'fs']
+# oth = [i for i, x in enumerate(np.array(celltype)[np.invert(genotype)]) if x == 'other']
+
+# # plt.subplot(122)
+# # plt.title('KO')
+# plt.scatter([t2p_ko[i] for i in pyr], [rates_ko[i] for i in pyr] , marker = 'x', color = 'lightsteelblue', label = 'KO EX')        
+# plt.scatter([t2p_ko[i] for i in fs], [rates_ko[i] for i in fs] ,  marker = 'x', color = 'rosybrown', label = 'KO FS')        
+# plt.scatter([t2p_ko[i] for i in oth], [rates_ko[i] for i in oth] , marker =  'x',  color = 'silver', label = 'KO Unclassified')        
 
 # plt.xlim([0, 1.5])
+# plt.xticks([0, 0.4, 0.8, 1.2])
 # plt.ylim([0, 50])
+# plt.yticks([0, 20, 40])
 # plt.axhline(10, linestyle = '--', color = 'k')
-# plt.axvline(0.38, linestyle = '--', color = 'k')
+# # plt.axvline(0.38, linestyle = '--', color = 'k')
 # plt.axvline(0.55, linestyle = '--', color = 'k')
-# plt.xlabel('Trough to peak (ms)')
-# plt.ylabel('Firing rate (Hz)')   
-# plt.legend(loc = 'upper right') 
-
-t2p_ko = np.array(t2p)[np.invert(genotype)]
-rates_ko = np.array(rates)[np.invert(genotype)]
-
-pyr = [i for i, x in enumerate(np.array(celltype)[np.invert(genotype)]) if x == 'pyr']
-fs = [i for i, x in enumerate(np.array(celltype)[np.invert(genotype)]) if x == 'fs']
-oth = [i for i, x in enumerate(np.array(celltype)[np.invert(genotype)]) if x == 'other']
-
-# plt.subplot(122)
-# plt.title('KO')
-plt.scatter([t2p_ko[i] for i in pyr], [rates_ko[i] for i in pyr] , marker = 'x', color = 'lightsteelblue', label = 'KO EX')        
-plt.scatter([t2p_ko[i] for i in fs], [rates_ko[i] for i in fs] ,  marker = 'x', color = 'rosybrown', label = 'KO FS')        
-plt.scatter([t2p_ko[i] for i in oth], [rates_ko[i] for i in oth] , marker =  'x',  color = 'silver', label = 'KO Unclassified')        
-
-plt.xlim([0, 1.5])
-plt.ylim([0, 50])
-plt.axhline(10, linestyle = '--', color = 'k')
-# plt.axvline(0.38, linestyle = '--', color = 'k')
-plt.axvline(0.55, linestyle = '--', color = 'k')
-plt.xlabel('Trough to peak (ms)')
-plt.ylabel('Firing rate (Hz)')   
-plt.legend(loc = 'upper right')
+# plt.xlabel('Trough-to-peak (ms)')
+# plt.ylabel('firing rate (Hz)')   
+# plt.legend(loc = 'upper right')
 

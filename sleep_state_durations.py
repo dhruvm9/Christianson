@@ -18,8 +18,8 @@ from scipy.stats import mannwhitneyu
 
 #%% 
 
-data_directory = '/media/dhruv/Expansion/Processed'
-datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
+data_directory = '/media/dhruv/Expansion/Processed/noExplo'
+datasets = np.genfromtxt(os.path.join(data_directory,'dataset_sleep.list'), delimiter = '\n', dtype = str, comments = '#')
 
 allwakedurs_wt = []
 allnremdurs_wt = []
@@ -37,12 +37,20 @@ sess_wakedur_ko = []
 sess_nremdur_ko = []
 sess_remdur_ko = []
 
+num_wake_wt = []
+num_nrem_wt = []
+num_rem_wt = []
+
+num_wake_ko = []
+num_nrem_ko = []
+num_rem_ko = []
+
 for s in datasets:
     print(s)
     name = s.split('-')[0]
     path = os.path.join(data_directory, s)
     
-    if name == 'B2613' or name == 'B2618':
+    if name == 'B3900' or name == 'B3901':
         isWT = 0
     else: isWT = 1 
        
@@ -68,18 +76,27 @@ for s in datasets:
         sess_nremdur_wt.append(sum(nremdur)/recdur)
         sess_remdur_wt.append(sum(remdur)/recdur)
         
-        allwakedurs_wt.extend(wakedur/recdur)
-        allnremdurs_wt.extend(nremdur/recdur)
-        allremdurs_wt.extend(remdur/recdur)
+        allwakedurs_wt.extend(wakedur)
+        allnremdurs_wt.extend(nremdur)
+        allremdurs_wt.extend(remdur)
+        
+        num_wake_wt.append(len(wakedur))
+        num_nrem_wt.append(len(nremdur))
+        num_rem_wt.append(len(remdur))
         
     else: 
         sess_wakedur_ko.append(sum(wakedur)/recdur)
         sess_nremdur_ko.append(sum(nremdur)/recdur)
         sess_remdur_ko.append(sum(remdur)/recdur)
         
-        allwakedurs_ko.extend(wakedur/recdur)
-        allnremdurs_ko.extend(nremdur/recdur)
-        allremdurs_ko.extend(remdur/recdur)
+        allwakedurs_ko.extend(wakedur)
+        allnremdurs_ko.extend(nremdur)
+        allremdurs_ko.extend(remdur)
+        
+        num_wake_ko.append(len(wakedur))
+        num_nrem_ko.append(len(nremdur))
+        num_rem_ko.append(len(remdur))
+        
 
 #%% Organize data to plot 
 
@@ -274,7 +291,7 @@ for dots in ax.collections[old_len_collections:]:
     dots.set_offsets(dots.get_offsets())
 ax.set_xlim(xlim)
 ax.set_ylim(ylim)
-plt.ylabel('Proportion')
+plt.ylabel('Duration (s)')
 ax.set_box_aspect(1)
 
 plt.subplot(132)
@@ -299,7 +316,7 @@ for dots in ax.collections[old_len_collections:]:
     dots.set_offsets(dots.get_offsets())
 ax.set_xlim(xlim)
 ax.set_ylim(ylim)
-plt.ylabel('Proportion')
+plt.ylabel('Duration (s)')
 ax.set_box_aspect(1)
 
 plt.subplot(133)
@@ -324,7 +341,7 @@ for dots in ax.collections[old_len_collections:]:
     dots.set_offsets(dots.get_offsets())
 ax.set_xlim(xlim)
 ax.set_ylim(ylim)
-plt.ylabel('Proportion')
+plt.ylabel('Duration (s)')
 ax.set_box_aspect(1)
 
 #%% Stats 
@@ -337,3 +354,132 @@ t2_n, p2_n = mannwhitneyu(infos2[infos2['state'] == 'NREM'][infos2['genotype'] =
 
 t2_r, p2_r = mannwhitneyu(infos2[infos2['state'] == 'REM'][infos2['genotype'] == 'KO']['evt'].values.astype(float), 
                     infos2[infos2['state'] == 'REM'][infos2['genotype'] == 'WT']['evt'].values.astype(float))
+
+
+#%% Organize number of episodes 
+
+wt1 = np.array(['WT' for x in range(len(num_wake_wt))])
+wt2 = np.array(['WT' for x in range(len(num_nrem_wt))])
+wt3 = np.array(['WT' for x in range(len(num_rem_wt))])
+
+ko1 = np.array(['KO' for x in range(len(num_wake_ko))])
+ko2 = np.array(['KO' for x in range(len(num_nrem_ko))])
+ko3 = np.array(['KO' for x in range(len(num_rem_ko))])
+
+genotype = np.hstack([wt1, ko1, wt2, ko2, wt3, ko3])
+
+wk = np.array(['Wake' for x in range(len(num_wake_wt))])
+wk2 = np.array(['Wake' for x in range(len(num_wake_ko))])
+
+nr = np.array(['NREM' for x in range(len(num_nrem_wt))])
+nr2 = np.array(['NREM' for x in range(len(num_nrem_ko))])
+
+rm = np.array(['REM' for x in range(len(num_rem_wt))])
+rm2 = np.array(['REM' for x in range(len(num_rem_ko))])
+
+state = np.hstack([wk, wk2, nr, nr2, rm, rm2])
+
+waknums = []
+waknums.extend(num_wake_wt)
+waknums.extend(num_wake_ko)
+
+nremnums = []
+nremnums.extend(num_nrem_wt)
+nremnums.extend(num_nrem_ko)
+
+remnums = []
+remnums.extend(num_rem_wt)
+remnums.extend(num_rem_ko)
+
+evts = np.hstack([waknums, nremnums, remnums])
+
+infos3 = pd.DataFrame(data = [evts, state, genotype], index = ['evt', 'state', 'genotype']).T
+
+#%% Plotting 
+
+plt.figure()
+plt.subplot(131)
+plt.title('Wake')
+sns.set_style('white')
+palette = ['royalblue', 'indianred']
+ax = sns.violinplot( x = infos3[infos3['state'] == 'Wake']['genotype'], y=infos3[infos3['state'] == 'Wake']['evt'].astype(float) , data = infos3, dodge=False,
+                    palette = palette,cut = 2,
+                    scale="width", inner=None)
+ax.tick_params(bottom=True, left=True)
+xlim = ax.get_xlim()
+ylim = ax.get_ylim()
+for violin in ax.collections:
+    x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
+    violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
+sns.boxplot(x = infos3[infos3['state'] == 'Wake']['genotype'], y=infos3[infos3['state'] == 'Wake']['evt'] , data = infos3, saturation=1, showfliers=False,
+            width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
+old_len_collections = len(ax.collections)
+sns.stripplot(x = infos3[infos3['state'] == 'Wake']['genotype'], y=infos3[infos3['state'] == 'Wake']['evt'], data = infos3, color = 'k', dodge=False, ax=ax)
+
+for dots in ax.collections[old_len_collections:]:
+    dots.set_offsets(dots.get_offsets())
+ax.set_xlim(xlim)
+ax.set_ylim(ylim)
+plt.ylabel('#episodes per session')
+ax.set_box_aspect(1)
+
+plt.subplot(132)
+plt.title('NREM')
+sns.set_style('white')
+palette = ['royalblue', 'indianred']
+ax = sns.violinplot( x = infos3[infos3['state'] == 'NREM']['genotype'], y=infos3[infos3['state'] == 'NREM']['evt'].astype(float) , data = infos3, dodge=False,
+                    palette = palette,cut = 2,
+                    scale="width", inner=None)
+ax.tick_params(bottom=True, left=True)
+xlim = ax.get_xlim()
+ylim = ax.get_ylim()
+for violin in ax.collections:
+    x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
+    violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
+sns.boxplot(x = infos3[infos3['state'] == 'NREM']['genotype'], y=infos3[infos3['state'] == 'NREM']['evt'] , data = infos3, saturation=1, showfliers=False,
+            width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
+old_len_collections = len(ax.collections)
+sns.stripplot(x = infos3[infos3['state'] == 'NREM']['genotype'], y=infos3[infos3['state'] == 'NREM']['evt'], data = infos3, color = 'k', dodge=False, ax=ax)
+
+for dots in ax.collections[old_len_collections:]:
+    dots.set_offsets(dots.get_offsets())
+ax.set_xlim(xlim)
+ax.set_ylim(ylim)
+plt.ylabel('#episodes per session')
+ax.set_box_aspect(1)
+
+plt.subplot(133)
+plt.title('REM')
+sns.set_style('white')
+palette = ['royalblue', 'indianred']
+ax = sns.violinplot( x = infos3[infos3['state'] == 'REM']['genotype'], y=infos3[infos3['state'] == 'REM']['evt'].astype(float) , data = infos3, dodge=False,
+                    palette = palette,cut = 2,
+                    scale="width", inner=None)
+ax.tick_params(bottom=True, left=True)
+xlim = ax.get_xlim()
+ylim = ax.get_ylim()
+for violin in ax.collections:
+    x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
+    violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
+sns.boxplot(x = infos3[infos3['state'] == 'REM']['genotype'], y=infos3[infos3['state'] == 'REM']['evt'] , data = infos3, saturation=1, showfliers=False,
+            width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
+old_len_collections = len(ax.collections)
+sns.stripplot(x = infos3[infos3['state'] == 'REM']['genotype'], y=infos3[infos3['state'] == 'REM']['evt'], data = infos3, color = 'k', dodge=False, ax=ax)
+
+for dots in ax.collections[old_len_collections:]:
+    dots.set_offsets(dots.get_offsets())
+ax.set_xlim(xlim)
+ax.set_ylim(ylim)
+plt.ylabel('#episodes per session')
+ax.set_box_aspect(1)
+
+#%% Stats 
+
+t3_w, p3_w = mannwhitneyu(infos3[infos3['state'] == 'Wake'][infos3['genotype'] == 'KO']['evt'].values.astype(float), 
+                    infos3[infos3['state'] == 'Wake'][infos3['genotype'] == 'WT']['evt'].values.astype(float))
+
+t3_n, p3_n = mannwhitneyu(infos3[infos3['state'] == 'NREM'][infos3['genotype'] == 'KO']['evt'].values.astype(float), 
+                    infos3[infos3['state'] == 'NREM'][infos3['genotype'] == 'WT']['evt'].values.astype(float))
+
+t3_r, p3_r = mannwhitneyu(infos3[infos3['state'] == 'REM'][infos3['genotype'] == 'KO']['evt'].values.astype(float), 
+                    infos3[infos3['state'] == 'REM'][infos3['genotype'] == 'WT']['evt'].values.astype(float))

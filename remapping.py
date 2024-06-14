@@ -144,7 +144,7 @@ for s in datasets:
     
     if isWT == 1:
         rad = 0.6
-    else: rad = 1
+    else: rad =0.95
     
     for i in range(len(xypos)):
         newx, newy = rotate_via_numpy(xypos[i], rad)
@@ -232,37 +232,38 @@ for s in datasets:
 
 #%% Plot tracking 
 
-    # plt.figure()
-    # plt.suptitle(s)
-    # plt.subplot(121)
-    # plt.plot(rot_pos['x'].restrict(w1), rot_pos['z'].restrict(w1))
-    # plt.subplot(122)
-    # plt.plot(rot_pos['x'].restrict(w2), rot_pos['z'].restrict(w2))
+    # if isWT == 1:   
+    #     plt.figure()
+    #     plt.suptitle(s)
+    #     plt.subplot(121)
+    #     plt.plot(rot_pos['x'].restrict(w1), rot_pos['z'].restrict(w1))
+    #     plt.subplot(122)
+    #     plt.plot(rot_pos['x'].restrict(w2), rot_pos['z'].restrict(w2))
     
 #%% Plot remapping 
     
-    # ref = pyr2.keys()
-    # nrows = int(np.sqrt(len(ref)))
-    # ncols = int(len(ref)/nrows)+1
+#     ref = pyr2.keys()
+#     nrows = int(np.sqrt(len(ref)))
+#     ncols = int(len(ref)/nrows)+1
 
-    # plt.figure()
-    # plt.suptitle(s + ' Wake1')
-    # for i,n in enumerate(pyr2):
-    #     plt.subplot(nrows, ncols, i+1)
-    #     # plt.title(spikes._metadata['celltype'][i])
-    #     plt.imshow(placefields1[n], extent=(binsxy1[1][0],binsxy1[1][-1],binsxy1[0][0],binsxy1[0][-1]), cmap = 'jet')        
-    #     plt.colorbar()
+#     plt.figure()
+#     plt.suptitle(s + ' Wake1')
+#     for i,n in enumerate(pyr2):
+#         plt.subplot(nrows, ncols, i+1)
+#         # plt.title(spikes._metadata['celltype'][i])
+#         plt.imshow(placefields1[n], extent=(binsxy1[1][0],binsxy1[1][-1],binsxy1[0][0],binsxy1[0][-1]), cmap = 'jet')        
+#         plt.colorbar()
 
-    # plt.figure()
-    # plt.suptitle(s + ' Wake2')
-    # for i,n in enumerate(pyr2):
-    #     plt.subplot(nrows, ncols, i+1)
-    #     # plt.title(spikes._metadata['celltype'][i])
-    #     plt.imshow(placefields2[n], extent=(binsxy2[1][0],binsxy2[1][-1],binsxy2[0][0],binsxy2[0][-1]), cmap = 'jet')        
-    #     plt.colorbar()
+#     plt.figure()
+#     plt.suptitle(s + ' Wake2')
+#     for i,n in enumerate(pyr2):
+#         plt.subplot(nrows, ncols, i+1)
+#         # plt.title(spikes._metadata['celltype'][i])
+#         plt.imshow(placefields2[n], extent=(binsxy2[1][0],binsxy2[1][-1],binsxy2[0][0],binsxy2[0][-1]), cmap = 'jet')        
+#         plt.colorbar()
     
     
-###EXAMPLES 
+# ###EXAMPLES 
     # for i,n in enumerate(pyr2):
     #     plt.figure()
     #     good = np.logical_and(np.isfinite(placefields1[n].flatten()), np.isfinite(placefields2[n].flatten()))
@@ -561,7 +562,7 @@ t3, p3 = mannwhitneyu(halfsession2_corr_wt, halfsession2_corr_ko)
         
 #%% Plot Example cells 
 
-# examples = [4,5,8,10]
+# examples = [0,3,5]
 
 # for n in examples:
 #     plt.figure()
@@ -584,12 +585,12 @@ t3, p3 = mannwhitneyu(halfsession2_corr_wt, halfsession2_corr_ko)
 # plt.figure()
 # plt.subplot(121)
 # plt.plot(rot_pos['x'].restrict(ep1), rot_pos['z'].restrict(ep1), color = 'grey')
-# spk_pos1 = pyr2[examples[1]].value_from(rot_pos.restrict(ep1))
+# spk_pos1 = pyr2[examples[2]].value_from(rot_pos.restrict(ep1))
 # plt.plot(spk_pos1['x'], spk_pos1['z'], 'o', color = 'r', markersize = 5, alpha = 0.5)
 # plt.gca().set_box_aspect(1)
 # plt.subplot(122)
 # plt.plot(rot_pos['x'].restrict(ep2), rot_pos['z'].restrict(ep2), color = 'grey')
-# spk_pos2 = pyr2[examples[1]].value_from(rot_pos.restrict(ep2))
+# spk_pos2 = pyr2[examples[2]].value_from(rot_pos.restrict(ep2))
 # plt.plot(spk_pos2['x'], spk_pos2['z'], 'o', color = 'r', markersize = 5, alpha = 0.5)
 # plt.gca().set_box_aspect(1)    
     

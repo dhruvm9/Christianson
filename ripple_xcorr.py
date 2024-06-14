@@ -28,7 +28,7 @@ all_xc_fs_wt = pd.DataFrame()
 all_xc_pyr_ko = pd.DataFrame()
 all_xc_fs_ko = pd.DataFrame()
 
-for s in datasets[1:]:
+for s in datasets:
     print(s)
     name = s.split('-')[0]
        
@@ -68,8 +68,8 @@ for s in datasets[1:]:
     if 'pyr' in spikes._metadata['celltype'].values:
         pyr = spikes_by_celltype['pyr']
         
-        # xc_pyr = nap.compute_eventcorrelogram(pyr, nap.Ts(rip_ep['start'].values), binsize = 0.0005, windowsize = 0.1 , ep = nap.IntervalSet(sws_ep), norm = True)
-        xc_pyr = nap.compute_eventcorrelogram(pyr, nap.Ts(np.array(rip_trough)), binsize = 0.0005, windowsize = 0.1 , ep = nap.IntervalSet(sws_ep), norm = True)
+        xc_pyr = nap.compute_eventcorrelogram(pyr, nap.Ts(rip_ep['start']), binsize = 0.005, windowsize = 0.1 , ep = nap.IntervalSet(sws_ep), norm = True)
+        # xc_pyr = nap.compute_eventcorrelogram(pyr, nap.Ts(np.array(rip_trough)), binsize = 0.0005, windowsize = 0.1 , ep = nap.IntervalSet(sws_ep), norm = True)
     
         if isWT == 1:
             all_xc_pyr_wt = pd.concat([all_xc_pyr_wt, xc_pyr], axis = 1)
@@ -81,8 +81,8 @@ for s in datasets[1:]:
     if 'fs' in spikes._metadata['celltype'].values:
         fs = spikes_by_celltype['fs']
         
-        # xc_fs = nap.compute_eventcorrelogram(fs, nap.Ts(rip_ep['start'].values), binsize = 0.0005, windowsize = 0.1 , ep = nap.IntervalSet(sws_ep), norm = True)
-        xc_fs = nap.compute_eventcorrelogram(fs, nap.Ts(np.array(rip_trough)), binsize = 0.0005, windowsize = 0.1 , ep = nap.IntervalSet(sws_ep), norm = True)
+        xc_fs = nap.compute_eventcorrelogram(fs, nap.Ts(rip_ep['start']), binsize = 0.005, windowsize = 0.1 , ep = nap.IntervalSet(sws_ep), norm = True)
+        # xc_fs = nap.compute_eventcorrelogram(fs, nap.Ts(np.array(rip_trough)), binsize = 0.0005, windowsize = 0.1 , ep = nap.IntervalSet(sws_ep), norm = True)
         
         if isWT == 1:
             all_xc_fs_wt = pd.concat([all_xc_fs_wt, xc_fs], axis = 1)
@@ -107,30 +107,37 @@ for s in datasets[1:]:
 
 plt.figure()
 plt.tight_layout()
-plt.suptitle('Ripple onset Cross-correlogram')       
+# plt.suptitle('Ripple onset Cross-correlogram')       
 
 plt.subplot(121)
 plt.title('PYR')
 plt.xlabel('Time from SWR (s)')
-plt.ylabel('Normalized NREM firing rate')
-plt.plot(all_xc_pyr_wt.mean(axis=1), color = 'royalblue', label = 'WT')
+plt.ylabel('norm. rate')
+plt.plot(all_xc_pyr_wt.mean(axis=1), color = 'lightsteelblue', label = 'WT')
 err = all_xc_pyr_wt.sem(axis=1)
-plt.fill_between(all_xc_pyr_wt.index.values, all_xc_pyr_wt.mean(axis=1) - err, all_xc_pyr_wt.mean(axis=1) + err, alpha = 0.2, color = 'royalblue') 
+plt.fill_between(all_xc_pyr_wt.index.values, all_xc_pyr_wt.mean(axis=1) - err, all_xc_pyr_wt.mean(axis=1) + err, alpha = 0.2, color = 'lightsteelblue') 
 
-plt.plot(all_xc_pyr_ko.mean(axis=1), color = 'lightsteelblue', label = 'KO')
+plt.plot(all_xc_pyr_ko.mean(axis=1), color = 'lightcoral', label = 'KO')
 err = all_xc_pyr_ko.sem(axis=1)
-plt.fill_between(all_xc_pyr_ko.index.values, all_xc_pyr_ko.mean(axis=1) - err, all_xc_pyr_ko.mean(axis=1) + err, alpha = 0.2, color = 'lightsteelblue') 
+plt.fill_between(all_xc_pyr_ko.index.values, all_xc_pyr_ko.mean(axis=1) - err, all_xc_pyr_ko.mean(axis=1) + err, alpha = 0.2, color = 'lightcoral') 
 plt.legend(loc = 'upper right')
+plt.xticks([-0.1, 0, 0.1])
+plt.yticks([1,5])
+plt.gca().set_box_aspect(1)
+
         
 plt.subplot(122)
 plt.title('FS')
 plt.xlabel('Time from SWR (s)')
-plt.ylabel('Normalized NREM firing rate')
-plt.plot(all_xc_fs_wt.mean(axis=1), color = 'indianred', label = 'WT')
+# plt.ylabel('norm. rate')
+plt.plot(all_xc_fs_wt.mean(axis=1), color = 'royalblue', label = 'WT')
 err = all_xc_fs_wt.sem(axis=1)
-plt.fill_between(all_xc_fs_wt.index.values, all_xc_fs_wt.mean(axis=1) - err, all_xc_fs_wt.mean(axis=1) + err, alpha = 0.2, color = 'indianred') 
+plt.fill_between(all_xc_fs_wt.index.values, all_xc_fs_wt.mean(axis=1) - err, all_xc_fs_wt.mean(axis=1) + err, alpha = 0.2, color = 'royalblue') 
 
-plt.plot(all_xc_fs_ko.mean(axis=1), color = 'lightcoral', label = 'KO')
+plt.plot(all_xc_fs_ko.mean(axis=1), color = 'indianred', label = 'KO')
 err = all_xc_fs_ko.sem(axis=1)
-plt.fill_between(all_xc_fs_ko.index.values, all_xc_fs_ko.mean(axis=1) - err, all_xc_fs_ko.mean(axis=1) + err, alpha = 0.2, color = 'lightcoral') 
+plt.fill_between(all_xc_fs_ko.index.values, all_xc_fs_ko.mean(axis=1) - err, all_xc_fs_ko.mean(axis=1) + err, alpha = 0.2, color = 'indianred') 
 plt.legend(loc = 'upper right')
+plt.xticks([-0.1, 0, 0.1])
+plt.yticks([1,4.5])
+plt.gca().set_box_aspect(1)

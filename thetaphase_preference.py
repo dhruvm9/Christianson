@@ -14,9 +14,10 @@ import nwbmatic as ntm
 import pynapple as nap
 import pynacollada as pyna
 import pickle
+import warnings
+import seaborn as sns
 from scipy.signal import hilbert, fftconvolve
-from scipy.stats import circmean
-from pingouin import circ_r
+from pingouin import circ_r, circ_mean, circ_rayleigh
 import matplotlib.colors as colors
 from matplotlib.backends.backend_pdf import PdfPages    
 
@@ -57,15 +58,110 @@ def smoothAngularTuningCurves(tuning_curves, sigma=2):
         data = tmp[tuning_curves.shape[0]:tuning_curves.shape[0]*2], 
         columns = tuning_curves.columns
         )
+
+def shuffleByCircularSpikes(spikes, ep):
+    shuffled = {}
+    for n in spikes.keys():
+        
+        for j in range(len(ep)):
+            spk = spikes[n].restrict(ep[j])
+            shift = np.random.uniform(0, (ep[j]['end'][0] - ep[j]['start'][0]))
+            spk_shifted = (spk.index.values + shift) % (ep[j]['end'][0] - ep[j]['start'][0]) + ep[j]['start'][0]
+            
+            if  j == 0:
+                shuffled[n] = spk_shifted
+            else:
+                shuffled[n] = np.append(shuffled[n], spk_shifted)
     
+    shuffled = nap.TsGroup(shuffled)
+    return shuffled
+                
+def circular_hist(ax, x, bins=16, density=True, offset=0, gaps=True):
+    """
+    Produce a circular histogram of angles on ax.
+
+    Parameters
+    ----------
+    ax : matplotlib.axes._subplots.PolarAxesSubplot
+        axis instance created with subplot_kw=dict(projection='polar').
+
+    x : array
+        Angles to plot, expected in units of radians.
+
+    bins : int, optional
+        Defines the number of equal-width bins in the range. The default is 16.
+
+    density : bool, optional
+        If True plot frequency proportional to area. If False plot frequency
+        proportional to radius. The default is True.
+
+    offset : float, optional
+        Sets the offset for the location of the 0 direction in units of
+        radians. The default is 0.
+
+    gaps : bool, optional
+        Whether to allow gaps between bins. When gaps = False the bins are
+        forced to partition the entire [-pi, pi] range. The default is True.
+
+    Returns
+    -------
+    n : array or list of arrays
+        The number of values in each bin.
+
+    bins : array
+        The edges of the bins.
+
+    patches : `.BarContainer` or list of a single `.Polygon`
+        Container of individual artists used to create the histogram
+        or list of such containers if there are multiple input datasets.
+    """
+    # Wrap angles to [-pi, pi)
+    x = (x+np.pi) % (2*np.pi) - np.pi
+
+    # Force bins to partition entire circle
+    if not gaps:
+        bins = np.linspace(-np.pi, np.pi, num=bins+1)
+
+    # Bin data and record counts
+    n, bins = np.histogram(x, bins=bins)
+
+    # Compute width of each bin
+    widths = np.diff(bins)
+
+    # By default plot frequency proportional to area
+    if density:
+        # Area to assign each bin
+        area = n / x.size
+        # Calculate corresponding bin radius
+        radius = (area/np.pi) ** .5
+    # Otherwise plot frequency proportional to radius
+    else:
+        radius = n
+
+    # Plot data on ax
+    patches = ax.bar(bins[:-1], radius, zorder=1, align='edge', width=widths,
+                     edgecolor='C0', fill=False, linewidth=1)
+
+    # Set the direction of the zero angle
+    ax.set_theta_offset(offset)
+
+    # Remove ylabels for area plots (they are mostly obstructive)
+    if density:
+        ax.set_yticks([])
+
+    return n, bins, patches
+ 
     
 #%% 
 
-# data_directory = '/media/dhruv/Expansion/Processed'
-data_directory = '/media/adrien/Expansion/Processed'
-datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
-# datasets = np.genfromtxt(os.path.join(data_directory,'dataset_test.list'), delimiter = '\n', dtype = str, comments = '#')
-ripplechannels = np.genfromtxt(os.path.join(data_directory,'ripplechannel.list'), delimiter = '\n', dtype = str, comments = '#')
+warnings.filterwarnings("ignore")
+
+data_directory = '/media/dhruv/Expansion/Processed'
+# data_directory = '/media/adrien/Expansion/Processed'
+# datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
+datasets = np.genfromtxt(os.path.join(data_directory,'dataset_test.list'), delimiter = '\n', dtype = str, comments = '#')
+# ripplechannels = np.genfromtxt(os.path.join(data_directory,'ripplechannel.list'), delimiter = '\n', dtype = str, comments = '#')
+ripplechannels = np.genfromtxt(os.path.join(data_directory,'ripplechannel_test.list'), delimiter = '\n', dtype = str, comments = '#')
 
 fs = 1250
 
@@ -74,6 +170,36 @@ darr_wt_rem = np.zeros((len(datasets),40,100))
 
 darr_ko_wake = np.zeros((len(datasets),40,100))
 darr_ko_rem = np.zeros((len(datasets),40,100))
+
+mrl_pyr_wt = []
+mrl_pyr_ko = []
+
+mrl_pv_wt = []
+mrl_pv_ko = []
+
+means_pyr_wt = []
+means_pyr_ko = []
+
+means_pv_wt = []
+means_pv_ko = []
+
+p_pyr_wt = []
+p_pyr_ko = []
+
+p_pv_wt = []
+p_pv_ko = []
+
+tokeep_pyr_wt = []
+tokeep_pv_wt = []
+
+tokeep_pyr_ko = []
+tokeep_pv_ko = []
+
+fracsig_pyr_wt = []
+fracsig_pv_wt = []
+
+fracsig_pyr_ko = []
+fracsig_pv_ko = []
 
 
 for r,s in enumerate(datasets):
@@ -137,47 +263,313 @@ for r,s in enumerate(datasets):
     moving_ep = nap.IntervalSet(speed.threshold(2).time_support) #Epochs in which speed is > 2 cm/s
         
 #%% 
-    
-    lfp_wake = lfp.restrict(moving_ep)
-    # lfp_wake = lfp.restrict(rem_ep)   
 
-    lfp_filt_theta_wake = pyna.eeg_processing.bandpass_filter(lfp_wake, 30, 150, 1250)
-    # lfp_filt_theta_wake = pyna.eeg_processing.bandpass_filter(lfp_wake, 6, 9, 1250)
+    ep = moving_ep
     
-    # lfp_filt_theta_rem = pyna.eeg_processing.bandpass_filter(lfp_rem, 30, 150, 1250)
-        
-    h_wake = nap.Tsd(t = lfp_filt_theta_wake.index.values, d = hilbert(lfp_filt_theta_wake))
-    # h_rem = nap.Tsd(t = lfp_filt_theta_rem.index.values, d = hilbert(lfp_filt_theta_rem))
-    
-    phase_wake = nap.Tsd(t = lfp_filt_theta_wake.index.values, d = (np.angle(h_wake.values) + 2 * np.pi) % (2 * np.pi))
-    # phase_rem = nap.Tsd(t = lfp_filt_theta_rem.index.values, d = (np.angle(h_rem.values) + 2 * np.pi) % (2 * np.pi))
-  
-#%% 
+    lfpsig = lfp.restrict(ep)   
+
+    # lfp_filt_theta_wake = pyna.eeg_processing.bandpass_filter(lfp_wake, 30, 150, 1250)
+    lfp_filt_theta = pyna.eeg_processing.bandpass_filter(lfpsig, 6, 9, 1250)
+           
+    h_power = nap.Tsd(t = lfp_filt_theta.index.values, d = hilbert(lfp_filt_theta))
+     
+    phase = nap.Tsd(t = lfp_filt_theta.index.values, d = (np.angle(h_power.values) + 2 * np.pi) % (2 * np.pi))
+      
+#%% Compute phase preference
     
     if len(pv) > 0 and len(pyr) > 0:      
-        phasepref_wake_pyr = nap.compute_1d_tuning_curves(pyr, phase_wake, 40, moving_ep) 
-        phasepref_wake_pyr = smoothAngularTuningCurves(phasepref_wake_pyr, sigma=3)
+        phasepref_pyr = nap.compute_1d_tuning_curves(pyr, phase, 40, ep) 
+        phasepref_pyr = smoothAngularTuningCurves(phasepref_pyr, sigma=3)
         
-        phasepref_wake_pv = nap.compute_1d_tuning_curves(pv, phase_wake, 40, moving_ep) 
-        phasepref_wake_pv = smoothAngularTuningCurves(phasepref_wake_pv, sigma=3)
+        phasepref_pv = nap.compute_1d_tuning_curves(pv, phase, 40, ep) 
+        phasepref_pv = smoothAngularTuningCurves(phasepref_pv, sigma=3)
+        
+        sess_mrl_pyr = []        
+        sess_mean_pyr = []
+        
+        sess_mrl_pv = []  
+        sess_mean_pv = []
+        
+        sess_tokeep_pyr = []
+        sess_tokeep_pv = []
+             
+        
+        shu_mrl_pyr  = {}
+        shu_mrl_pv = {}
+        
+        sess_tokeep_pyr = []
+        shu_threshold_pyr = {}
+        
+        sess_tokeep_pv = []
+        shu_threshold_pv = {}
+
+#%% Computing shuffles PYR 
+    
+        for k in range(100):
+            shu_pyr = shuffleByCircularSpikes(pyr, ep)    
+            phasepref_shu_pyr = nap.compute_1d_tuning_curves(shu_pyr, phase, 40, ep)  
+            phasepref_shu_pyr = smoothAngularTuningCurves(phasepref_shu_pyr, sigma=3)
+        
+            for ii in phasepref_shu_pyr.columns:
+                MRL = circ_r(phasepref_shu_pyr.index.values, w = phasepref_shu_pyr[ii])
+                
+                if k == 0:
+                    shu_mrl_pyr[ii] = MRL
+                else: 
+                    shu_mrl_pyr[ii] = np.append(shu_mrl_pyr[ii], MRL)
+               
+        
+        for ii in phasepref_pyr.columns:
+            shu_threshold_pyr[ii] = np.percentile(shu_mrl_pyr[ii], 95)
+            MRL = circ_r(phasepref_pyr.index.values, w = phasepref_pyr[ii])
+            meanbin = circ_mean(phasepref_pyr.index.values, w = phasepref_pyr[ii])
+            
+            # plt.figure()
+            # plt.title(MRL > shu_threshold_pyr[ii])
+            # plt.hist(shu_mrl_pyr[ii])
+            # plt.axvline(MRL)
+            
+            sess_mrl_pyr.append(MRL)
+            sess_mean_pyr.append(meanbin)
+            
+                            
+            if isWT == 1:
+                mrl_pyr_wt.append(MRL)    
+                means_pyr_wt.append(meanbin)
+                
+                if MRL > shu_threshold_pyr[ii]:
+                    tokeep_pyr_wt.append(True)
+                    sess_tokeep_pyr.append(True)
+                else:
+                    tokeep_pyr_wt.append(False)
+                    sess_tokeep_pyr.append(False)
+             
+                                                   
+            else:
+                mrl_pyr_ko.append(MRL)    
+                means_pyr_ko.append(meanbin)
+           
+                if MRL > shu_threshold_pyr[ii]:
+                    tokeep_pyr_ko.append(True)
+                    sess_tokeep_pyr.append(True)
+                else:
+                    tokeep_pyr_ko.append(False)
+                    sess_tokeep_pyr.append(False)
+     
+#%% Computing shuffles FS
+    
+        for k in range(100):
+            shu_pv = shuffleByCircularSpikes(pv, ep)    
+            phasepref_shu_pv = nap.compute_1d_tuning_curves(shu_pv, phase, 40, ep)  
+            phasepref_shu_pv = smoothAngularTuningCurves(phasepref_shu_pv, sigma=3)
+        
+            for ii in phasepref_shu_pv.columns:
+                MRL = circ_r(phasepref_shu_pv.index.values, w = phasepref_shu_pv[ii])
+                
+                if k == 0:
+                    shu_mrl_pv[ii] = MRL
+                else: 
+                    shu_mrl_pv[ii] = np.append(shu_mrl_pv[ii], MRL)
+               
+        
+        for ii in phasepref_pv.columns:
+            shu_threshold_pv[ii] = np.percentile(shu_mrl_pv[ii], 95)
+            MRL = circ_r(phasepref_pv.index.values, w = phasepref_pv[ii])
+            meanbin = circ_mean(phasepref_pv.index.values, w = phasepref_pv[ii])
+            
+            # plt.figure()
+            # plt.title(MRL > shu_threshold_pv[ii])
+            # plt.hist(shu_mrl_pv[ii])
+            # plt.axvline(MRL)
+            
+            sess_mrl_pv.append(MRL)
+            sess_mean_pv.append(meanbin)
+            
+                            
+            if isWT == 1:
+                mrl_pv_wt.append(MRL)    
+                means_pv_wt.append(meanbin)
+                
+                if MRL > shu_threshold_pv[ii]:
+                    tokeep_pv_wt.append(True)
+                    sess_tokeep_pv.append(True)
+                else:
+                    tokeep_pv_wt.append(False)
+                    sess_tokeep_pv.append(False)
+     
+                
+            else:
+                mrl_pv_ko.append(MRL)    
+                means_pv_ko.append(meanbin)
+           
+                if MRL > shu_threshold_pv[ii]:
+                    tokeep_pv_ko.append(True)
+                    sess_tokeep_pv.append(True)
+                else:
+                    tokeep_pv_ko.append(False)
+                    sess_tokeep_pv.append(False)
+       
+
+#%%                 
+                
+        # fig, ax = plt.subplots(1,2, subplot_kw=dict(projection = 'polar'))
+        # fig.suptitle(s)
+        # ax[0].set_title('PYR')
+        # ax[0].plot(sess_mean_pyr, sess_mrl_pyr, 'o', color = 'b')
+        # ax[1].set_title('FS')
+        # ax[1].plot(sess_mean_pv, sess_mrl_pv, 'o', color = 'r')
+  
+        
+#%% Determine fraction of significantly coupled cells per session
+
+    if isWT == 1:
+        fracsig_pyr_wt.append(len(np.array(sess_mrl_pyr)[sess_tokeep_pyr])/len(sess_mrl_pyr))
+        fracsig_pv_wt.append(len(np.array(sess_mrl_pv)[sess_tokeep_pv])/len(sess_mrl_pv))
+        
+    else:
+        fracsig_pyr_ko.append(len(np.array(sess_mrl_pyr)[sess_tokeep_pyr])/len(sess_mrl_pyr))
+        fracsig_pv_ko.append(len(np.array(sess_mrl_pv)[sess_tokeep_pv])/len(sess_mrl_pv))
+        
+#%% Delete variables before next iteration     
+    
+    del pyr, pv
+        
+#%% Out of loop plotting 
+            
+fig, ax = plt.subplots(1,2, subplot_kw=dict(projection = 'polar'))
+fig.suptitle('WT')
+ax[0].set_title('PYR')
+ax[0].plot(means_pyr_wt, mrl_pyr_wt, 'o', color = 'b')
+ax[1].set_title('FS')
+ax[1].plot(means_pv_wt, mrl_pv_wt, 'o', color = 'r')
+    
+fig, ax = plt.subplots(1,2, subplot_kw=dict(projection = 'polar'))
+fig.suptitle('KO')
+ax[0].set_title('PYR')
+ax[0].plot(means_pyr_ko, mrl_pyr_ko, 'o', color = 'b')
+ax[1].set_title('FS')
+ax[1].plot(means_pv_ko, mrl_pv_ko, 'o', color = 'r')
+
+fig, ax = plt.subplots(1,2, subplot_kw=dict(projection = 'polar'))
+fig.suptitle('WT')
+ax[0].set_title('PYR')
+ax[0].plot(np.array(means_pyr_wt)[np.array(tokeep_pyr_wt)], np.array(mrl_pyr_wt)[np.array(tokeep_pyr_wt)], 'o', color = 'b')
+ax[1].set_title('FS')
+ax[1].plot(np.array(means_pv_wt)[np.array(tokeep_pv_wt)], np.array(mrl_pv_wt)[np.array(tokeep_pv_wt)], 'o', color = 'r')
+    
+fig, ax = plt.subplots(1,2, subplot_kw=dict(projection = 'polar'))
+fig.suptitle('KO')
+ax[0].set_title('PYR')
+ax[0].plot(np.array(means_pyr_ko)[np.array(tokeep_pyr_ko)], np.array(mrl_pyr_ko)[np.array(tokeep_pyr_ko)], 'o', color = 'b')
+ax[1].set_title('FS')
+ax[1].plot(np.array(means_pv_ko)[np.array(tokeep_pv_ko)], np.array(mrl_pv_ko)[np.array(tokeep_pv_ko)], 'o', color = 'r')
+
+
+#%% Organize fraction of significantly coupled cells
+
+wt1 = np.array(['WT' for x in range(len(fracsig_pyr_wt))])
+wt2 = np.array(['WT' for x in range(len(fracsig_pv_wt))])
+
+ko1 = np.array(['KO' for x in range(len(fracsig_pyr_ko))])
+ko2 = np.array(['KO' for x in range(len(fracsig_pv_ko))])
+
+genotype = np.hstack([wt1, ko1, wt2, ko2])
+
+ex = np.array(['PYR' for x in range(len(fracsig_pyr_wt))])
+inh = np.array(['FS' for x in range(len(fracsig_pv_wt))])
+
+ex2 = np.array(['PYR' for x in range(len(fracsig_pyr_ko))])
+inh2 = np.array(['FS' for x in range(len(fracsig_pv_ko))])
+
+ctype = np.hstack([ex, ex2, inh, inh2])
+
+sigfracs = []
+sigfracs.extend(fracsig_pyr_wt)
+sigfracs.extend(fracsig_pyr_ko)
+sigfracs.extend(fracsig_pv_wt)
+sigfracs.extend(fracsig_pv_ko)
+
+infos = pd.DataFrame(data = [sigfracs, ctype, genotype], index = ['frac', 'celltype', 'genotype']).T
+
+#%% Plot fraction of significantly coupled cells
+
+plt.figure()
+plt.subplot(121)
+plt.title('PYR')
+sns.set_style('white')
+palette = ['lightsteelblue', 'lightcoral']
+ax = sns.violinplot( x = infos[infos['celltype'] == 'PYR']['genotype'], y=infos[infos['celltype'] == 'PYR']['frac'].astype(float) , data = infos, dodge=False,
+                    palette = palette,cut = 2,
+                    scale="width", inner=None)
+ax.tick_params(bottom=True, left=True)
+xlim = ax.get_xlim()
+ylim = ax.get_ylim()
+for violin in ax.collections:
+    x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
+    violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
+sns.boxplot(x = infos[infos['celltype'] == 'PYR']['genotype'], y=infos[infos['celltype'] == 'PYR']['frac'] , data = infos, saturation=1, showfliers=False,
+            width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
+old_len_collections = len(ax.collections)
+sns.stripplot(x = infos[infos['celltype'] == 'PYR']['genotype'], y=infos[infos['celltype'] == 'PYR']['frac'], data = infos, color = 'k', dodge=False, ax=ax)
+
+for dots in ax.collections[old_len_collections:]:
+    dots.set_offsets(dots.get_offsets())
+ax.set_xlim(xlim)
+ax.set_ylim(ylim)
+plt.ylabel('Fraction of significantly coupled cells')
+ax.set_box_aspect(1)
+
+plt.subplot(122)
+plt.title('FS')
+sns.set_style('white')
+palette = ['royalblue', 'indianred']
+ax = sns.violinplot( x = infos[infos['celltype'] == 'FS']['genotype'], y=infos[infos['celltype'] == 'FS']['frac'].astype(float) , data = infos, dodge=False,
+                    palette = palette,cut = 2,
+                    scale="width", inner=None)
+ax.tick_params(bottom=True, left=True)
+xlim = ax.get_xlim()
+ylim = ax.get_ylim()
+for violin in ax.collections:
+    x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
+    violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
+sns.boxplot(x = infos[infos['celltype'] == 'FS']['genotype'], y=infos[infos['celltype'] == 'FS']['frac'] , data = infos, saturation=1, showfliers=False,
+            width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
+old_len_collections = len(ax.collections)
+sns.stripplot(x = infos[infos['celltype'] == 'FS']['genotype'], y=infos[infos['celltype'] == 'FS']['frac'], data = infos, color = 'k', dodge=False, ax=ax)
+
+for dots in ax.collections[old_len_collections:]:
+    dots.set_offsets(dots.get_offsets())
+ax.set_xlim(xlim)
+ax.set_ylim(ylim)
+plt.ylabel('Fraction of significantly coupled cells')
+ax.set_box_aspect(1)
+
+
+
+
+#%%             
+            # fig, ax = plt.subplots(1, 2, subplot_kw=dict(projection='polar'))
+            # circular_hist(ax[0], np.array(sess_mean_pv))
+            # # Visualise by radius of bins
+            # circular_hist(ax[1], np.array(sess_mean_pv), offset=np.pi/2, density=False)
     
 #%% Session spectra and tuning curves
 
-        plt.figure()
-        plt.title(s + '_wake_pyr')
-        for i,n in enumerate(pyr):
-            plt.subplot(9,8,n+1, projection='polar')
-            plt.plot(phasepref_wake_pyr[n], color = 'b')        
+        # plt.figure()
+        # plt.title(s + '_wake_pyr')
+        # for i,n in enumerate(pyr):
+        #     plt.subplot(9,8,n+1, projection='polar')
+        #     plt.plot(phasepref_wake_pyr[n], color = 'b')        
             
-        plt.figure()
-        plt.title(s + '_wake_pv')
-        for i,n in enumerate(pv):
-            plt.subplot(9,8,n+1, projection='polar')
-            plt.plot(phasepref_wake_pv[n], color = 'r')   
+        # plt.figure()
+        # plt.title(s + '_wake_pv')
+        # for i,n in enumerate(pv):
+        #     plt.subplot(9,8,n+1, projection='polar')
+        #     plt.plot(phasepref_wake_pv[n], color = 'r')   
             
-    del pyr, pv
+    
 
-multipage(data_directory + '/' + 'GammaPhaseplots_wake.pdf', dpi=250)
+# multipage(data_directory + '/' + 'GammaPhaseplots_wake.pdf', dpi=250)
 
     # plt.figure()
     # plt.title(s)

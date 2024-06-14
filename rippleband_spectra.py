@@ -98,11 +98,11 @@ for r,s in enumerate(datasets):
         
 #%% Average spectrum 
 
-ix = np.where((freqs >= 100) & (freqs <= 200))
+ix = np.where((freqs >= 10) & (freqs <= 200))
 
 ##Wake 
 plt.figure()
-plt.title('During SWRs')
+# plt.title('During SWRs')
 plt.semilogx(freqs[ix], 10*np.log10(PSD_rip_wt.iloc[ix].mean(axis=1)), 'o-', label = 'WT', color = 'royalblue')
 # err = 10*np.log10(PSD_rip_wt.iloc[ix].sem(axis=1))
 # plt.fill_between(freqs[ix],
@@ -115,9 +115,12 @@ plt.semilogx(freqs[ix], 10*np.log10(PSD_rip_ko.iloc[ix].mean(axis=1)), 'o-', lab
 #                   10*np.log10(PSD_rip_ko.iloc[ix].mean(axis=1))-err, 
 #                   10*np.log10(PSD_rip_ko.iloc[ix].mean(axis=1))+err, color = 'indianred', alpha = 0.2)
 plt.xlabel('Freq (Hz)')
-plt.ylabel('Power spectral density (dB/Hz)')
+plt.xticks([10, 100, 200])
+plt.ylabel('Power (dB/Hz)')
+plt.yticks([-20, -30])
 plt.legend(loc = 'upper right')
 plt.grid(True)
+plt.gca().set_box_aspect(1)
 
 #%% Organize peak frequency data and plot
 
@@ -133,7 +136,7 @@ allpeaks.extend(peakfreq_ko)
 summ = pd.DataFrame(data = [allpeaks, genotype], index = ['freq', 'genotype']).T
 
 plt.figure()
-plt.title('Peak Frequency in Ripple Band')
+# plt.title('Peak Frequency in Ripple Band')
 sns.set_style('white')
 palette = ['royalblue', 'indianred']
 ax = sns.violinplot( x = summ['genotype'], y=summ['freq'].astype(float) , data = summ, dodge=False,
@@ -154,7 +157,8 @@ for dots in ax.collections[old_len_collections:]:
     dots.set_offsets(dots.get_offsets())
 ax.set_xlim(xlim)
 ax.set_ylim(ylim)
-plt.ylabel('Peak Frequency (Hz)')
+plt.ylabel('Frequency (Hz)')
+plt.yticks([100, 160])
 ax.set_box_aspect(1)
 
 t, p = mannwhitneyu(peakfreq_wt, peakfreq_ko)
