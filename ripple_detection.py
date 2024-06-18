@@ -17,9 +17,11 @@ from scipy.signal import filtfilt
 #%%
 
 data_directory = '/media/dhruv/Expansion/Processed'
-datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
+# datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
+datasets = np.genfromtxt(os.path.join(data_directory,'dataset_new_toadd.list'), delimiter = '\n', dtype = str, comments = '#')
 # datasets = np.genfromtxt(os.path.join(data_directory,'dataset_test.list'), delimiter = '\n', dtype = str, comments = '#')
-ripplechannels = np.genfromtxt(os.path.join(data_directory,'ripplechannel.list'), delimiter = '\n', dtype = str, comments = '#')
+# ripplechannels = np.genfromtxt(os.path.join(data_directory,'ripplechannel.list'), delimiter = '\n', dtype = str, comments = '#')
+ripplechannels = np.genfromtxt(os.path.join(data_directory,'ripplechannel_new_toadd.list'), delimiter = '\n', dtype = str, comments = '#')
 # ripplechannels = np.genfromtxt(os.path.join(data_directory,'ripplechannel_test.list'), delimiter = '\n', dtype = str, comments = '#')
 
 for r,s in enumerate(datasets):
@@ -144,18 +146,18 @@ for r,s in enumerate(datasets):
     
     rip_tsd = nap.Tsd(t=rip_tsd, d=rip_max, time_support=lfpnrem.time_support)
     
-    # plt.figure(figsize=(15,5))
-    # plt.subplot(311)
-    # plt.plot(lfpnrem.restrict(ex_ep).as_units('s'))
-    # plt.subplot(312)
-    # plt.plot(signal.restrict(ex_ep).as_units('s'))
-    # plt.subplot(313)
-    # plt.plot(nSS.restrict(ex_ep).as_units('s'))
-    # plt.plot(nSS3.restrict(rip_ep.intersect(ex_ep)).as_units('s'), '.')
-    # [plt.axvline(t, color = 'green') for t in rip_tsd.restrict(ex_ep).as_units('s').index.values]
-    # plt.axhline(low_thres)
-    # plt.xlabel("Time (s)")
-    # plt.tight_layout()
+    plt.figure(figsize=(15,5))
+    plt.subplot(311)
+    plt.plot(lfpnrem.restrict(ex_ep).as_units('s'))
+    plt.subplot(312)
+    plt.plot(signal.restrict(ex_ep).as_units('s'))
+    plt.subplot(313)
+    plt.plot(nSS.restrict(ex_ep).as_units('s'))
+    plt.plot(nSS3.restrict(rip_ep.intersect(ex_ep)).as_units('s'), '.')
+    [plt.axvline(t, color = 'green') for t in rip_tsd.restrict(ex_ep).as_units('s').index.values]
+    plt.axhline(low_thres)
+    plt.xlabel("Time (s)")
+    plt.tight_layout()
 
 #%% 
 

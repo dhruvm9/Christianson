@@ -43,7 +43,7 @@ for r,s in enumerate(datasets):
     data.load_neurosuite_xml(path)
     epochs = data.epochs
     
-    if name == 'B2613' or name == 'B2618':
+    if name == 'B2613' or name == 'B2618' or name == 'B2627' or name == 'B2628':
         isWT = 0
     else: isWT = 1 
     
@@ -62,12 +62,12 @@ for r,s in enumerate(datasets):
             
 #%% Filter LFP in ripple band, then restrict to ripple periods
     
-    lfp_filt_rippleband = pyna.eeg_processing.bandpass_filter(lfp, 100, 300, fs)
+    lfp_filt_rippleband = pyna.eeg_processing.bandpass_filter(lfp, 100, 200, fs)
     power_lfp = nap.Tsd(lfp_filt_rippleband.index.values, np.abs(hilbert(lfp_filt_rippleband.values)))
     # pls = power_lfp.as_series()
     # pls = pls.rolling(window = 8,win_type='gaussian',center=True,min_periods=1).mean(std=32)
 
-    ref_filt_rippleband = pyna.eeg_processing.bandpass_filter(lfpref, 100, 300, fs)
+    ref_filt_rippleband = pyna.eeg_processing.bandpass_filter(lfpref, 100, 200, fs)
     power_ref = nap.Tsd(ref_filt_rippleband.index.values, np.abs(hilbert(ref_filt_rippleband.values)))
     # prs = power_ref.as_series()
     # prs = pls.rolling(window = 8,win_type='gaussian',center=True,min_periods=1).mean(std=32)
