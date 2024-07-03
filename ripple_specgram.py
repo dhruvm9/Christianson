@@ -60,7 +60,7 @@ for r,s in enumerate(datasets):
     data.load_neurosuite_xml(path)
     epochs = data.epochs
     
-    if name == 'B2613' or name == 'B2618':
+    if name == 'B2613' or name == 'B2618' or name == 'B2627' or name == 'B2628':
         isWT = 0
     else: isWT = 1 
     
@@ -95,8 +95,8 @@ for r,s in enumerate(datasets):
     
 #%%         
      
-    fmin = 10
-    fmax = 300
+    fmin = 100
+    fmax = 200
     nfreqs = 100
     ncyc = 3 #5
     si = 1/fs
@@ -169,7 +169,7 @@ specgram_m_ko = all_pspec_median_ko.groupby(all_pspec_median_ko.index).mean()
 
 # ## Z-scored 
 
-labels = [10, 50, 100, 150, 200, 250, 300]
+labels = [100, 150, 200]
 # norm = colors.TwoSlopeNorm(vmin=specgram_z_wt[-0.2:0.2].values.min(),vcenter=0, vmax = specgram_z_wt[-0.2:0.2].values.max())
 norm = colors.TwoSlopeNorm(vmin = -0.3, vcenter = 0, vmax = 3.76)
        
@@ -190,16 +190,16 @@ plt.title('Z-scored spectrogram (WT)')
 # cbar = fig.colorbar(cax, label = 'Power (z)', ticks = [-0.3, 0, 2.2])
 # plt.axvline(0, color = 'k',linestyle = '--')
 # plt.gca().set_box_aspect(1)
-cax = ax.imshow(specgram_z_wt[-0.2:0.2].T, aspect = 'auto', cmap = 'magma', interpolation='bilinear', 
+cax = ax.imshow(specgram_z_wt[-0.1:0.1].T, aspect = 'auto', cmap = 'magma', interpolation='bilinear', 
             origin = 'lower',
-            extent = [specgram_z_wt[-0.2:0.2].index.values[0], 
-                      specgram_z_wt[-0.2:0.2].index.values[-1],
+            extent = [specgram_z_wt[-0.1:0.1].index.values[0], 
+                      specgram_z_wt[-0.1:0.1].index.values[-1],
                       np.log10(specgram_z_wt.columns[0]),
                       np.log10(specgram_z_wt.columns[-1])], 
             norm = norm
             )
 plt.xlabel('Time from SWR (s)')
-plt.xticks([-0.2, 0, 0.2])
+plt.xticks([-0.1, 0, 0.1])
 plt.ylabel('Freq (Hz)')
 plt.yticks(np.log10(labels), labels = labels)
 cbar = fig.colorbar(cax, label = 'Power (z)', ticks = [-0.3, 0, 3.76])
@@ -227,16 +227,16 @@ plt.title('Z-scored spectrogram (KO)')
 # cbar = fig.colorbar(cax, label = 'Power (z)', ticks = [-0.3, 0, 2.2])
 # plt.axvline(0, color = 'k',linestyle = '--')
 # plt.gca().set_box_aspect(1)
-cax = ax.imshow(specgram_z_ko[-0.2:0.2].T, aspect = 'auto', cmap = 'magma', interpolation='bilinear', 
+cax = ax.imshow(specgram_z_ko[-0.1:0.1].T, aspect = 'auto', cmap = 'magma', interpolation='bilinear', 
             origin = 'lower',
-            extent = [specgram_z_ko[-0.2:0.2].index.values[0], 
-                      specgram_z_ko[-0.2:0.2].index.values[-1],
+            extent = [specgram_z_ko[-0.1:0.1].index.values[0], 
+                      specgram_z_ko[-0.1:0.1].index.values[-1],
                       np.log10(specgram_z_ko.columns[0]),
                       np.log10(specgram_z_ko.columns[-1])], 
             norm = norm
             )
 plt.xlabel('Time from SWR (s)')
-plt.xticks([-0.2, 0, 0.2])
+plt.xticks([-0.1, 0, 0.1])
 plt.ylabel('Freq (Hz)')
 plt.yticks(np.log10(labels), labels = labels)
 cbar = fig.colorbar(cax, label = 'Power (z)', ticks = [-0.3, 0, 3.76])
@@ -246,9 +246,10 @@ plt.gca().set_box_aspect(1)
 
 # # ## Median Normalized
 
-labels = [10, 50, 100, 150, 200, 250, 300]
+# labels = [10, 50, 100, 150, 200, 250, 300]
+labels = [100, 150, 200]
 # norm = colors.TwoSlopeNorm(vmin=specgram_m_wt[-0.2:0.2].values.min(), vmax = specgram_m_wt[-0.2:0.2].values.max())
-norm = colors.TwoSlopeNorm(vmin = 1, vcenter = 4.25 , vmax = 7.5)
+norm = colors.TwoSlopeNorm(vmin = 3.5, vcenter = 5.7 , vmax = 7.9)
        
 fig, ax = plt.subplots()
 plt.title('Median normalized spectrogram (WT)')
@@ -267,20 +268,20 @@ plt.title('Median normalized spectrogram (WT)')
 # cbar = fig.colorbar(cax, label = 'Power (median normalized)')
 # plt.axvline(0, color = 'k',linestyle = '--')
 # plt.gca().set_box_aspect(1)
-cax = ax.imshow(specgram_m_wt[-0.2:0.2].T, aspect = 'auto', cmap = 'magma', interpolation='bilinear', 
+cax = ax.imshow(specgram_m_wt[-0.1:0.1].T, aspect = 'auto', cmap = 'magma', interpolation='bilinear', 
             origin = 'lower',
-            extent = [specgram_m_wt[-0.2:0.2].index.values[0], 
-                      specgram_m_wt[-0.2:0.2].index.values[-1],
+            extent = [specgram_m_wt[-0.1:0.1].index.values[0], 
+                      specgram_m_wt[-0.1:0.1].index.values[-1],
                       np.log10(specgram_m_wt.columns[0]),
                       np.log10(specgram_m_wt.columns[-1])], 
             norm = norm
             )
 plt.xlabel('Time from SWR (s)')
-# plt.xticks([-0.03, 0, 0.03])
+plt.xticks([-0.1, 0, 0.1])
 plt.ylabel('Freq (Hz)')
 plt.yticks(np.log10(labels), labels = labels)
 cbar = fig.colorbar(cax, label = 'Power (median normalized)')
-# plt.axvline(0, color = 'k',linestyle = '--')
+plt.axvline(0, color = 'k',linestyle = '--')
 plt.gca().set_box_aspect(1)
 
 
@@ -301,19 +302,19 @@ plt.title('Median normalized spectrogram (KO)')
 # cbar = fig.colorbar(cax, label = 'Power (median normalized)')
 # plt.axvline(0, color = 'k',linestyle = '--')
 # plt.gca().set_box_aspect(1)
-cax = ax.imshow(specgram_m_ko[-0.2:0.2].T, aspect = 'auto', cmap = 'magma', interpolation='bilinear', 
+cax = ax.imshow(specgram_m_ko[-0.1:0.1].T, aspect = 'auto', cmap = 'magma', interpolation='bilinear', 
             origin = 'lower',
-            extent = [specgram_m_ko[-0.2:0.2].index.values[0], 
-                      specgram_m_ko[-0.2:0.2].index.values[-1],
+            extent = [specgram_m_ko[-0.1:0.1].index.values[0], 
+                      specgram_m_ko[-0.1:0.1].index.values[-1],
                       np.log10(specgram_m_ko.columns[0]),
                       np.log10(specgram_m_ko.columns[-1])], 
             norm = norm
             )
 plt.xlabel('Time from SWR (s)')
-# plt.xticks([-0.03, 0, 0.03])
+plt.xticks([-0.1, 0, 0.1])
 plt.ylabel('Freq (Hz)')
 plt.yticks(np.log10(labels), labels = labels)
 cbar = fig.colorbar(cax, label = 'Power (median normalized)')
-# plt.axvline(0, color = 'k',linestyle = '--')
+plt.axvline(0, color = 'k',linestyle = '--')
 plt.gca().set_box_aspect(1)
        

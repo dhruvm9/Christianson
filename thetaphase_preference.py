@@ -18,6 +18,7 @@ import warnings
 import seaborn as sns
 from scipy.signal import hilbert, fftconvolve
 from pingouin import circ_r, circ_mean, circ_rayleigh
+from scipy.stats import mannwhitneyu
 import matplotlib.colors as colors
 from matplotlib.backends.backend_pdf import PdfPages    
 
@@ -156,12 +157,14 @@ def circular_hist(ax, x, bins=16, density=True, offset=0, gaps=True):
 
 warnings.filterwarnings("ignore")
 
-data_directory = '/media/dhruv/Expansion/Processed'
+# data_directory = '/media/dhruv/Expansion/Processed'
+data_directory = '/media/adrien/Expansion/Processed'
+
 # data_directory = '/media/adrien/Expansion/Processed'
-# datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
-datasets = np.genfromtxt(os.path.join(data_directory,'dataset_test.list'), delimiter = '\n', dtype = str, comments = '#')
-# ripplechannels = np.genfromtxt(os.path.join(data_directory,'ripplechannel.list'), delimiter = '\n', dtype = str, comments = '#')
-ripplechannels = np.genfromtxt(os.path.join(data_directory,'ripplechannel_test.list'), delimiter = '\n', dtype = str, comments = '#')
+datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
+# datasets = np.genfromtxt(os.path.join(data_directory,'dataset_test.list'), delimiter = '\n', dtype = str, comments = '#')
+ripplechannels = np.genfromtxt(os.path.join(data_directory,'ripplechannel.list'), delimiter = '\n', dtype = str, comments = '#')
+# ripplechannels = np.genfromtxt(os.path.join(data_directory,'ripplechannel_test.list'), delimiter = '\n', dtype = str, comments = '#')
 
 fs = 1250
 
@@ -264,7 +267,8 @@ for r,s in enumerate(datasets):
         
 #%% 
 
-    ep = moving_ep
+    ep = rem_ep
+    downsample = 2
     
     lfpsig = lfp.restrict(ep)   
 
@@ -274,6 +278,7 @@ for r,s in enumerate(datasets):
     h_power = nap.Tsd(t = lfp_filt_theta.index.values, d = hilbert(lfp_filt_theta))
      
     phase = nap.Tsd(t = lfp_filt_theta.index.values, d = (np.angle(h_power.values) + 2 * np.pi) % (2 * np.pi))
+    phase = phase[::downsample]
       
 #%% Compute phase preference
     
@@ -436,33 +441,45 @@ for r,s in enumerate(datasets):
         
 #%% Out of loop plotting 
             
-fig, ax = plt.subplots(1,2, subplot_kw=dict(projection = 'polar'))
-fig.suptitle('WT')
-ax[0].set_title('PYR')
-ax[0].plot(means_pyr_wt, mrl_pyr_wt, 'o', color = 'b')
-ax[1].set_title('FS')
-ax[1].plot(means_pv_wt, mrl_pv_wt, 'o', color = 'r')
+# fig, ax = plt.subplots(1,2, subplot_kw=dict(projection = 'polar'))
+# fig.suptitle('WT')
+# ax[0].set_title('PYR')
+# ax[0].plot(means_pyr_wt, mrl_pyr_wt, 'o', color = 'b')
+# ax[1].set_title('FS')
+# ax[1].plot(means_pv_wt, mrl_pv_wt, 'o', color = 'r')
     
-fig, ax = plt.subplots(1,2, subplot_kw=dict(projection = 'polar'))
-fig.suptitle('KO')
-ax[0].set_title('PYR')
-ax[0].plot(means_pyr_ko, mrl_pyr_ko, 'o', color = 'b')
-ax[1].set_title('FS')
-ax[1].plot(means_pv_ko, mrl_pv_ko, 'o', color = 'r')
+# fig, ax = plt.subplots(1,2, subplot_kw=dict(projection = 'polar'))
+# fig.suptitle('KO')
+# ax[0].set_title('PYR')
+# ax[0].plot(means_pyr_ko, mrl_pyr_ko, 'o', color = 'b')
+# ax[1].set_title('FS')
+# ax[1].plot(means_pv_ko, mrl_pv_ko, 'o', color = 'r')
 
 fig, ax = plt.subplots(1,2, subplot_kw=dict(projection = 'polar'))
-fig.suptitle('WT')
+plt.suptitle('WT')
 ax[0].set_title('PYR')
-ax[0].plot(np.array(means_pyr_wt)[np.array(tokeep_pyr_wt)], np.array(mrl_pyr_wt)[np.array(tokeep_pyr_wt)], 'o', color = 'b')
+ax[0].plot(np.array(means_pyr_wt)[np.array(tokeep_pyr_wt)], np.array(mrl_pyr_wt)[np.array(tokeep_pyr_wt)], 'o', color = 'lightsteelblue')
 ax[1].set_title('FS')
-ax[1].plot(np.array(means_pv_wt)[np.array(tokeep_pv_wt)], np.array(mrl_pv_wt)[np.array(tokeep_pv_wt)], 'o', color = 'r')
-    
+ax[1].plot(np.array(means_pv_wt)[np.array(tokeep_pv_wt)], np.array(mrl_pv_wt)[np.array(tokeep_pv_wt)], 'o', color = 'lightcoral')
+
+
 fig, ax = plt.subplots(1,2, subplot_kw=dict(projection = 'polar'))
-fig.suptitle('KO')
+plt.suptitle('KO')
 ax[0].set_title('PYR')
-ax[0].plot(np.array(means_pyr_ko)[np.array(tokeep_pyr_ko)], np.array(mrl_pyr_ko)[np.array(tokeep_pyr_ko)], 'o', color = 'b')
+ax[0].plot(np.array(means_pyr_ko)[np.array(tokeep_pyr_ko)], np.array(mrl_pyr_ko)[np.array(tokeep_pyr_ko)], 'o', color = 'royalblue')
 ax[1].set_title('FS')
-ax[1].plot(np.array(means_pv_ko)[np.array(tokeep_pv_ko)], np.array(mrl_pv_ko)[np.array(tokeep_pv_ko)], 'o', color = 'r')
+ax[1].plot(np.array(means_pv_ko)[np.array(tokeep_pv_ko)], np.array(mrl_pv_ko)[np.array(tokeep_pv_ko)], 'o', color = 'indianred')
+
+
+# fig, ax = plt.subplots(1,2, subplot_kw=dict(projection = 'polar'))
+# ax[0].set_title('PYR')
+# ax[0].plot(np.array(means_pyr_wt)[np.array(tokeep_pyr_wt)], np.array(mrl_pyr_wt)[np.array(tokeep_pyr_wt)], 'o', color = 'royalblue', label = 'WT')
+# ax[0].plot(np.array(means_pyr_ko)[np.array(tokeep_pyr_ko)], np.array(mrl_pyr_ko)[np.array(tokeep_pyr_ko)], 'o', color = 'k', label = 'KO')
+# ax[0].legend(loc = 'upper right')
+# ax[1].set_title('FS')
+# ax[1].plot(np.array(means_pv_wt)[np.array(tokeep_pv_wt)], np.array(mrl_pv_wt)[np.array(tokeep_pv_wt)], 'o', color = 'indianred', label = 'WT')
+# ax[1].plot(np.array(means_pv_ko)[np.array(tokeep_pv_ko)], np.array(mrl_pv_ko)[np.array(tokeep_pv_ko)], 'o', color = 'k', label = 'KO')
+# ax[1].legend(loc = 'upper right')
 
 
 #%% Organize fraction of significantly coupled cells
@@ -544,7 +561,10 @@ ax.set_ylim(ylim)
 plt.ylabel('Fraction of significantly coupled cells')
 ax.set_box_aspect(1)
 
+#%% Stats 
 
+t_pyr, p_pyr = mannwhitneyu(fracsig_pyr_wt, fracsig_pyr_ko)
+t_pv, p_pv = mannwhitneyu(fracsig_pv_wt, fracsig_pv_ko)
 
 
 #%%             
@@ -552,6 +572,22 @@ ax.set_box_aspect(1)
             # circular_hist(ax[0], np.array(sess_mean_pv))
             # # Visualise by radius of bins
             # circular_hist(ax[1], np.array(sess_mean_pv), offset=np.pi/2, density=False)
+            
+            
+fig, ax = plt.subplots(1,2, subplot_kw=dict(projection = 'polar'))
+fig.suptitle('WT')
+ax[0].set_title('PYR')
+circular_hist(ax[0], np.array(means_pyr_wt)[np.array(tokeep_pyr_wt)], bins = 16)
+ax[1].set_title('FS')
+circular_hist(ax[1], np.array(means_pv_wt)[np.array(tokeep_pv_wt)], bins = 16)
+    
+fig, ax = plt.subplots(1,2, subplot_kw=dict(projection = 'polar'))
+fig.suptitle('KO')
+ax[0].set_title('PYR')
+circular_hist(ax[0], np.array(means_pyr_ko)[np.array(tokeep_pyr_ko)], bins = 16)
+ax[1].set_title('FS')
+circular_hist(ax[1], np.array(means_pv_ko)[np.array(tokeep_pv_ko)], bins = 16)
+
     
 #%% Session spectra and tuning curves
 

@@ -21,8 +21,8 @@ from scipy.signal import hilbert
 
 #%% 
 
-data_directory = '/media/dhruv/Expansion/Processed'
-# data_directory = '/media/adrien/Expansion/Processed'
+# data_directory = '/media/dhruv/Expansion/Processed'
+data_directory = '/media/adrien/Expansion/Processed'
 datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
 ripplechannels = np.genfromtxt(os.path.join(data_directory,'ripplechannel.list'), delimiter = '\n', dtype = str, comments = '#')
 
@@ -64,7 +64,7 @@ for r,s in enumerate(datasets):
     epochs = data.epochs
     position = data.position
     
-    if name == 'B2613' or name == 'B2618':
+    if name == 'B2613' or name == 'B2618' or name == 'B2627' or name == 'B2628':
         isWT = 0
     else: isWT = 1 
     
