@@ -215,7 +215,7 @@ for r,s in enumerate(datasets):
     epochs = data.epochs
     position = data.position
     
-    if name == 'B2613' or name == 'B2618':
+    if name == 'B2613' or name == 'B2618'  or name == 'B2627' or name == 'B2628':
         isWT = 0
     else: isWT = 1 
     
@@ -268,7 +268,7 @@ for r,s in enumerate(datasets):
 #%% 
 
     ep = rem_ep
-    downsample = 2
+    # downsample = 2
     
     lfpsig = lfp.restrict(ep)   
 
@@ -278,7 +278,7 @@ for r,s in enumerate(datasets):
     h_power = nap.Tsd(t = lfp_filt_theta.index.values, d = hilbert(lfp_filt_theta))
      
     phase = nap.Tsd(t = lfp_filt_theta.index.values, d = (np.angle(h_power.values) + 2 * np.pi) % (2 * np.pi))
-    phase = phase[::downsample]
+    # phase = phase[::downsample]
       
 #%% Compute phase preference
     
