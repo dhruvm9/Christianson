@@ -34,7 +34,7 @@ for s in datasets:
        
     path = os.path.join(data_directory, s)
     
-    if name == 'B2613' or name == 'B2618':
+    if name == 'B2613' or name == 'B2618' or name == 'B2627' or name == 'B2628':
         isWT = 0
     else: isWT = 1 
 
@@ -55,11 +55,11 @@ for s in datasets:
     file = os.path.join(path, s +'.evt.py.rip')
     rip_ep = data.read_neuroscope_intervals(name = 'rip', path2file = file)
     
-    # with open(os.path.join(path, 'riptsd.pickle'), 'rb') as pickle_file:
-        # rip_tsd = pickle.load(pickle_file)
+    with open(os.path.join(path, 'riptsd.pickle'), 'rb') as pickle_file:
+        rip_tsd = pickle.load(pickle_file)
         
-    with open(os.path.join(path, 'riptrough.pickle'), 'rb') as pickle_file:
-        rip_trough = pickle.load(pickle_file)
+    # with open(os.path.join(path, 'riptrough.pickle'), 'rb') as pickle_file:
+    #     rip_trough = pickle.load(pickle_file)
           
 #%% Ripple cross corrs
 

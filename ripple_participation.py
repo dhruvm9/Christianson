@@ -37,7 +37,7 @@ part_all_fs_wt = []
 part_all_pyr_ko = []
 part_all_fs_ko = []
 
-for s in datasets[1:]:
+for s in datasets:
     print(s)
     
             
@@ -48,7 +48,7 @@ for s in datasets[1:]:
     data.load_neurosuite_xml(path)
     epochs = data.epochs
     
-    if name == 'B2613' or name == 'B2618':
+    if name == 'B2613' or name == 'B2618' or name == 'B2627' or name == 'B2628':
         isWT = 0
     else: isWT = 1 
           

@@ -70,7 +70,7 @@ for s in datasets:
     epochs = data.epochs
     position = data.position
     
-    if name == 'B2613' or name == 'B2618':
+    if name == 'B2613' or name == 'B2618' or name == 'B2627' or name == 'B2628':
         isWT = 0
     else: isWT = 1 
     
@@ -133,6 +133,7 @@ for s in datasets:
     # if len(pyr3) >= 10:
     
     if (len(pyr2)) >= 10:
+        # print('yes!')
         
         speedbinsize = np.diff(position.index.values)[0]
         
@@ -141,9 +142,11 @@ for s in datasets:
         tmp = position.as_dataframe().groupby(index).mean()
         tmp.index = time_bins[np.unique(index)-1]+(speedbinsize)/2
         distance = np.sqrt(np.power(np.diff(tmp['x']), 2) + np.power(np.diff(tmp['z']), 2)) * 100 #in cm
-        speed = nap.Tsd(t = tmp.index.values[0:-1]+ speedbinsize/2, d = distance/speedbinsize) # in cm/s
-     
-        moving_ep = nap.IntervalSet(speed.threshold(2).time_support) #Epochs in which speed is > 2 cm/s
+        speed = pd.Series(index = tmp.index.values[0:-1]+ speedbinsize/2, data = distance/speedbinsize) # in cm/s
+        speed2 = speed.rolling(window = 25, win_type='gaussian', center=True, min_periods=1).mean(std=10) #Smooth over 200ms 
+        speed2 = nap.Tsd(speed2)
+             
+        moving_ep = nap.IntervalSet(speed2.threshold(2).time_support) #Epochs in which speed is > 2 cm/s
 
 #%% Bin all data 
 
@@ -409,7 +412,7 @@ for dots in ax.collections[old_len_collections:]:
     dots.set_offsets(dots.get_offsets())
 ax.set_xlim(xlim)
 ax.set_ylim(ylim)
-plt.ylabel('Spatial Map Correlation')
+plt.ylabel('EV - REV')
 ax.set_box_aspect(1)
 
 

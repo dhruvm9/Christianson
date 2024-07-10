@@ -157,8 +157,8 @@ def circular_hist(ax, x, bins=16, density=True, offset=0, gaps=True):
 
 warnings.filterwarnings("ignore")
 
-# data_directory = '/media/dhruv/Expansion/Processed'
-data_directory = '/media/adrien/Expansion/Processed'
+data_directory = '/media/dhruv/Expansion/Processed'
+# data_directory = '/media/adrien/Expansion/Processed'
 
 # data_directory = '/media/adrien/Expansion/Processed'
 datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
@@ -230,8 +230,8 @@ for r,s in enumerate(datasets):
     file = os.path.join(path, s +'.evt.py.rip')
     rip_ep = data.read_neuroscope_intervals(name = 'rip', path2file = file)
     
-    with open(os.path.join(path, 'riptsd.pickle'), 'rb') as pickle_file:
-        rip_tsd = pickle.load(pickle_file)
+    # with open(os.path.join(path, 'riptsd.pickle'), 'rb') as pickle_file:
+    #     rip_tsd = pickle.load(pickle_file)
         
 #%% Load spikes 
 
@@ -261,9 +261,14 @@ for r,s in enumerate(datasets):
     tmp = position.as_dataframe().groupby(index).mean()
     tmp.index = time_bins[np.unique(index)-1]+(speedbinsize)/2
     distance = np.sqrt(np.power(np.diff(tmp['x']), 2) + np.power(np.diff(tmp['z']), 2)) * 100 #in cm
-    speed = nap.Tsd(t = tmp.index.values[0:-1]+ speedbinsize/2, d = distance/speedbinsize) # in cm/s
+    speed = pd.Series(index = tmp.index.values[0:-1]+ speedbinsize/2, data = distance/speedbinsize) # in cm/s
+    speed2 = speed.rolling(window = 25, win_type='gaussian', center=True, min_periods=1).mean(std=10) #Smooth over 200ms 
+    speed2 = nap.Tsd(speed2)
+    moving_ep = nap.IntervalSet(speed2.threshold(2).time_support) #Epochs in which speed is > 2 cm/s
     
-    moving_ep = nap.IntervalSet(speed.threshold(2).time_support) #Epochs in which speed is > 2 cm/s
+    # print(len(moving_ep))
+    
+    # sys.exit()
         
 #%% 
 
@@ -273,6 +278,7 @@ for r,s in enumerate(datasets):
     lfpsig = lfp.restrict(ep)   
 
     # lfp_filt_theta_wake = pyna.eeg_processing.bandpass_filter(lfp_wake, 30, 150, 1250)
+       
     lfp_filt_theta = pyna.eeg_processing.bandpass_filter(lfpsig, 6, 9, 1250)
            
     h_power = nap.Tsd(t = lfp_filt_theta.index.values, d = hilbert(lfp_filt_theta))
