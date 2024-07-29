@@ -14,77 +14,13 @@ import pynapple as nap
 import os, sys
 import matplotlib.pyplot as plt 
 import seaborn as sns
+import warnings
 from scipy.stats import mannwhitneyu, wilcoxon
-from matplotlib.backends.backend_pdf import PdfPages    
-
-#%% 
-
-def multipage(filename, figs=None, dpi=200):
-    pp = PdfPages(filename)
-    if figs is None:
-        figs = [plt.figure(n) for n in plt.get_fignums()]
-    for fig in figs:
-        fig.savefig(pp, format='pdf')
-    pp.close()
-    
-    
-def rotate_via_numpy(xy, radians):
-    """xy is a tuple or array """
-    x, y = xy
-    c, s = np.cos(radians), np.sin(radians)
-    j = np.array([[c, s], [-s, c]])
-    m = np.dot(j, [x, y])
-
-    return float(m.T[0]), float(m.T[1])
-
-def occupancy_prob(position, ep, nb_bins=24, norm = False):
-    pos= position[['x','z']]
-    position_tsd = pos.restrict(ep)
-    xpos = position_tsd[:,0]
-    ypos = position_tsd[:,1]
-    xbins = np.linspace(xpos.min(), xpos.max()+1e-6, nb_bins+1)
-    ybins = np.linspace(ypos.min(), ypos.max()+1e-6, nb_bins+1) 
-    occupancy, _, _ = np.histogram2d(ypos, xpos, [ybins,xbins])
-    
-    if norm is True:
-        occupancy = occupancy/np.sum(occupancy)
-        
-    masked_array = np.ma.masked_where(occupancy == 0, occupancy) 
-    masked_array = np.flipud(masked_array)
-    return masked_array
-
-def sparsity(rate_map, px):
-    '''
-    Compute sparsity of a rate map, The sparsity  measure is an adaptation
-    to space. The adaptation measures the fraction of the environment  in which
-    a cell is  active. A sparsity of, 0.1 means that the place field of the
-    cell occupies 1/10 of the area the subject traverses [2]_
-
-    Parameters
-    ----------
-    rate_map : normalized numpy.ndarray
-        A firing rate map, any number of dimensions.
-
-    Returns
-    -------
-    out : float
-        sparsity
-
-    References
-    ----------
-    .. [2] Skaggs, W. E., McNaughton, B. L., Wilson, M., & Barnes, C. (1996).
-       Theta phase precession in hippocampal neuronal populations and the
-       compression of temporal sequences. Hippocampus, 6, 149-172.
-    '''
-    tmp_rate_map = rate_map.copy()
-    tmp_rate_map[np.isnan(tmp_rate_map)] = 0
-    tmp_rate_map[np.isinf(tmp_rate_map)] = 0
-    avg_rate = np.sum(np.ravel(tmp_rate_map * px))
-    avg_sqr_rate = np.sum(np.ravel(tmp_rate_map**2 * px))
-    return avg_rate**2 / avg_sqr_rate
-
+from functions_DM import *
     
 #%% 
+
+warnings.filterwarnings("ignore")
 
 data_directory = '/media/dhruv/Expansion/Processed'
 # data_directory = '/media/adrien/Expansion/Processed'
@@ -122,6 +58,8 @@ sparsity2_wt = []
 sparsity1_ko = []
 sparsity2_ko = []
 
+pvcorr_wt = []
+pvcorr_ko = []
 
 for s in datasets:
     print(s)
@@ -222,6 +160,7 @@ for s in datasets:
     spatialinfo_env1 = nap.compute_2d_mutual_info(placefields1, rot_pos[['x', 'z']], ep = ep1)
     spatialinfo_env2 = nap.compute_2d_mutual_info(placefields2, rot_pos[['x', 'z']], ep = ep2)
         
+    
     sp1 = [] 
     sp2 = []
     for k in pyr2:
@@ -229,17 +168,7 @@ for s in datasets:
         tmp2 = sparsity(placefields2[k], px2)
         sp1.append(tmp)
         sp2.append(tmp2)
-        
-    if isWT == 1:
-        allspatialinfo_env1_wt.extend(spatialinfo_env1['SI'].tolist())
-        allspatialinfo_env2_wt.extend(spatialinfo_env2['SI'].tolist())
-        sparsity1_wt.extend(sp1)
-        sparsity2_wt.extend(sp2)
-    else: 
-        allspatialinfo_env1_ko.extend(spatialinfo_env1['SI'].tolist())
-        allspatialinfo_env2_ko.extend(spatialinfo_env2['SI'].tolist())
-        sparsity1_ko.extend(sp1)
-        sparsity2_ko.extend(sp2)
+               
     
     for i in pyr2.keys(): 
         placefields1[i][np.isnan(placefields1[i])] = 0
@@ -252,6 +181,23 @@ for s in datasets:
         masked_array = np.ma.masked_where(px2 == 0, placefields2[i]) #should work fine without it 
         placefields2[i] = masked_array
         
+    pvcorr = compute_PVcorrs(placefields1, placefields2, pyr2.index)
+    # print(pvcorr)
+    
+    if isWT == 1:
+        allspatialinfo_env1_wt.extend(spatialinfo_env1['SI'].tolist())
+        allspatialinfo_env2_wt.extend(spatialinfo_env2['SI'].tolist())
+        sparsity1_wt.extend(sp1)
+        sparsity2_wt.extend(sp2)
+        pvcorr_wt.append(pvcorr)
+    else: 
+        allspatialinfo_env1_ko.extend(spatialinfo_env1['SI'].tolist())
+        allspatialinfo_env2_ko.extend(spatialinfo_env2['SI'].tolist())
+        sparsity1_ko.extend(sp1)
+        sparsity2_ko.extend(sp2)
+        pvcorr_ko.append(pvcorr)
+    
+    # sys.exit()
     
 
 #%% Plot tracking 
@@ -792,3 +738,47 @@ ax.set_box_aspect(1)
 t_env1, p_e1 = mannwhitneyu(sparsity1_wt, sparsity1_ko)
 t_env2, p_e2 = mannwhitneyu(sparsity2_wt, sparsity2_ko)    
 
+
+#%% Organize PV corr data 
+
+wt1 = np.array(['WT' for x in range(len(pvcorr_wt))])
+ko1 = np.array(['KO' for x in range(len(pvcorr_ko))])
+
+genotype = np.hstack([wt1, ko1])
+
+sinfos1 = []
+sinfos1.extend(pvcorr_wt)
+sinfos1.extend(pvcorr_ko)
+
+allinfos3 = pd.DataFrame(data = [sinfos1, genotype], index = ['PVCorr', 'genotype']).T
+
+#%% Plotting PV corr
+
+plt.figure()
+plt.title('Population vector correlation')
+sns.set_style('white')
+palette = ['royalblue', 'indianred'] 
+ax = sns.violinplot( x = allinfos3['genotype'], y=allinfos3['PVCorr'].astype(float) , data = allinfos3, dodge=False,
+                    palette = palette,cut = 2,
+                    scale="width", inner=None)
+ax.tick_params(bottom=True, left=True)
+xlim = ax.get_xlim()
+ylim = ax.get_ylim()
+for violin in ax.collections:
+    x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
+    violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
+sns.boxplot(x = allinfos3['genotype'], y=allinfos3['PVCorr'].astype(float) , data = allinfos3, saturation=1, showfliers=False,
+            width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
+old_len_collections = len(ax.collections)
+sns.stripplot(x = allinfos3['genotype'], y = allinfos3['PVCorr'].astype(float), data = allinfos3, color = 'k', dodge=False, ax=ax, alpha = 0.2)
+# sns.swarmplot(x = wakedf['type'], y = wakedf['rate'].astype(float), data = wakedf, color = 'k', dodge=False, ax=ax)
+for dots in ax.collections[old_len_collections:]:
+    dots.set_offsets(dots.get_offsets())
+ax.set_xlim(xlim)
+ax.set_ylim(ylim)
+plt.ylabel('Correlation (R)')
+ax.set_box_aspect(1)
+
+#%% Stats for PV corr
+
+t_pvcorr, p_pvcorr = mannwhitneyu(pvcorr_wt, pvcorr_ko)
