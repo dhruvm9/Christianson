@@ -63,8 +63,10 @@ def smoothAngularTuningCurves(tuning_curves, sigma=2):
 def shuffleByCircularSpikes(spikes, ep):
     shuffled = {}
     for n in spikes.keys():
+        # print('n = ' + str(n))
         
         for j in range(len(ep)):
+            # print('j = ' + str(j))
             spk = spikes[n].restrict(ep[j])
             shift = np.random.uniform(0, (ep[j]['end'][0] - ep[j]['start'][0]))
             spk_shifted = (spk.index.values + shift) % (ep[j]['end'][0] - ep[j]['start'][0]) + ep[j]['start'][0]
@@ -73,7 +75,10 @@ def shuffleByCircularSpikes(spikes, ep):
                 shuffled[n] = spk_shifted
             else:
                 shuffled[n] = np.append(shuffled[n], spk_shifted)
-    
+            
+    for n in shuffled.keys():
+        shuffled[n] = nap.Ts(shuffled[n])
+        
     shuffled = nap.TsGroup(shuffled)
     return shuffled
                 
@@ -157,8 +162,8 @@ def circular_hist(ax, x, bins=16, density=True, offset=0, gaps=True):
 
 warnings.filterwarnings("ignore")
 
-data_directory = '/media/dhruv/Expansion/Processed'
-# data_directory = '/media/adrien/Expansion/Processed'
+# data_directory = '/media/dhruv/Expansion/Processed'
+data_directory = '/media/adrien/Expansion/Processed'
 
 # data_directory = '/media/adrien/Expansion/Processed'
 datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
@@ -273,7 +278,8 @@ for r,s in enumerate(datasets):
 #%% 
 
     ep = rem_ep
-    # downsample = 2
+    # ep = moving_ep
+    downsample = 2
     
     lfpsig = lfp.restrict(ep)   
 
@@ -284,7 +290,7 @@ for r,s in enumerate(datasets):
     h_power = nap.Tsd(t = lfp_filt_theta.index.values, d = hilbert(lfp_filt_theta))
      
     phase = nap.Tsd(t = lfp_filt_theta.index.values, d = (np.angle(h_power.values) + 2 * np.pi) % (2 * np.pi))
-    # phase = phase[::downsample]
+    phase = phase[::downsample]
       
 #%% Compute phase preference
     
@@ -317,6 +323,7 @@ for r,s in enumerate(datasets):
 #%% Computing shuffles PYR 
     
         for k in range(100):
+            # print('k = ' + str(k))
             shu_pyr = shuffleByCircularSpikes(pyr, ep)    
             phasepref_shu_pyr = nap.compute_1d_tuning_curves(shu_pyr, phase, 40, ep)  
             phasepref_shu_pyr = smoothAngularTuningCurves(phasepref_shu_pyr, sigma=3)
@@ -595,153 +602,74 @@ ax[1].set_title('FS')
 circular_hist(ax[1], np.array(means_pv_ko)[np.array(tokeep_pv_ko)], bins = 16)
 
     
-#%% Session spectra and tuning curves
 
-        # plt.figure()
-        # plt.title(s + '_wake_pyr')
-        # for i,n in enumerate(pyr):
-        #     plt.subplot(9,8,n+1, projection='polar')
-        #     plt.plot(phasepref_wake_pyr[n], color = 'b')        
-            
-        # plt.figure()
-        # plt.title(s + '_wake_pv')
-        # for i,n in enumerate(pv):
-        #     plt.subplot(9,8,n+1, projection='polar')
-        #     plt.plot(phasepref_wake_pv[n], color = 'r')   
-            
-    
-
-# multipage(data_directory + '/' + 'GammaPhaseplots_wake.pdf', dpi=250)
-
-    # plt.figure()
-    # plt.title(s)
-    # # plt.imshow(tmp2.T, aspect = 'auto', interpolation='bilinear', origin = 'lower', extent = [0, 360, 30, 150], cmap = 'seismic')
-    # # plt.imshow(tmp2.T, aspect = 'auto', interpolation='none', origin = 'lower', extent = [0, 360, 30, 150], cmap = 'seismic')
-    # plt.imshow(phasepref_wake.T, aspect = 'auto', interpolation='bilinear', origin = 'lower', extent = [0, 360, 30, 150], cmap = 'seismic')
-    # plt.xlabel('Theta phase (deg)')
-    # plt.ylabel('Frequency (Hz)')
-    # plt.colorbar()
-
-#%% Genotype 
-
-    # if isWT == 1: 
-    #     # all_pspec_z_wt = pd.concat((phasepref_wake, all_pspec_z_wt))
-    #     darr_wt_wake[r,:,:] = phasepref_wake
-    #     # darr_wt_rem[r,:,:] = phasepref_rem
-    # else:     
-    #     # all_pspec_z_ko = pd.concat((phasepref_wake, all_pspec_z_ko))
-    #     darr_ko_wake[r,:,:] = phasepref_wake
-    #     # darr_ko_rem[r,:,:] = phasepref_rem
-    
 #%% 
 
-# specgram_z_wake_wt = np.mean(darr_wt_wake, axis = 0)
-# specgram_z_wake_ko = np.mean(darr_ko_wake, axis = 0)
 
-# # specgram_z_rem_wt = np.mean(darr_wt_rem, axis = 0)
-# # specgram_z_rem_ko = np.mean(darr_ko_rem, axis = 0)
-
-# norm = colors.TwoSlopeNorm(vmin = -0.007, vcenter = 0, vmax = 0.007)
-
-# plt.figure()
-# # plt.suptitle('Z-scored spectrogram')
-# # plt.subplot(121)
-# plt.title('WT (wake)')
-# plt.imshow(specgram_z_wake_wt.T, aspect = 'auto', interpolation='bilinear', origin = 'lower', extent = [0, 360, 30, 150], cmap = 'seismic', norm = norm)
-# plt.xlabel('Gamma phase (deg)')
-# plt.ylabel('Frequency (Hz)')
-# plt.colorbar()
-# plt.gca().set_box_aspect(1)
-
-# plt.figure()
-# # plt.subplot(122)
-# plt.title('KO (wake)')
-# plt.imshow(specgram_z_wake_ko.T, aspect = 'auto', interpolation='bilinear', origin = 'lower', extent = [0, 360, 30, 150], cmap = 'seismic', norm = norm)
-# plt.xlabel('Gamma phase (deg)')
-# plt.ylabel('Frequency (Hz)')
-# plt.colorbar()
-# plt.gca().set_box_aspect(1)
-
-
-# plt.figure()
-# # plt.suptitle('Z-scored spectrogram')
-# # plt.subplot(121)
-# plt.title('WT (REM)')
-# plt.imshow(specgram_z_rem_wt.T, aspect = 'auto', interpolation='bilinear', origin = 'lower', extent = [0, 360, 30, 150], cmap = 'seismic')
-# plt.xlabel('Theta phase (deg)')
-# plt.ylabel('Frequency (Hz)')
-# plt.colorbar()
-# plt.gca().set_box_aspect(1)
-
-# plt.figure()
-# # plt.subplot(122)
-# plt.title('KO (REM)')
-# plt.imshow(specgram_z_rem_ko.T, aspect = 'auto', interpolation='bilinear', origin = 'lower', extent = [0, 360, 30, 150], cmap = 'seismic')
-# plt.xlabel('Theta phase (deg)')
-# plt.ylabel('Frequency (Hz)')
-# plt.colorbar()
-# plt.gca().set_box_aspect(1)
-
-
-#%%     
-
-    # bins = np.linspace(0, 2*np.pi, 40)    
-    # widths = np.diff(bins)
-       
-    # if len(pv) > 0 and len(pyr) > 0:        
-        
-    #     spikephase_wake_ex = {}
-    #     plt.figure() 
-    #     plt.suptitle(s + ' EX cells')
-        
-    #     cmeans_pyr = []
-    #     vlens_pyr = []
+# with open("means_pyr_wt_wake", "wb") as fp:   #Pickling
+#     pickle.dump(means_pyr_wt, fp)    
     
-    #     for i, j in enumerate(pyr.index):
-    #         spikephase_wake_ex[j] = pyr[j].value_from(phase_wake) 
-    #         c = circmean(spikephase_wake_ex[j])
-    #         cmeans_pyr.append(c)
-    #         veclength = circ_r(spikephase_wake_ex[j])
-    #         vlens_pyr.append(veclength)
-    #         n, bins = np.histogram(spikephase_wake_ex[j], bins)
-    #         area = n / spikephase_wake_ex[j].size
-    #         radius = (area/np.pi) ** .5
-            
-    #         # plt.subplot(10, 6, i+1)
-    #         # plt.hist(spikephase_wake[j])
-            
-    #         ax = plt.subplot(10,6,i+1, projection='polar')
-    #         ax.bar(bins[:-1], radius, width=widths, color = 'lightsteelblue')
-    #         ax.set_yticks([])
-       
+# with open("means_pyr_ko_wake", "wb") as fp:   #Pickling
+#     pickle.dump(means_pyr_ko, fp)    
     
-            
-    #     spikephase_wake_fs = {}
-    #     plt.figure() 
-    #     plt.suptitle(s + ' FS cells')
-        
-    #     cmeans_fs = []
-    #     vlens_fs = []
+# with open("means_pv_wt_wake", "wb") as fp:   #Pickling
+#     pickle.dump(means_pv_wt, fp)    
     
-    #     for i, j in enumerate(pv.index):
-    #         spikephase_wake_fs[j] = pv[j].value_from(phase_wake) 
-    #         c = circmean(spikephase_wake_fs[j])
-    #         cmeans_fs.append(c)
-    #         veclength = circ_r(spikephase_wake_fs[j])
-    #         vlens_fs.append(veclength)
-    #         n, bins = np.histogram(spikephase_wake_fs[j], bins)
-    #         area = n / spikephase_wake_fs[j].size
-    #         radius = (area/np.pi) ** .5
-            
-    #         # plt.subplot(10, 6, i+1)
-    #         # plt.hist(spikephase_wake[j])
-            
-    #         ax = plt.subplot(10,6,i+1, projection='polar')
-    #         ax.bar(bins[:-1], radius, width=widths, color = 'lightcoral')
-    #         ax.set_yticks([])
-               
+# with open("means_pv_ko_wake", "wb") as fp:   #Pickling
+#     pickle.dump(means_pv_ko, fp)    
+    
+# with open("tokeep_pyr_wt_wake", "wb") as fp:   #Pickling
+#     pickle.dump(tokeep_pyr_wt, fp)    
+    
+# with open("tokeep_pyr_ko_wake", "wb") as fp:   #Pickling
+#     pickle.dump(tokeep_pyr_ko, fp)    
+    
+# with open("tokeep_pv_wt_wake", "wb") as fp:   #Pickling
+#     pickle.dump(tokeep_pv_wt, fp)    
+    
+# with open("tokeep_pv_ko_wake", "wb") as fp:   #Pickling
+#     pickle.dump(tokeep_pv_ko, fp)    
+
+# multipage(data_directory + '/' + 'Phaseplots.pdf', dpi=250)
+
 #%% 
-    
-    # multipage(data_directory + '/' + 'Phaseplots.pdf', dpi=250)
+
+# with open("means_pyr_wt_wake", "rb") as fp:   # Unpickling
+#     means_pyr_wt_wake = pickle.load(fp)
+
+# with open("means_pyr_ko_wake", "rb") as fp:   # Unpickling
+#     means_pyr_ko_wake = pickle.load(fp)
         
+# with open("means_pv_wt_wake", "rb") as fp:   # Unpickling
+#     means_pv_wt_wake = pickle.load(fp)
+    
+# with open("means_pv_ko_wake", "rb") as fp:   # Unpickling
+#     means_pv_ko_wake = pickle.load(fp)
+    
+# with open("tokeep_pyr_wt_wake", "rb") as fp:   # Unpickling
+#     tokeep_pyr_wt_wake = pickle.load(fp)
+
+# with open("tokeep_pyr_ko_wake", "rb") as fp:   # Unpickling
+#     tokeep_pyr_ko_wake = pickle.load(fp)
+        
+# with open("tokeep_pv_wt_wake", "rb") as fp:   # Unpickling
+#     tokeep_pv_wt_wake = pickle.load(fp)
+    
+# with open("tokeep_pv_ko_wake", "rb") as fp:   # Unpickling
+#     tokeep_pv_ko_wake = pickle.load(fp)
+    
+# fig, ax = plt.subplots(1,2, subplot_kw=dict(projection = 'polar'))
+# fig.suptitle('WT')
+# ax[0].set_title('PYR')
+# circular_hist(ax[0], np.array(means_pyr_wt_wake)[np.array(tokeep_pyr_wt_wake)], bins = 16)
+# ax[1].set_title('FS')
+# circular_hist(ax[1], np.array(means_pv_wt_wake)[np.array(tokeep_pv_wt_wake)], bins = 16)
+    
+# fig, ax = plt.subplots(1,2, subplot_kw=dict(projection = 'polar'))
+# fig.suptitle('KO')
+# ax[0].set_title('PYR')
+# circular_hist(ax[0], np.array(means_pyr_ko_wake)[np.array(tokeep_pyr_ko_wake)], bins = 16)
+# ax[1].set_title('FS')
+# circular_hist(ax[1], np.array(means_pv_ko_wake)[np.array(tokeep_pv_ko_wake)], bins = 16)
+
         
