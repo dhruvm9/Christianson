@@ -16,8 +16,11 @@ import matplotlib.pyplot as plt
 from scipy.stats import pearsonr, wilcoxon
 import time
 import pickle
+import warnings 
 
 #%% 
+
+warnings.filterwarnings("ignore")
 
 data_directory = '/media/dhruv/Expansion/Processed'
 datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
@@ -133,7 +136,7 @@ for s in datasets:
     # if len(pyr3) >= 10:
     
     if (len(pyr2)) >= 10:
-        # print('yes!')
+        print('yes!')
         
         speedbinsize = np.diff(position.index.values)[0]
         
@@ -346,6 +349,8 @@ for s in datasets:
 
                 
                 ncells_ko.append(len(pyr))
+                
+                sys.exit()
                 
 #%% Organize EV and REV to plot 
 

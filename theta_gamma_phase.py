@@ -6,6 +6,9 @@ Created on Fri Apr  5 12:22:55 2024
 @author: dhruv
 """
 
+############## CHECK IF MINMAX FUNCTION FOR PHASE ##################
+
+
 import numpy as np 
 import pandas as pd 
 import os, sys
@@ -164,8 +167,8 @@ for r,s in enumerate(datasets):
     gamma_power = nap.TsdFrame(powerspec)
     
     ###Change the EPOCH
-    # phasepref_wake = nap.compute_1d_tuning_curves_continuous(gamma_power, phase_wake, 40, moving_ep)
-    phasepref_wake = nap.compute_1d_tuning_curves_continuous(gamma_power, phase_wake, 40, rem_ep)
+    # phasepref_wake = nap.compute_1d_tuning_curves_continuous(gamma_power, phase_wake, 40, moving_ep, minmax = (0, 2 * np.pi))
+    phasepref_wake = nap.compute_1d_tuning_curves_continuous(gamma_power, phase_wake, 40, rem_ep, minmax = (0, 2 * np.pi))
     
     # tmp2 = powerspec.groupby(powerspec.index).mean()
     

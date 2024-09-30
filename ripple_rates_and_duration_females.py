@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Tue Sep 12 15:55:47 2023
+Created on Mon Aug 19 17:21:13 2024
 
 @author: dhruv
 """
@@ -18,14 +18,15 @@ from scipy.stats import mannwhitneyu
 #%% 
 
 data_directory = '/media/dhruv/Expansion/Processed'
-# data_directory = '/media/dhruv/Expansion/Processed/CA3'
-datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
+datasets = np.genfromtxt(os.path.join(data_directory,'dataset_females.list'), delimiter = '\n', dtype = str, comments = '#')
 
 allripdurs_wt = []
 allripdurs_ko = []
+allripdurs_f = []
 
 allriprates_wt = []
 allriprates_ko = []
+allriprates_f = []
 
 for s in datasets:
     print(s)
@@ -34,19 +35,23 @@ for s in datasets:
     
     if name == 'B2613' or name == 'B2618' or name == 'B2627' or name == 'B2628':
         isWT = 0
-    else: isWT = 1 
-    
-    data = ntm.load_session(path, 'neurosuite')
-    data.load_neurosuite_xml(path)
-        
-    file = os.path.join(path, s +'.sws.evt')
-    sws_ep = data.read_neuroscope_intervals(name = 'SWS', path2file = file)
-    
-    file = os.path.join(path, s +'.rem.evt')
-    rem_ep = data.read_neuroscope_intervals(name = 'REM', path2file = file)
+    elif name == 'B2632' or name == 'B2634': 
+        isWT = 2
+    else: isWT = 1
     
     file = os.path.join(path, s +'.evt.py.rip')
-    rip_ep = data.read_neuroscope_intervals(name = 'rip', path2file = file)
+    if os.path.exists(file):
+        tmp = np.genfromtxt(file)[:,0]
+        tmp = tmp.reshape(len(tmp)//2,2)/1000
+        rip_ep = nap.IntervalSet(start = tmp[:,0], end = tmp[:,1], time_units = 's')
+        
+    file = os.path.join(path, s +'.sws.evt')
+    if os.path.exists(file):
+        tmp = np.genfromtxt(file)[:,0]
+        tmp = tmp.reshape(len(tmp)//2,2)/1000
+        sws_ep = nap.IntervalSet(start = tmp[:,0], end = tmp[:,1], time_units = 's')
+        
+       
     
     # file = os.path.join(path, s +'.evt.py3sd.rip')
     # rip_ep = data.read_neuroscope_intervals(path2file = file)
@@ -71,26 +76,33 @@ for s in datasets:
        allripdurs_wt.append(np.mean(ripdur)*1e3)
        allriprates_wt.append(riprate)
        # allriprates_wt.append(1 / np.mean(IRI))
-    else: 
+    elif isWT == 0: 
         allripdurs_ko.append(np.mean(ripdur)*1e3)
         allriprates_ko.append(riprate) 
         # allriprates_ko.append(1 / np.mean(IRI))
+    else: 
+        allripdurs_f.append(np.mean(ripdur)*1e3)
+        allriprates_f.append(riprate) 
+        
          
     
 #%% Organize data to plot 
 
-wt = np.array(['WT' for x in range(len(allripdurs_wt))])
-ko = np.array(['KO' for x in range(len(allripdurs_ko))])
+wt = np.array(['WT_male' for x in range(len(allripdurs_wt))])
+ko = np.array(['KO_male' for x in range(len(allripdurs_ko))])
+fem = np.array(['KO_female' for x in range(len(allripdurs_ko))])
 
-genotype = np.hstack([wt, ko])
+genotype = np.hstack([wt, ko, fem])
 
 rippledurs = []
 rippledurs.extend(allripdurs_wt)
 rippledurs.extend(allripdurs_ko)
+rippledurs.extend(allripdurs_f)
 
 ripplerates = []
 ripplerates.extend(allriprates_wt)
 ripplerates.extend(allriprates_ko)
+ripplerates.extend(allriprates_f)
 
 durdf = pd.DataFrame(data = [rippledurs, genotype], index = ['dur', 'genotype']).T
 ratedf = pd.DataFrame(data = [ripplerates, genotype], index = ['rate', 'genotype']).T
@@ -100,7 +112,7 @@ ratedf = pd.DataFrame(data = [ripplerates, genotype], index = ['rate', 'genotype
 plt.figure()
 plt.title('NREM Ripple Durations')
 sns.set_style('white')
-palette = ['royalblue', 'indianred']
+palette = ['royalblue', 'indianred', 'darkslategray']
 ax = sns.violinplot( x = durdf['genotype'], y=durdf['dur'].astype(float) , data = durdf, dodge=False,
                     palette = palette,cut = 2,
                     scale="width", inner=None)
@@ -125,7 +137,7 @@ ax.set_box_aspect(1)
 plt.figure()
 plt.title('NREM Ripple Rates')
 sns.set_style('white')
-palette = ['royalblue', 'indianred']
+palette = ['royalblue', 'indianred', 'darkslategray']
 ax = sns.violinplot( x = ratedf['genotype'], y=ratedf['rate'].astype(float) , data = ratedf, dodge=False,
                     palette = palette,cut = 2,
                     scale="width", inner=None)
@@ -144,6 +156,7 @@ for dots in ax.collections[old_len_collections:]:
     dots.set_offsets(dots.get_offsets())
 ax.set_xlim(xlim)
 ax.set_ylim(ylim)
+plt.yticks([0,1,1.5])
 plt.ylabel('Ripple rate (Hz)')
 ax.set_box_aspect(1)
 

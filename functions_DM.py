@@ -37,13 +37,13 @@ def occupancy_prob(position, ep, nb_bins=24, norm = False):
     ypos = position_tsd[:,1]
     xbins = np.linspace(xpos.min(), xpos.max()+1e-6, nb_bins+1)
     ybins = np.linspace(ypos.min(), ypos.max()+1e-6, nb_bins+1) 
-    occupancy, _, _ = np.histogram2d(ypos, xpos, [ybins,xbins])
+    occupancy, _, _ = np.histogram2d(xpos, ypos, [xbins,ybins])
     
     if norm is True:
         occupancy = occupancy/np.sum(occupancy)
         
     masked_array = np.ma.masked_where(occupancy == 0, occupancy) 
-    masked_array = np.flipud(masked_array)
+    # masked_array = np.flipud(masked_array)
     return masked_array
 
 def sparsity(rate_map, px):

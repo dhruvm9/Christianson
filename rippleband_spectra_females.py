@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Nov 29 13:01:57 2023
+Created on Mon Aug 19 16:26:29 2024
 
 @author: dhruv
 """
@@ -20,30 +20,30 @@ from scipy.stats import mannwhitneyu
 #%% 
 
 data_directory = '/media/dhruv/Expansion/Processed'
-# data_directory = '/media/dhruv/Expansion/Processed/CA3'
-datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
-ripplechannels = np.genfromtxt(os.path.join(data_directory,'ripplechannel.list'), delimiter = '\n', dtype = str, comments = '#')
+datasets = np.genfromtxt(os.path.join(data_directory,'dataset_females.list'), delimiter = '\n', dtype = str, comments = '#')
+ripplechannels = np.genfromtxt(os.path.join(data_directory,'ripplechannel_females.list'), delimiter = '\n', dtype = str, comments = '#')
 
 fs = 1250
 
 PSD_rip_wt = pd.DataFrame()
 PSD_rip_ko = pd.DataFrame()
+PSD_rip_f = pd.DataFrame()
 
 peakfreq_wt = []
 peakfreq_ko = []
+peakfreq_f = []
 
 for r,s in enumerate(datasets):
     print(s)
     name = s.split('-')[0]
     path = os.path.join(data_directory, s)
-    
-    data = ntm.load_session(path, 'neurosuite')
-    data.load_neurosuite_xml(path)
-    epochs = data.epochs
+      
     
     if name == 'B2613' or name == 'B2618' or name == 'B2627' or name == 'B2628':
         isWT = 0
-    else: isWT = 1 
+    elif name == 'B2632' or name == 'B2634': 
+        isWT = 2
+    else: isWT = 1
     
     lfp = nap.load_eeg(path + '/' + s + '.eeg', channel = int(ripplechannels[r]), n_channels = 32, frequency = fs)
     
@@ -54,8 +54,12 @@ for r,s in enumerate(datasets):
     # rem_ep = data.read_neuroscope_intervals(name = 'REM', path2file = file)
     
     file = os.path.join(path, s +'.evt.py.rip')
-    rip_ep = data.read_neuroscope_intervals(name = 'rip', path2file = file)
+    if os.path.exists(file):
+        tmp = np.genfromtxt(file)[:,0]
+        tmp = tmp.reshape(len(tmp)//2,2)/1000
+        rip_ep = nap.IntervalSet(start = tmp[:,0], end = tmp[:,1], time_units = 's')
     
+       
     # with open(os.path.join(path, 'riptsd.pickle'), 'rb') as pickle_file:
     #     rip_tsd = pickle.load(pickle_file)
   
@@ -93,9 +97,13 @@ for r,s in enumerate(datasets):
         PSD_rip_wt = pd.concat([PSD_rip_wt, pd.Series(P_xx)], axis = 1)
         peakfreq_wt.append(peakfreq)
         
-    else: 
+    elif isWT == 0: 
         PSD_rip_ko = pd.concat([PSD_rip_ko, pd.Series(P_xx)], axis = 1)
         peakfreq_ko.append(peakfreq)
+        
+    else:
+        PSD_rip_f = pd.concat([PSD_rip_f, pd.Series(P_xx)], axis = 1)
+        peakfreq_f.append(peakfreq)
         
 #%% Average spectrum 
 
@@ -110,12 +118,13 @@ plt.semilogx(freqs[ix], 10*np.log10(PSD_rip_wt.iloc[ix].mean(axis=1)), 'o-', lab
 #                   10*np.log10(PSD_rip_wt.iloc[ix].mean(axis=1))-err, 
 #                   10*np.log10(PSD_rip_wt.iloc[ix].mean(axis=1))+err, color = 'royalblue', alpha = 0.2)
 
-plt.semilogx(freqs[ix], 10*np.log10(PSD_rip_ko.iloc[ix].mean(axis=1)), 'o-', label = 'KO', color = 'indianred')
+plt.semilogx(freqs[ix], 10*np.log10(PSD_rip_ko.iloc[ix].mean(axis=1)), 'o-', label = 'KO_male', color = 'indianred')
 # err = 10*np.log10(PSD_rip_ko.iloc[ix].sem(axis=1))
 # plt.fill_between(freqs[ix],
 #                   10*np.log10(PSD_rip_ko.iloc[ix].mean(axis=1))-err, 
 #                   10*np.log10(PSD_rip_ko.iloc[ix].mean(axis=1))+err, color = 'indianred', alpha = 0.2)
-plt.xlabel('Freq (Hz)')
+plt.semilogx(freqs[ix], 10*np.log10(PSD_rip_f.iloc[ix].mean(axis=1)), 'o-', label = 'KO_female', color = 'darkslategray')
+plt.xlabel('Freq (Hz)') 
 plt.xticks([10, 100, 200])
 plt.ylabel('Power (dB/Hz)')
 plt.yticks([-20, -30])
@@ -125,21 +134,23 @@ plt.gca().set_box_aspect(1)
 
 #%% Organize peak frequency data and plot
 
-wt = np.array(['WT' for x in range(len(peakfreq_wt))])
-ko = np.array(['KO' for x in range(len(peakfreq_ko))])
+wt = np.array(['WT_male' for x in range(len(peakfreq_wt))])
+ko = np.array(['KO_male' for x in range(len(peakfreq_ko))])
+fem = np.array(['KO_female' for x in range(len(peakfreq_ko))])
 
-genotype = np.hstack([wt, ko])
+genotype = np.hstack([wt, ko, fem])
 
 allpeaks = []
 allpeaks.extend(peakfreq_wt)
 allpeaks.extend(peakfreq_ko)
+allpeaks.extend(peakfreq_f)
 
 summ = pd.DataFrame(data = [allpeaks, genotype], index = ['freq', 'genotype']).T
 
 plt.figure()
 # plt.title('Peak Frequency in Ripple Band')
 sns.set_style('white')
-palette = ['royalblue', 'indianred']
+palette = ['royalblue', 'indianred', 'darkslategray']
 ax = sns.violinplot( x = summ['genotype'], y=summ['freq'].astype(float) , data = summ, dodge=False,
                     palette = palette,cut = 2,
                     scale="width", inner=None)
@@ -162,4 +173,4 @@ plt.ylabel('Frequency (Hz)')
 plt.yticks([100, 160])
 ax.set_box_aspect(1)
 
-t, p = mannwhitneyu(peakfreq_wt, peakfreq_ko)
+# t, p = mannwhitneyu(peakfreq_wt, peakfreq_ko)

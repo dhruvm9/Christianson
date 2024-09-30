@@ -22,8 +22,10 @@ from functions_DM import *
 #%% 
 
 data_directory = '/media/dhruv/Expansion/Processed'
+# data_directory = '/media/dhruv/Expansion/Processed/CA3'
 # data_directory = '/media/adrien/Expansion/Processed'
 datasets = np.genfromtxt(os.path.join(data_directory,'remapping_2sq.list'), delimiter = '\n', dtype = str, comments = '#')
+# datasets = np.genfromtxt(os.path.join(data_directory,'remapping_CA3.list'), delimiter = '\n', dtype = str, comments = '#')
 
 env_stability_wt = []
 env_stability_ko = []
@@ -88,7 +90,9 @@ for s in datasets:
         
     xypos = np.array(position[['x', 'z']])
     
-    rad = 1.7
+    if s == datasets[0] or s == datasets[2]: 
+        rad = 0.05
+    else: rad = 0
         
     for i in range(len(xypos)):
         newx, newy = rotate_via_numpy(xypos[i], rad)
@@ -102,13 +106,14 @@ for s in datasets:
 #%% Plot tracking 
 
     # if isWT == 1:   
-    # plt.figure()
-    # plt.suptitle(s)
-    # plt.subplot(121)
-    # plt.plot(rot_pos['x'].restrict(w1), rot_pos['z'].restrict(w1))
-    # plt.subplot(122)
-    # plt.plot(rot_pos['x'].restrict(w2), rot_pos['z'].restrict(w2)) 
+    plt.figure()
+    plt.suptitle(s)
+    plt.subplot(121)
+    plt.plot(rot_pos['x'].restrict(w1), rot_pos['z'].restrict(w1))
+    plt.subplot(122)
+    plt.plot(rot_pos['x'].restrict(w2), rot_pos['z'].restrict(w2)) 
     
+        
 #%% Get cells with wake rate more than 0.5Hz
         
     spikes_by_celltype = spikes.getby_category('celltype')
@@ -136,7 +141,7 @@ for s in datasets:
         tmp.index = time_bins[np.unique(index)-1]+(speedbinsize)/2
         distance = np.sqrt(np.power(np.diff(tmp['x']), 2) + np.power(np.diff(tmp['z']), 2)) * 100 #in cm
         speed = pd.Series(index = tmp.index.values[0:-1]+ speedbinsize/2, data = distance/speedbinsize) # in cm/s
-        speed2 = speed.rolling(window = 25, win_type='gaussian', center=True, min_periods=1).mean(std=10) #Smooth over 200ms 
+        speed2 = speed.rolling(window = 25, win_type= 'gaussian', center=True, min_periods=1).mean(std=10) #Smooth over 200ms 
         speed2 = nap.Tsd(speed2)
         moving_ep = nap.IntervalSet(speed2.threshold(2).time_support) #Epochs in which speed is > 2 cm/s
         
@@ -343,21 +348,21 @@ for s in datasets:
                 
 ### PLOT EXAMPLES ARENA 1 
         
-        if isWT == 1:
+        # if isWT == 1:
         
-            for i,n in enumerate(pyr2):
-                plt.figure()
-                good = np.logical_and(np.isfinite(pf1[n].flatten()), np.isfinite(pf2[n].flatten()))
-                corr, _ = scipy.stats.pearsonr(pf1[n].flatten()[good], pf2[n].flatten()[good]) 
-                plt.suptitle('R = '  + str(round(corr, 2)))
-                plt.subplot(121)
-                plt.title(round(spatialinfo1['SI'][n],2))
-                plt.imshow(pf1[n], extent=(binsxy[1][0],binsxy[1][-1],binsxy[0][0],binsxy[0][-1]), cmap = 'jet')        
-                plt.colorbar()
-                plt.subplot(122)
-                plt.title(round(spatialinfo2['SI'][n],2))
-                plt.imshow(pf2[n], extent=(binsxy[1][0],binsxy[1][-1],binsxy[0][0],binsxy[0][-1]), cmap = 'jet')        
-                plt.colorbar()
+            # for i,n in enumerate(pyr2):
+            #     plt.figure()
+            #     good = np.logical_and(np.isfinite(pf1[n].flatten()), np.isfinite(pf2[n].flatten()))
+            #     corr, _ = scipy.stats.pearsonr(pf1[n].flatten()[good], pf2[n].flatten()[good]) 
+            #     plt.suptitle('R = '  + str(round(corr, 2)))
+            #     plt.subplot(121)
+            #     plt.title(round(spatialinfo1['SI'][n],2))
+            #     plt.imshow(pf1[n], extent=(binsxy[1][0],binsxy[1][-1],binsxy[0][0],binsxy[0][-1]), cmap = 'jet')        
+            #     plt.colorbar()
+            #     plt.subplot(122)
+            #     plt.title(round(spatialinfo2['SI'][n],2))
+            #     plt.imshow(pf2[n], extent=(binsxy[1][0],binsxy[1][-1],binsxy[0][0],binsxy[0][-1]), cmap = 'jet')        
+            #     plt.colorbar()
                 
 # sys.exit()
         

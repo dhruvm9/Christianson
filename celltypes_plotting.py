@@ -52,27 +52,40 @@ for s in datasets:
     t2p.extend(spikes._metadata['tr2pk'].values)
     celltype.extend(spikes._metadata['celltype'].values)
     
-    if name == 'B2613' or name == 'B2618':
+    if name == 'B2613' or name == 'B2618' or name == 'B2627' or name == 'B2628':
         genotype.extend(np.zeros_like(spikes._metadata['rate'].values, dtype = 'bool'))
     else: genotype.extend(np.ones_like(spikes._metadata['rate'].values, dtype ='bool'))
 
 #%% Ratio of FS versus broad waveform cells
-            
-    if 'fs' in spikes.getby_category('celltype').keys():
-        fscells = spikes.getby_category('celltype')['fs']
-            
-        bwf = 0 
-        for i in spikes._metadata['tr2pk']: 
-            if i > 0.38:
-                bwf += 1
     
-        fs2bwf = len(fscells) / bwf
+    if len(spikes) > 30:
         
-        if isWT == 1: 
-            cellratios_wt.append(fs2bwf)
+        if 'fs' in spikes.getby_category('celltype').keys():
+            print('found!')
+            print(len(spikes))
+            fscells = spikes.getby_category('celltype')['fs']
+                
+            bwf = 0 
+            for i in spikes._metadata['tr2pk']: 
+                if i > 0.55:
+                    bwf += 1
         
-        else: cellratios_ko.append(fs2bwf)
-
+            fs2bwf = len(fscells) / bwf
+            
+            if isWT == 1: 
+                cellratios_wt.append(fs2bwf)
+            
+            else: 
+                cellratios_ko.append(fs2bwf)
+                
+            del fscells
+                
+        else: 
+            print('nope!')
+        
+    # if s == 'B2625-240321':
+    #     sys.exit()
+    
 #%% Sorting the ratio of FS to broad waveform cells
 
 wt = np.array(['WT' for x in range(len(cellratios_wt))])
@@ -167,4 +180,4 @@ t, p = mannwhitneyu(cellratios_wt, cellratios_ko)
 # plt.xlabel('Trough-to-peak (ms)')
 # plt.ylabel('firing rate (Hz)')   
 # plt.legend(loc = 'upper right')
-
+# plt.gca().set_box_aspect(1)

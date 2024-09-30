@@ -17,6 +17,7 @@ from scipy.signal import filtfilt
 #%%
 
 data_directory = '/media/dhruv/Expansion/Processed'
+# data_directory = '/media/dhruv/Expansion/Processed/CA3'
 # datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
 datasets = np.genfromtxt(os.path.join(data_directory,'dataset_new_toadd.list'), delimiter = '\n', dtype = str, comments = '#')
 # datasets = np.genfromtxt(os.path.join(data_directory,'dataset_test.list'), delimiter = '\n', dtype = str, comments = '#')
@@ -29,19 +30,27 @@ for r,s in enumerate(datasets):
     name = s.split('/')[-1]
     path = os.path.join(data_directory, s)
     
-    data = ntm.load_session(path, 'neurosuite')
-    data.load_neurosuite_xml(path)
-    
+    # data = ntm.load_session(path, 'neurosuite')
+    # data.load_neurosuite_xml(path)
+       
     # rip_ep = data.load_nwb_intervals('sleep_ripples')
     # rip_tsd = data.load_nwb_timeseries('sleep_ripples')
     
     lfp = nap.load_eeg(path + '/' + s + '.eeg', channel = int(ripplechannels[r]), n_channels = 32, frequency = 1250)
-    
+        
     file = os.path.join(path, name +'.sws.evt')
-    sws_ep = data.read_neuroscope_intervals(name = 'SWS', path2file = file)
-    
+    if os.path.exists(file):
+        tmp = np.genfromtxt(file)[:,0]
+        tmp = tmp.reshape(len(tmp)//2,2)/1000
+        sws_ep = nap.IntervalSet(start = tmp[:,0], end = tmp[:,1], time_units = 's')
+   
+        
     file = os.path.join(path, name +'.rem.evt')
-    rem_ep = data.read_neuroscope_intervals(name = 'REM', path2file = file)
+    if os.path.exists(file):
+        tmp = np.genfromtxt(file)[:,0]
+        tmp = tmp.reshape(len(tmp)//2,2)/1000
+        rem_ep = nap.IntervalSet(start = tmp[:,0], end = tmp[:,1], time_units = 's')
+    
         
 #%% 
          
@@ -161,7 +170,7 @@ for r,s in enumerate(datasets):
 
 #%% 
 
-    data.write_neuroscope_intervals(extension = '.evt.py.rip', isets = rip_ep, name = 'rip') 
+    # data.write_neuroscope_intervals(extension = '.evt.py.rip', isets = rip_ep, name = 'rip') 
     
     with open(os.path.join(path, 'riptsd.pickle'), 'wb') as pickle_file:
         pickle.dump(rip_tsd, pickle_file)
@@ -182,21 +191,21 @@ for r,s in enumerate(datasets):
     
 #%% Write to neuroscope
 
-    # start = rip_ep.as_units('ms')['start'].values
-    # ends = rip_ep.as_units('ms')['end'].values
+    start = rip_ep.as_units('ms')['start'].values
+    ends = rip_ep.as_units('ms')['end'].values
 
-    # datatowrite = np.vstack((start,ends)).T.flatten()
+    datatowrite = np.vstack((start,ends)).T.flatten()
 
-    # n = len(rip_ep)
+    n = len(rip_ep)
 
-    # texttowrite = np.vstack(((np.repeat(np.array(['PyRip start 1']), n)), 
-    #                           (np.repeat(np.array(['PyRip stop 1']), n))
-    #                           )).T.flatten()
+    texttowrite = np.vstack(((np.repeat(np.array(['PyRip start 1']), n)), 
+                              (np.repeat(np.array(['PyRip stop 1']), n))
+                              )).T.flatten()
 
-    # evt_file = path + '/' + name + '.evt.py.rip'
-    # f = open(evt_file, 'w')
-    # for t, n in zip(datatowrite, texttowrite):
-    #     f.writelines("{:1.6f}".format(t) + "\t" + n + "\n")
-    # f.close()        
+    evt_file = path + '/' + name + '.evt.py.rip'
+    f = open(evt_file, 'w')
+    for t, n in zip(datatowrite, texttowrite):
+        f.writelines("{:1.6f}".format(t) + "\t" + n + "\n")
+    f.close()        
 
-    
+    # sys.exit()

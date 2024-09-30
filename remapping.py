@@ -87,15 +87,35 @@ for s in datasets:
         
     xypos = np.array(position[['x', 'z']])
     
-    if isWT == 1:
+    if name == 'B2625':
         rad = 0.6
-    else: rad = 0.95
+    elif name == 'B2618':
+        rad = 0.95
+    elif s == 'B2627-240528' or s == 'B2627-240530':
+        rad = 0.05
+    else: rad = 0    
+        
     
     for i in range(len(xypos)):
         newx, newy = rotate_via_numpy(xypos[i], rad)
         rot_pos.append((newx, newy))
         
     rot_pos = nap.TsdFrame(t = position.index.values, d = rot_pos, columns = ['x', 'z'])
+    
+    w1 = nap.IntervalSet(start = epochs['wake'][0]['start'], end = epochs['wake'][0]['end'])
+    w2 = nap.IntervalSet(start = epochs['wake'][1]['start'], end = epochs['wake'][1]['end'])
+ 
+
+#%% Plot tracking 
+
+    # if isWT == 1:   
+    plt.figure()
+    plt.suptitle(s)
+    plt.subplot(121)
+    plt.plot(rot_pos['x'].restrict(w1), rot_pos['z'].restrict(w1))
+    plt.subplot(122)
+    plt.plot(rot_pos['x'].restrict(w2), rot_pos['z'].restrict(w2))
+    
     
 #%% Get cells with wake rate more than 0.5Hz
         
@@ -131,106 +151,102 @@ for s in datasets:
         
         ep1 = moving_ep.intersect(epochs['wake'].loc[[0]])
         ep2 = moving_ep.intersect(epochs['wake'].loc[[1]])
+              
            
 #%% Compute place fields in the 2 arenas
     
-    w1 = nap.IntervalSet(start = epochs['wake'][0]['start'], end = epochs['wake'][0]['end'])
-    w2 = nap.IntervalSet(start = epochs['wake'][1]['start'], end = epochs['wake'][1]['end'])
-                                     
-    placefields1, binsxy1 = nap.compute_2d_tuning_curves(group = pyr2, 
-                                                       features = rot_pos[['x', 'z']], 
-                                                       ep = ep1, 
-                                                       nb_bins=24)  
-    
-    px1 = occupancy_prob(rot_pos, ep1, nb_bins=24, norm = True)
-
-        
-    
-    
-    placefields2, binsxy2 = nap.compute_2d_tuning_curves(group = pyr2, 
-                                                       features = rot_pos[['x', 'z']], 
-                                                       ep = ep2, 
-                                                       nb_bins=24)
-    
-    px2 = occupancy_prob(rot_pos, ep2, nb_bins=24, norm = True)
-    
-    SI_1 = nap.compute_2d_mutual_info(placefields1, rot_pos[['x', 'z']], ep = ep1)
-    SI_2 = nap.compute_2d_mutual_info(placefields2, rot_pos[['x', 'z']], ep = ep2)
-
-    spatialinfo_env1 = nap.compute_2d_mutual_info(placefields1, rot_pos[['x', 'z']], ep = ep1)
-    spatialinfo_env2 = nap.compute_2d_mutual_info(placefields2, rot_pos[['x', 'z']], ep = ep2)
-        
-    
-    sp1 = [] 
-    sp2 = []
-    for k in pyr2:
-        tmp = sparsity(placefields1[k], px1)
-        tmp2 = sparsity(placefields2[k], px2)
-        sp1.append(tmp)
-        sp2.append(tmp2)
+        placefields1, binsxy1 = nap.compute_2d_tuning_curves(group = pyr2, 
+                                                           features = rot_pos[['x', 'z']], 
+                                                           ep = ep1, 
+                                                           nb_bins=24)  
                
+        px1 = occupancy_prob(rot_pos, ep1, nb_bins=24, norm = True)
     
-    for i in pyr2.keys(): 
-        placefields1[i][np.isnan(placefields1[i])] = 0
-        placefields1[i] = scipy.ndimage.gaussian_filter(placefields1[i], 1.5, mode = 'nearest')
-        masked_array = np.ma.masked_where(px1 == 0, placefields1[i]) #should work fine without it 
-        placefields1[i] = masked_array
+            
         
-        placefields2[i][np.isnan(placefields2[i])] = 0
-        placefields2[i] = scipy.ndimage.gaussian_filter(placefields2[i], 1.5, mode = 'nearest')
-        masked_array = np.ma.masked_where(px2 == 0, placefields2[i]) #should work fine without it 
-        placefields2[i] = masked_array
         
-    pvcorr = compute_PVcorrs(placefields1, placefields2, pyr2.index)
-    # print(pvcorr)
+        placefields2, binsxy2 = nap.compute_2d_tuning_curves(group = pyr2, 
+                                                           features = rot_pos[['x', 'z']], 
+                                                           ep = ep2, 
+                                                           nb_bins=24)
+                
+        px2 = occupancy_prob(rot_pos, ep2, nb_bins=24, norm = True)
+        
+        SI_1 = nap.compute_2d_mutual_info(placefields1, rot_pos[['x', 'z']], ep = ep1)
+        SI_2 = nap.compute_2d_mutual_info(placefields2, rot_pos[['x', 'z']], ep = ep2)
     
-    if isWT == 1:
-        allspatialinfo_env1_wt.extend(spatialinfo_env1['SI'].tolist())
-        allspatialinfo_env2_wt.extend(spatialinfo_env2['SI'].tolist())
-        sparsity1_wt.extend(sp1)
-        sparsity2_wt.extend(sp2)
-        pvcorr_wt.append(pvcorr)
-    else: 
-        allspatialinfo_env1_ko.extend(spatialinfo_env1['SI'].tolist())
-        allspatialinfo_env2_ko.extend(spatialinfo_env2['SI'].tolist())
-        sparsity1_ko.extend(sp1)
-        sparsity2_ko.extend(sp2)
-        pvcorr_ko.append(pvcorr)
+        spatialinfo_env1 = nap.compute_2d_mutual_info(placefields1, rot_pos[['x', 'z']], ep = ep1)
+        spatialinfo_env2 = nap.compute_2d_mutual_info(placefields2, rot_pos[['x', 'z']], ep = ep2)
+            
+        
+        sp1 = [] 
+        sp2 = []
+        for k in pyr2:
+            tmp = sparsity(placefields1[k], px1)
+            tmp2 = sparsity(placefields2[k], px2)
+            sp1.append(tmp)
+            sp2.append(tmp2)
+        
+        
+        for i in pyr2.keys(): 
+            
+            placefields1[i][np.isnan(placefields1[i])] = 0
+            placefields1[i] = scipy.ndimage.gaussian_filter(placefields1[i], 1.5, mode = 'nearest')
+            masked_array = np.ma.masked_where(px1 == 0, placefields1[i]) #should work fine without it 
+            placefields1[i] = masked_array
+            
+            placefields2[i][np.isnan(placefields2[i])] = 0
+            placefields2[i] = scipy.ndimage.gaussian_filter(placefields2[i], 1.5, mode = 'nearest')
+            masked_array = np.ma.masked_where(px2 == 0, placefields2[i]) #should work fine without it 
+            placefields2[i] = masked_array
+            
+        pvcorr = compute_PVcorrs(placefields1, placefields2, pyr2.index)
+        # print(pvcorr)
+        
+        if isWT == 1:
+            allspatialinfo_env1_wt.extend(spatialinfo_env1['SI'].tolist())
+            allspatialinfo_env2_wt.extend(spatialinfo_env2['SI'].tolist())
+            sparsity1_wt.extend(sp1)
+            sparsity2_wt.extend(sp2)
+            pvcorr_wt.append(pvcorr)
+        else: 
+            allspatialinfo_env1_ko.extend(spatialinfo_env1['SI'].tolist())
+            allspatialinfo_env2_ko.extend(spatialinfo_env2['SI'].tolist())
+            sparsity1_ko.extend(sp1)
+            sparsity2_ko.extend(sp2)
+            pvcorr_ko.append(pvcorr)
     
     # sys.exit()
     
 
-#%% Plot tracking 
 
-    # if isWT == 1:   
-    # plt.figure()
-    # plt.suptitle(s)
-    # plt.subplot(121)
-    # plt.plot(rot_pos['x'].restrict(w1), rot_pos['z'].restrict(w1))
-    # plt.subplot(122)
-    # plt.plot(rot_pos['x'].restrict(w2), rot_pos['z'].restrict(w2))
 
 #%% Plot remapping 
     
-#     ref = pyr2.keys()
-#     nrows = int(np.sqrt(len(ref)))
-#     ncols = int(len(ref)/nrows)+1
-
-#     plt.figure()
-#     plt.suptitle(s + ' Wake1')
-#     for i,n in enumerate(pyr2):
-#         plt.subplot(nrows, ncols, i+1)
-#         # plt.title(spikes._metadata['celltype'][i])
-#         plt.imshow(placefields1[n], extent=(binsxy1[1][0],binsxy1[1][-1],binsxy1[0][0],binsxy1[0][-1]), cmap = 'jet')        
-#         plt.colorbar()
-
-#     plt.figure()
-#     plt.suptitle(s + ' Wake2')
-#     for i,n in enumerate(pyr2):
-#         plt.subplot(nrows, ncols, i+1)
-#         # plt.title(spikes._metadata['celltype'][i])
-#         plt.imshow(placefields2[n], extent=(binsxy2[1][0],binsxy2[1][-1],binsxy2[0][0],binsxy2[0][-1]), cmap = 'jet')        
-#         plt.colorbar()
+        # ref = pyr2.keys()
+        # nrows = int(np.sqrt(len(ref)))
+        # ncols = int(len(ref)/nrows)+1
+    
+        # plt.figure()
+        # plt.suptitle(s + ' Wake1')
+        # for i,n in enumerate(pyr2):
+        #     plt.subplot(nrows, ncols, i+1)
+        #     # plt.title(spikes._metadata['celltype'][i])
+        #     # plt.imshow(placefields1[n], extent=(binsxy1[0][0],binsxy1[0][-1],binsxy1[1][0],binsxy1[1][-1]), cmap = 'jet')        
+        #     plt.imshow(placefields1[n].T, extent=(binsxy1[0][0],binsxy1[0][-1],binsxy1[1][0],binsxy1[1][-1]), origin = 'lower', cmap = 'viridis')        
+        #     # plt.imshow(placefields1[n].T, cmap = 'viridis', aspect = 'auto', origin = 'lower')   
+        #     plt.colorbar()
+    
+        # plt.figure()
+        # plt.suptitle(s + ' Wake2')
+        # for i,n in enumerate(pyr2):
+        #     plt.subplot(nrows, ncols, i+1)
+        #     # plt.title(spikes._metadata['celltype'][i])
+        #     # plt.imshow(placefields2[n], extent=(binsxy2[0][0],binsxy2[0][-1],binsxy2[1][0],binsxy2[1][-1]), cmap = 'jet')        
+        #     plt.imshow(placefields2[n].T, extent=(binsxy2[0][0],binsxy2[0][-1],binsxy2[1][0],binsxy2[1][-1]), origin = 'lower', cmap = 'viridis')        
+        #     # plt.imshow(placefields2[n].T, cmap = 'viridis', aspect = 'auto', origin = 'lower')   
+            
+        #     plt.colorbar()
     
     
 # ###EXAMPLES 
@@ -249,113 +265,113 @@ for s in datasets:
     
 #%% Split both wake epochs into halves 
 
-    center1 = rot_pos.restrict(nap.IntervalSet(epochs['wake'][0])).time_support.get_intervals_center()
-    center2 = rot_pos.restrict(nap.IntervalSet(epochs['wake'][1])).time_support.get_intervals_center()
-    
-    halves1 = nap.IntervalSet(start = [rot_pos.restrict(nap.IntervalSet(epochs['wake'].loc[[0]])).time_support.start[0], center1.t[0]],
-                              end = [center1.t[0], rot_pos.restrict(nap.IntervalSet(epochs['wake'].loc[[0]])).time_support.end[0]])
-
-    halves2 = nap.IntervalSet(start = [rot_pos.restrict(nap.IntervalSet(epochs['wake'].loc[[1]])).time_support.start[0], center2.t[0]],
-                              end = [center2.t[0], rot_pos.restrict(nap.IntervalSet(epochs['wake'].loc[[1]])).time_support.end[0]])
-
-    
-    ep_wake1 = halves1.intersect(moving_ep)
-    ep_wake2 = halves2.intersect(moving_ep)
+        center1 = rot_pos.restrict(nap.IntervalSet(epochs['wake'][0])).time_support.get_intervals_center()
+        center2 = rot_pos.restrict(nap.IntervalSet(epochs['wake'][1])).time_support.get_intervals_center()
         
-    half1_wake1 = ep_wake1[0:len(ep_wake1)//2]
-    half2_wake1 = ep_wake1[(len(ep_wake1)//2)+1:]
+        halves1 = nap.IntervalSet(start = [rot_pos.restrict(nap.IntervalSet(epochs['wake'].loc[[0]])).time_support.start[0], center1.t[0]],
+                                  end = [center1.t[0], rot_pos.restrict(nap.IntervalSet(epochs['wake'].loc[[0]])).time_support.end[0]])
     
-    half1_wake2 = ep_wake2[0:len(ep_wake2)//2]
-    half2_wake2 = ep_wake2[(len(ep_wake2)//2)+1:]
-        
-    pf1, binsxy = nap.compute_2d_tuning_curves(group = pyr2, features = rot_pos[['x', 'z']], ep = half1_wake1, nb_bins=24)  
-    px1 = occupancy_prob(rot_pos, half1_wake1, nb_bins=24)
-    spatialinfo1 = nap.compute_2d_mutual_info(pf1, rot_pos[['x', 'z']], ep = half1_wake1)
+        halves2 = nap.IntervalSet(start = [rot_pos.restrict(nap.IntervalSet(epochs['wake'].loc[[1]])).time_support.start[0], center2.t[0]],
+                                  end = [center2.t[0], rot_pos.restrict(nap.IntervalSet(epochs['wake'].loc[[1]])).time_support.end[0]])
     
-    norm_px1 = occupancy_prob(rot_pos, half1_wake1, nb_bins=24, norm=True)
-    norm_px2 = occupancy_prob(rot_pos, half1_wake2, nb_bins=24, norm=True)
-    norm_px3 = occupancy_prob(rot_pos, half2_wake1, nb_bins=24, norm=True)
-    norm_px4 = occupancy_prob(rot_pos, half2_wake2, nb_bins=24, norm=True)
-     
+        
+        ep_wake1 = halves1.intersect(moving_ep)
+        ep_wake2 = halves2.intersect(moving_ep)
+            
+        half1_wake1 = ep_wake1[0:len(ep_wake1)//2]
+        half2_wake1 = ep_wake1[(len(ep_wake1)//2)+1:]
+        
+        half1_wake2 = ep_wake2[0:len(ep_wake2)//2]
+        half2_wake2 = ep_wake2[(len(ep_wake2)//2)+1:]
+            
+        pf1, binsxy = nap.compute_2d_tuning_curves(group = pyr2, features = rot_pos[['x', 'z']], ep = half1_wake1, nb_bins=24)  
+        px1 = occupancy_prob(rot_pos, half1_wake1, nb_bins=24)
+        spatialinfo1 = nap.compute_2d_mutual_info(pf1, rot_pos[['x', 'z']], ep = half1_wake1)
+        
+        norm_px1 = occupancy_prob(rot_pos, half1_wake1, nb_bins=24, norm=True)
+        norm_px2 = occupancy_prob(rot_pos, half1_wake2, nb_bins=24, norm=True)
+        norm_px3 = occupancy_prob(rot_pos, half2_wake1, nb_bins=24, norm=True)
+        norm_px4 = occupancy_prob(rot_pos, half2_wake2, nb_bins=24, norm=True)
+         
+        
+        pf2, binsxy = nap.compute_2d_tuning_curves(group = pyr2, features = rot_pos[['x', 'z']], ep = half2_wake1, nb_bins=24)  
+        px2 = occupancy_prob(rot_pos, half2_wake1, nb_bins=24)
+        spatialinfo2 = nap.compute_2d_mutual_info(pf2, rot_pos[['x', 'z']], ep = half2_wake1)
     
-    pf2, binsxy = nap.compute_2d_tuning_curves(group = pyr2, features = rot_pos[['x', 'z']], ep = half2_wake1, nb_bins=24)  
-    px2 = occupancy_prob(rot_pos, half2_wake1, nb_bins=24)
-    spatialinfo2 = nap.compute_2d_mutual_info(pf2, rot_pos[['x', 'z']], ep = half2_wake1)
-
-    pf3, binsxy = nap.compute_2d_tuning_curves(group = pyr2, features = rot_pos[['x', 'z']], ep = half1_wake2, nb_bins=24)  
-    px3 = occupancy_prob(rot_pos, half1_wake2, nb_bins=24)
-    spatialinfo3 = nap.compute_2d_mutual_info(pf3, rot_pos[['x', 'z']], ep = half1_wake2)
+        pf3, binsxy = nap.compute_2d_tuning_curves(group = pyr2, features = rot_pos[['x', 'z']], ep = half1_wake2, nb_bins=24)  
+        px3 = occupancy_prob(rot_pos, half1_wake2, nb_bins=24)
+        spatialinfo3 = nap.compute_2d_mutual_info(pf3, rot_pos[['x', 'z']], ep = half1_wake2)
+            
+        pf4, binsxy = nap.compute_2d_tuning_curves(group = pyr2, features = rot_pos[['x', 'z']], ep = half2_wake2, nb_bins=24)  
+        px4 = occupancy_prob(rot_pos, half2_wake2, nb_bins=24)
+        spatialinfo4 = nap.compute_2d_mutual_info(pf4, rot_pos[['x', 'z']], ep = half2_wake2)
         
-    pf4, binsxy = nap.compute_2d_tuning_curves(group = pyr2, features = rot_pos[['x', 'z']], ep = half2_wake2, nb_bins=24)  
-    px4 = occupancy_prob(rot_pos, half2_wake2, nb_bins=24)
-    spatialinfo4 = nap.compute_2d_mutual_info(pf4, rot_pos[['x', 'z']], ep = half2_wake2)
-    
-    for i in pyr2.keys(): 
-        pf1[i][np.isnan(pf1[i])] = 0
-        pf1[i] = scipy.ndimage.gaussian_filter(pf1[i], 1.5, mode = 'nearest')
-        masked_array = np.ma.masked_where(px1 == 0, pf1[i]) #should work fine without it 
-        pf1[i] = masked_array
+        for i in pyr2.keys(): 
+            pf1[i][np.isnan(pf1[i])] = 0
+            pf1[i] = scipy.ndimage.gaussian_filter(pf1[i], 1.5, mode = 'nearest')
+            masked_array = np.ma.masked_where(px1 == 0, pf1[i]) #should work fine without it 
+            pf1[i] = masked_array
+            
+            pf2[i][np.isnan(pf2[i])] = 0
+            pf2[i] = scipy.ndimage.gaussian_filter(pf2[i], 1.5, mode = 'nearest')
+            masked_array = np.ma.masked_where(px2 == 0, pf2[i]) #should work fine without it 
+            pf2[i] = masked_array
+            
+            pf3[i][np.isnan(pf3[i])] = 0
+            pf3[i] = scipy.ndimage.gaussian_filter(pf3[i], 1.5, mode = 'nearest')
+            masked_array = np.ma.masked_where(px3 == 0, pf3[i]) #should work fine without it 
+            pf3[i] = masked_array
+            
+            pf4[i][np.isnan(pf4[i])] = 0
+            pf4[i] = scipy.ndimage.gaussian_filter(pf4[i], 1.5, mode = 'nearest')
+            masked_array = np.ma.masked_where(px4 == 0, pf4[i]) #should work fine without it 
+            pf4[i] = masked_array
+                    
         
-        pf2[i][np.isnan(pf2[i])] = 0
-        pf2[i] = scipy.ndimage.gaussian_filter(pf2[i], 1.5, mode = 'nearest')
-        masked_array = np.ma.masked_where(px2 == 0, pf2[i]) #should work fine without it 
-        pf2[i] = masked_array
-        
-        pf3[i][np.isnan(pf3[i])] = 0
-        pf3[i] = scipy.ndimage.gaussian_filter(pf3[i], 1.5, mode = 'nearest')
-        masked_array = np.ma.masked_where(px3 == 0, pf3[i]) #should work fine without it 
-        pf3[i] = masked_array
-        
-        pf4[i][np.isnan(pf4[i])] = 0
-        pf4[i] = scipy.ndimage.gaussian_filter(pf4[i], 1.5, mode = 'nearest')
-        masked_array = np.ma.masked_where(px4 == 0, pf4[i]) #should work fine without it 
-        pf4[i] = masked_array
-                
-    
-    if isWT == 1:
-        SI1_wt.extend(spatialinfo1.values)
-        SI2_wt.extend(spatialinfo2.values)
-        SI3_wt.extend(spatialinfo3.values)
-        SI4_wt.extend(spatialinfo4.values)
-    else: 
-        SI1_ko.extend(spatialinfo1.values)
-        SI2_ko.extend(spatialinfo2.values)
-        SI3_ko.extend(spatialinfo3.values)
-        SI4_ko.extend(spatialinfo4.values)
+        if isWT == 1:
+            SI1_wt.extend(spatialinfo1.values)
+            SI2_wt.extend(spatialinfo2.values)
+            SI3_wt.extend(spatialinfo3.values)
+            SI4_wt.extend(spatialinfo4.values)
+        else: 
+            SI1_ko.extend(spatialinfo1.values)
+            SI2_ko.extend(spatialinfo2.values)
+            SI3_ko.extend(spatialinfo3.values)
+            SI4_ko.extend(spatialinfo4.values)
         
         
    
         
 #%% Quantify spatial maps between 2 environments 
 
-    for k in pyr2:
-        
-        ###Between 2 environments
-        good = np.logical_and(np.isfinite(placefields1[k].flatten()), np.isfinite(placefields2[k].flatten()))
-        corr, p = scipy.stats.pearsonr(placefields1[k].flatten()[good], placefields2[k].flatten()[good]) 
-        
-        if isWT == 1:
-            env_stability_wt.append(corr)
-        else: 
-            env_stability_ko.append(corr)
-        
-        ###Between 2 halves of first wake 
-        good2 = np.logical_and(np.isfinite(pf1[k].flatten()), np.isfinite(pf2[k].flatten()))
-        corr2, p2 = scipy.stats.pearsonr(pf1[k].flatten()[good2], pf2[k].flatten()[good2]) 
-        
-        if isWT == 1:
-            halfsession1_corr_wt.append(corr2)
-        else:
-            halfsession1_corr_ko.append(corr2)
-        
-        ###Between 2 halves of second wake 
-        good3 = np.logical_and(np.isfinite(pf3[k].flatten()), np.isfinite(pf4[k].flatten()))
-        corr3, p3 = scipy.stats.pearsonr(pf3[k].flatten()[good3], pf4[k].flatten()[good3]) 
-        
-        if isWT == 1:
-            halfsession2_corr_wt.append(corr3)
-        else: 
-            halfsession2_corr_ko.append(corr3)
+        for k in pyr2:
+            
+        #     ###Between 2 environments
+            good = np.logical_and(np.isfinite(placefields1[k].flatten()), np.isfinite(placefields2[k].flatten()))
+            corr, p = scipy.stats.pearsonr(placefields1[k].flatten()[good], placefields2[k].flatten()[good]) 
+            
+            if isWT == 1:
+                env_stability_wt.append(corr)
+            else: 
+                env_stability_ko.append(corr)
+            
+        #     ###Between 2 halves of first wake 
+            good2 = np.logical_and(np.isfinite(pf1[k].flatten()), np.isfinite(pf2[k].flatten()))
+            corr2, p2 = scipy.stats.pearsonr(pf1[k].flatten()[good2], pf2[k].flatten()[good2]) 
+            
+            if isWT == 1:
+                halfsession1_corr_wt.append(corr2)
+            else:
+                halfsession1_corr_ko.append(corr2)
+            
+        #     ###Between 2 halves of second wake 
+            good3 = np.logical_and(np.isfinite(pf3[k].flatten()), np.isfinite(pf4[k].flatten()))
+            corr3, p3 = scipy.stats.pearsonr(pf3[k].flatten()[good3], pf4[k].flatten()[good3]) 
+            
+            if isWT == 1:
+                halfsession2_corr_wt.append(corr3)
+            else: 
+                halfsession2_corr_ko.append(corr3)
         
 ### PLOT EXAMPLES ARENA 1 
 
@@ -527,37 +543,37 @@ t3, p3 = mannwhitneyu(halfsession2_corr_wt, halfsession2_corr_ko)
         
 #%% Plot Example cells 
 
-# examples = [0,3,5]
+examples = [4,7,8]
 
-# for n in examples:
-#     plt.figure()
-#     peakfreq = max(placefields1[n].max(), placefields2[n].max()) 
-#     pf1 = placefields1[n] / peakfreq
-#     pf2 = placefields2[n] / peakfreq
+for n in examples:
+    plt.figure()
+    peakfreq = max(placefields1[n].max(), placefields2[n].max()) 
+    pf1 = placefields1[n] / peakfreq
+    pf2 = placefields2[n] / peakfreq
     
     
-#     plt.subplot(1,2,1)
-#     plt.imshow(pf1.T, cmap = 'viridis', aspect = 'auto', origin = 'lower', vmin = 0, vmax = 1)   
-#     plt.tight_layout()
-#     plt.gca().set_box_aspect(1)
-#     plt.subplot(1,2,2)
-#     plt.imshow(pf2.T, cmap = 'viridis', aspect = 'auto', origin = 'lower', vmin = 0, vmax = 1)   
-#     # plt.colorbar()
-#     plt.gca().set_box_aspect(1)
-#     plt.tight_layout()
+    plt.subplot(1,2,1)
+    plt.imshow(pf1.T, cmap = 'viridis', aspect = 'auto', origin = 'lower', vmin = 0, vmax = 1)   
+    plt.tight_layout()
+    plt.gca().set_box_aspect(1)
+    plt.subplot(1,2,2)
+    plt.imshow(pf2.T, cmap = 'viridis', aspect = 'auto', origin = 'lower', vmin = 0, vmax = 1)   
+    # plt.colorbar()
+    plt.gca().set_box_aspect(1)
+    plt.tight_layout()
     
     
-# plt.figure()
-# plt.subplot(121)
-# plt.plot(rot_pos['x'].restrict(ep1), rot_pos['z'].restrict(ep1), color = 'grey')
-# spk_pos1 = pyr2[examples[2]].value_from(rot_pos.restrict(ep1))
-# plt.plot(spk_pos1['x'], spk_pos1['z'], 'o', color = 'r', markersize = 5, alpha = 0.5)
-# plt.gca().set_box_aspect(1)
-# plt.subplot(122)
-# plt.plot(rot_pos['x'].restrict(ep2), rot_pos['z'].restrict(ep2), color = 'grey')
-# spk_pos2 = pyr2[examples[2]].value_from(rot_pos.restrict(ep2))
-# plt.plot(spk_pos2['x'], spk_pos2['z'], 'o', color = 'r', markersize = 5, alpha = 0.5)
-# plt.gca().set_box_aspect(1)    
+plt.figure()
+plt.subplot(121)
+plt.plot(rot_pos['x'].restrict(ep1), rot_pos['z'].restrict(ep1), color = 'grey')
+spk_pos1 = pyr2[examples[0]].value_from(rot_pos.restrict(ep1))
+plt.plot(spk_pos1['x'], spk_pos1['z'], 'o', color = 'r', markersize = 5, alpha = 0.5)
+plt.gca().set_box_aspect(1)
+plt.subplot(122)
+plt.plot(rot_pos['x'].restrict(ep2), rot_pos['z'].restrict(ep2), color = 'grey')
+spk_pos2 = pyr2[examples[0]].value_from(rot_pos.restrict(ep2))
+plt.plot(spk_pos2['x'], spk_pos2['z'], 'o', color = 'r', markersize = 5, alpha = 0.5)
+plt.gca().set_box_aspect(1)    
     
 
 # plt.figure()
