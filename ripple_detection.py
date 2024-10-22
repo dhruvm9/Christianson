@@ -16,8 +16,8 @@ from scipy.signal import filtfilt
 
 #%%
 
-data_directory = '/media/dhruv/Expansion/Processed'
-# data_directory = '/media/dhruv/Expansion/Processed/CA3'
+# data_directory = '/media/dhruv/Expansion/Processed'
+data_directory = '/media/dhruv/Expansion/Processed/CA3'
 # datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
 datasets = np.genfromtxt(os.path.join(data_directory,'dataset_new_toadd.list'), delimiter = '\n', dtype = str, comments = '#')
 # datasets = np.genfromtxt(os.path.join(data_directory,'dataset_test.list'), delimiter = '\n', dtype = str, comments = '#')
@@ -60,12 +60,12 @@ for r,s in enumerate(datasets):
             
     signal = pyna.eeg_processing.bandpass_filter(lfpnrem, 100, 200, 1250)
     
-    # plt.figure(figsize=(15,5))
-    # plt.subplot(211)
-    # plt.plot(lfpnrem.restrict(ex_ep))
-    # plt.subplot(212)
-    # plt.plot(signal.restrict(ex_ep))
-    # plt.xlabel("Time (s)")
+    plt.figure(figsize=(15,5))
+    plt.subplot(211)
+    plt.plot(lfpnrem.restrict(ex_ep))
+    plt.subplot(212)
+    plt.plot(signal.restrict(ex_ep))
+    plt.xlabel("Time (s)")
     
 #%% 
 
@@ -78,15 +78,15 @@ for r,s in enumerate(datasets):
     nSS = nap.Tsd(t = signal.index.values, d = nSS, time_support = signal.time_support)
     # nSS = nap.TsdFrame(t = signal.index.values, d = nSS, time_support = signal.time_support)
     
-    # plt.figure(figsize=(15,5))
-    # plt.subplot(311)
-    # plt.plot(lfpnrem.restrict(ex_ep))
-    # plt.subplot(312)
-    # plt.plot(signal.restrict(ex_ep))
-    # plt.subplot(313)
-    # plt.plot(nSS.restrict(ex_ep))
-    # plt.xlabel("Time (s)")
-    # plt.tight_layout()
+    plt.figure(figsize=(15,5))
+    plt.subplot(311)
+    plt.plot(lfpnrem.restrict(ex_ep))
+    plt.subplot(312)
+    plt.plot(signal.restrict(ex_ep))
+    plt.subplot(313)
+    plt.plot(nSS.restrict(ex_ep))
+    plt.xlabel("Time (s)")
+    plt.tight_layout()
     
 #%% 
 

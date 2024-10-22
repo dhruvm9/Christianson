@@ -7,6 +7,7 @@ import os, sys
 import matplotlib.pyplot as plt 
 import seaborn as sns
 import warnings
+from scipy.signal import butter, lfilter, filtfilt
 from scipy.stats import mannwhitneyu, wilcoxon
 from matplotlib.backends.backend_pdf import PdfPages    
 
@@ -134,6 +135,7 @@ def population_vector_correlation(pv1, pv2):
     corr_coef = np.corrcoef(pv1, pv2)[0, 1]
     
     return pvc, corr_coef
+
 def compute_PVcorrs (all_rates1,all_rates2,cell_ids):
     """returns the pv corr for two population vectors"""
     
@@ -142,3 +144,116 @@ def compute_PVcorrs (all_rates1,all_rates2,cell_ids):
     pvCorr = population_vector_correlation(pv1, pv2)[0]
     
     return pvCorr
+
+
+
+def _butter_bandpass(lowcut, highcut, fs, order=5):
+    nyq = 0.5 * fs
+    low = lowcut / nyq
+    high = highcut / nyq
+    b, a = butter(order, [low, high], btype='band')
+    return b, a
+
+def _butter_bandpass_filter(data, lowcut, highcut, fs, order=4):
+    b, a = _butter_bandpass(lowcut, highcut, fs, order=order)
+    y = lfilter(b, a, data)
+    return y
+
+def _butter_bandpass_zerophase_filter(data, lowcut, highcut, fs, order=4):
+    b, a = _butter_bandpass(lowcut, highcut, fs, order=order)
+    y = filtfilt(b, a, data)
+    return y
+
+def bandpass_filter(data, lowcut, highcut, fs, order=4):
+    """
+    Bandpass filtering the LFP.
+    
+    Parameters
+    ----------
+    data : Tsd/TsdFrame
+        Description
+    lowcut : TYPE
+        Description
+    highcut : TYPE
+        Description
+    fs : TYPE
+        Description
+    order : int, optional
+        Description
+    
+    Raises
+    ------
+    RuntimeError
+        Description
+    """
+    time_support = data.time_support
+    time_index = data.as_units('s').index.values
+    if type(data) is nap.TsdFrame:
+        tmp = np.zeros(data.shape)
+        for i,c in enumerate(data.columns):
+            tmp[:,i] = bandpass_filter(data[c], lowcut, highcut, fs, order)
+
+        return nap.TsdFrame(
+            t = time_index,
+            d = tmp,
+            time_support = time_support,
+            time_units = 's',
+            columns = data.columns)
+
+    elif type(data) is nap.Tsd:
+        flfp = _butter_bandpass_filter(data.values, lowcut, highcut, fs, order)
+        return nap.Tsd(
+            t=time_index,
+            d=flfp,
+            time_support=time_support,
+            time_units='s')
+
+    else:
+        raise RuntimeError("Unknown format. Should be Tsd/TsdFrame")
+        
+def bandpass_filter_zerophase(data, lowcut, highcut, fs, order=4):
+    """
+    Bandpass filtering the LFP.
+    
+    Parameters
+    ----------
+    data : Tsd/TsdFrame
+        Description
+    lowcut : TYPE
+        Description
+    highcut : TYPE
+        Description
+    fs : TYPE
+        Description
+    order : int, optional
+        Description
+    
+    Raises
+    ------
+    RuntimeError
+        Description
+    """
+    time_support = data.time_support
+    time_index = data.as_units('s').index.values
+    if type(data) is nap.TsdFrame:
+        tmp = np.zeros(data.shape)
+        for i,c in enumerate(data.columns):
+            tmp[:,i] = bandpass_filter(data[c], lowcut, highcut, fs, order)
+
+        return nap.TsdFrame(
+            t = time_index,
+            d = tmp,
+            time_support = time_support,
+            time_units = 's',
+            columns = data.columns)
+
+    elif type(data) is nap.Tsd:
+        flfp = _butter_bandpass_zerophase_filter(data.values, lowcut, highcut, fs, order)
+        return nap.Tsd(
+            t=time_index,
+            d=flfp,
+            time_support=time_support,
+            time_units='s')
+
+    else:
+        raise RuntimeError("Unknown format. Should be Tsd/TsdFrame")

@@ -22,9 +22,11 @@ from functions_DM import *
 
 warnings.filterwarnings("ignore")
 
-data_directory = '/media/dhruv/Expansion/Processed'
+# data_directory = '/media/dhruv/Expansion/Processed'
+data_directory = '/media/dhruv/Expansion/Processed/CA3'
 # data_directory = '/media/adrien/Expansion/Processed'
-datasets = np.genfromtxt(os.path.join(data_directory,'remapping_DM.list'), delimiter = '\n', dtype = str, comments = '#')
+# datasets = np.genfromtxt(os.path.join(data_directory,'remapping_DM.list'), delimiter = '\n', dtype = str, comments = '#')
+datasets = np.genfromtxt(os.path.join(data_directory,'remapping_CA3.list'), delimiter = '\n', dtype = str, comments = '#')
 
 env_stability_wt = []
 env_stability_ko = []
@@ -109,12 +111,12 @@ for s in datasets:
 #%% Plot tracking 
 
     # if isWT == 1:   
-    plt.figure()
-    plt.suptitle(s)
-    plt.subplot(121)
-    plt.plot(rot_pos['x'].restrict(w1), rot_pos['z'].restrict(w1))
-    plt.subplot(122)
-    plt.plot(rot_pos['x'].restrict(w2), rot_pos['z'].restrict(w2))
+    # plt.figure()
+    # plt.suptitle(s)
+    # plt.subplot(121)
+    # plt.plot(rot_pos['x'].restrict(w1), rot_pos['z'].restrict(w1))
+    # plt.subplot(122)
+    # plt.plot(rot_pos['x'].restrict(w2), rot_pos['z'].restrict(w2))
     
     
 #%% Get cells with wake rate more than 0.5Hz
@@ -223,30 +225,30 @@ for s in datasets:
 
 #%% Plot remapping 
     
-        # ref = pyr2.keys()
-        # nrows = int(np.sqrt(len(ref)))
-        # ncols = int(len(ref)/nrows)+1
+        ref = pyr2.keys()
+        nrows = int(np.sqrt(len(ref)))
+        ncols = int(len(ref)/nrows)+1
     
-        # plt.figure()
-        # plt.suptitle(s + ' Wake1')
-        # for i,n in enumerate(pyr2):
-        #     plt.subplot(nrows, ncols, i+1)
-        #     # plt.title(spikes._metadata['celltype'][i])
-        #     # plt.imshow(placefields1[n], extent=(binsxy1[0][0],binsxy1[0][-1],binsxy1[1][0],binsxy1[1][-1]), cmap = 'jet')        
-        #     plt.imshow(placefields1[n].T, extent=(binsxy1[0][0],binsxy1[0][-1],binsxy1[1][0],binsxy1[1][-1]), origin = 'lower', cmap = 'viridis')        
-        #     # plt.imshow(placefields1[n].T, cmap = 'viridis', aspect = 'auto', origin = 'lower')   
-        #     plt.colorbar()
+        plt.figure()
+        plt.suptitle(s + ' Wake1')
+        for i,n in enumerate(pyr2):
+            plt.subplot(nrows, ncols, i+1)
+            # plt.title(spikes._metadata['celltype'][i])
+            # plt.imshow(placefields1[n], extent=(binsxy1[0][0],binsxy1[0][-1],binsxy1[1][0],binsxy1[1][-1]), cmap = 'jet')        
+            plt.imshow(placefields1[n].T, extent=(binsxy1[0][0],binsxy1[0][-1],binsxy1[1][0],binsxy1[1][-1]), origin = 'lower', cmap = 'viridis')        
+            # plt.imshow(placefields1[n].T, cmap = 'viridis', aspect = 'auto', origin = 'lower')   
+            plt.colorbar()
     
-        # plt.figure()
-        # plt.suptitle(s + ' Wake2')
-        # for i,n in enumerate(pyr2):
-        #     plt.subplot(nrows, ncols, i+1)
-        #     # plt.title(spikes._metadata['celltype'][i])
-        #     # plt.imshow(placefields2[n], extent=(binsxy2[0][0],binsxy2[0][-1],binsxy2[1][0],binsxy2[1][-1]), cmap = 'jet')        
-        #     plt.imshow(placefields2[n].T, extent=(binsxy2[0][0],binsxy2[0][-1],binsxy2[1][0],binsxy2[1][-1]), origin = 'lower', cmap = 'viridis')        
-        #     # plt.imshow(placefields2[n].T, cmap = 'viridis', aspect = 'auto', origin = 'lower')   
+        plt.figure()
+        plt.suptitle(s + ' Wake2')
+        for i,n in enumerate(pyr2):
+            plt.subplot(nrows, ncols, i+1)
+            # plt.title(spikes._metadata['celltype'][i])
+            # plt.imshow(placefields2[n], extent=(binsxy2[0][0],binsxy2[0][-1],binsxy2[1][0],binsxy2[1][-1]), cmap = 'jet')        
+            plt.imshow(placefields2[n].T, extent=(binsxy2[0][0],binsxy2[0][-1],binsxy2[1][0],binsxy2[1][-1]), origin = 'lower', cmap = 'viridis')        
+            # plt.imshow(placefields2[n].T, cmap = 'viridis', aspect = 'auto', origin = 'lower')   
             
-        #     plt.colorbar()
+            plt.colorbar()
     
     
 # ###EXAMPLES 
@@ -543,37 +545,37 @@ t3, p3 = mannwhitneyu(halfsession2_corr_wt, halfsession2_corr_ko)
         
 #%% Plot Example cells 
 
-examples = [4,7,8]
+# examples = [4,7,8]
 
-for n in examples:
-    plt.figure()
-    peakfreq = max(placefields1[n].max(), placefields2[n].max()) 
-    pf1 = placefields1[n] / peakfreq
-    pf2 = placefields2[n] / peakfreq
+# for n in examples:
+#     plt.figure()
+#     peakfreq = max(placefields1[n].max(), placefields2[n].max()) 
+#     pf1 = placefields1[n] / peakfreq
+#     pf2 = placefields2[n] / peakfreq
     
     
-    plt.subplot(1,2,1)
-    plt.imshow(pf1.T, cmap = 'viridis', aspect = 'auto', origin = 'lower', vmin = 0, vmax = 1)   
-    plt.tight_layout()
-    plt.gca().set_box_aspect(1)
-    plt.subplot(1,2,2)
-    plt.imshow(pf2.T, cmap = 'viridis', aspect = 'auto', origin = 'lower', vmin = 0, vmax = 1)   
-    # plt.colorbar()
-    plt.gca().set_box_aspect(1)
-    plt.tight_layout()
+#     plt.subplot(1,2,1)
+#     plt.imshow(pf1.T, cmap = 'viridis', aspect = 'auto', origin = 'lower', vmin = 0, vmax = 1)   
+#     plt.tight_layout()
+#     plt.gca().set_box_aspect(1)
+#     plt.subplot(1,2,2)
+#     plt.imshow(pf2.T, cmap = 'viridis', aspect = 'auto', origin = 'lower', vmin = 0, vmax = 1)   
+#     # plt.colorbar()
+#     plt.gca().set_box_aspect(1)
+#     plt.tight_layout()
     
     
-plt.figure()
-plt.subplot(121)
-plt.plot(rot_pos['x'].restrict(ep1), rot_pos['z'].restrict(ep1), color = 'grey')
-spk_pos1 = pyr2[examples[0]].value_from(rot_pos.restrict(ep1))
-plt.plot(spk_pos1['x'], spk_pos1['z'], 'o', color = 'r', markersize = 5, alpha = 0.5)
-plt.gca().set_box_aspect(1)
-plt.subplot(122)
-plt.plot(rot_pos['x'].restrict(ep2), rot_pos['z'].restrict(ep2), color = 'grey')
-spk_pos2 = pyr2[examples[0]].value_from(rot_pos.restrict(ep2))
-plt.plot(spk_pos2['x'], spk_pos2['z'], 'o', color = 'r', markersize = 5, alpha = 0.5)
-plt.gca().set_box_aspect(1)    
+# plt.figure()
+# plt.subplot(121)
+# plt.plot(rot_pos['x'].restrict(ep1), rot_pos['z'].restrict(ep1), color = 'grey')
+# spk_pos1 = pyr2[examples[0]].value_from(rot_pos.restrict(ep1))
+# plt.plot(spk_pos1['x'], spk_pos1['z'], 'o', color = 'r', markersize = 5, alpha = 0.5)
+# plt.gca().set_box_aspect(1)
+# plt.subplot(122)
+# plt.plot(rot_pos['x'].restrict(ep2), rot_pos['z'].restrict(ep2), color = 'grey')
+# spk_pos2 = pyr2[examples[0]].value_from(rot_pos.restrict(ep2))
+# plt.plot(spk_pos2['x'], spk_pos2['z'], 'o', color = 'r', markersize = 5, alpha = 0.5)
+# plt.gca().set_box_aspect(1)    
     
 
 # plt.figure()
@@ -615,7 +617,7 @@ allinfos2 = pd.DataFrame(data = [sinfos2, genotype], index = ['SI', 'genotype'])
 plt.figure()
 plt.suptitle('Spatial Information')
 plt.subplot(121)
-plt.title('Square arena')
+plt.title('Arena A')
 sns.set_style('white')
 palette = ['royalblue', 'indianred'] 
 ax = sns.violinplot( x = allinfos1['genotype'], y=allinfos1['SI'].astype(float) , data = allinfos1, dodge=False,
@@ -640,7 +642,7 @@ plt.ylabel('Spatial Information (bits per spike)')
 ax.set_box_aspect(1)
 
 plt.subplot(122)
-plt.title('Circular arena')
+plt.title('Arena B')
 sns.set_style('white')
 palette = ['royalblue', 'indianred'] 
 ax = sns.violinplot( x = allinfos2['genotype'], y=allinfos2['SI'].astype(float) , data = allinfos2, dodge=False,

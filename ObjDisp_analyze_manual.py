@@ -327,6 +327,9 @@ plt.gca().set_box_aspect(1)
 z_wt, p_wt = wilcoxon(np.array(info2['DI1'][info2['Genotype'] == 'WT'])-0)
 z_ko, p_ko = wilcoxon(np.array(info2['DI1'][info2['Genotype'] == 'KO'])-0)
 
+# z, p = wilcoxon(info2['DI1'][info2['Genotype'] == 'KO'][info2['Sex'] == 'M']-0)
+# z, p = wilcoxon(info2['DI1'][info2['Genotype'] == 'KO'][info2['Sex'] == 'F']-0)
+
 #%% 
 
 # plt.figure()

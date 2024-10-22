@@ -19,7 +19,8 @@ from scipy.signal import hilbert
 
 #%% 
 
-data_directory = '/media/dhruv/Expansion/Processed'
+# data_directory = '/media/dhruv/Expansion/Processed'
+data_directory = '/media/dhruv/Expansion/Processed/CA3'
 datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
 ripplechannels = np.genfromtxt(os.path.join(data_directory,'ripplechannel.list'), delimiter = '\n', dtype = str, comments = '#')
 
@@ -120,7 +121,8 @@ for r,s in enumerate(datasets):
     
 #%% Average spectrum 
 
-ix = np.where(freqs<=100)
+# ix = np.where(freqs<=100)
+ix = np.where(freqs<=300)
 
 ##Wake 
 plt.figure()
@@ -140,7 +142,7 @@ plt.semilogx(freqs[ix], 10*np.log10(PSD_wake_ko.iloc[ix].mean(axis=1)), 'o-', la
 plt.xlabel('Freq (Hz)')
 plt.ylabel('Power spectral density (dB/Hz)')
 # plt.ylim([20, 60])
-plt.ylim([-41, -10])
+plt.ylim([-50, -10])
 plt.legend(loc = 'upper right')
 plt.grid(True)
 
@@ -152,7 +154,7 @@ plt.semilogx(freqs[ix], 10*np.log10(PSD_sws_ko.iloc[ix].mean(axis=1)), 'o-', lab
 plt.xlabel('Freq (Hz)')
 plt.ylabel('Power spectral density (dB/Hz)')
 # plt.ylim([20, 60])
-plt.ylim([-41, -10])
+plt.ylim([-50, -10])
 plt.legend(loc = 'upper right')
 plt.grid(True)
 
@@ -163,7 +165,7 @@ plt.semilogx(freqs[ix], 10*np.log10(PSD_rem_wt.iloc[ix].mean(axis=1)), 'o-', lab
 plt.semilogx(freqs[ix], 10*np.log10(PSD_rem_ko.iloc[ix].mean(axis=1)), 'o-', label = 'KO', color = 'indianred')
 plt.xlabel('Freq (Hz)')
 # plt.ylim([20, 60])
-plt.ylim([-41, -10])
+plt.ylim([-50, -10])
 plt.ylabel('Power spectral density (dB/Hz)')
 plt.legend(loc = 'upper right')
 plt.grid(True)

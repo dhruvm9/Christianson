@@ -17,6 +17,7 @@ from scipy.stats import mannwhitneyu
 #%% 
 
 data_directory = '/media/dhruv/Expansion/Processed'
+# data_directory = '/media/dhruv/Expansion/Processed/CA3'
 datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
 
 isWT = []
@@ -28,6 +29,9 @@ genotype = []
 
 cellratios_wt = []
 cellratios_ko = []
+
+pvcells = []
+bwfcells = []
 
 for s in datasets:
     print(s)
@@ -58,17 +62,21 @@ for s in datasets:
 
 #%% Ratio of FS versus broad waveform cells
     
-    if len(spikes) > 30:
+    if len(spikes) > 20:
         
         if 'fs' in spikes.getby_category('celltype').keys():
             print('found!')
             print(len(spikes))
             fscells = spikes.getby_category('celltype')['fs']
-                
+            
+            pvcells.append(len(fscells))
+            
             bwf = 0 
             for i in spikes._metadata['tr2pk']: 
                 if i > 0.55:
                     bwf += 1
+        
+            bwfcells.append(bwf)
         
             fs2bwf = len(fscells) / bwf
             
@@ -83,8 +91,8 @@ for s in datasets:
         else: 
             print('nope!')
         
-    # if s == 'B2625-240321':
-    #     sys.exit()
+    if s == 'B2625-240321':
+        sys.exit()
     
 #%% Sorting the ratio of FS to broad waveform cells
 
@@ -181,3 +189,4 @@ t, p = mannwhitneyu(cellratios_wt, cellratios_ko)
 # plt.ylabel('firing rate (Hz)')   
 # plt.legend(loc = 'upper right')
 # plt.gca().set_box_aspect(1)
+# plt.show()

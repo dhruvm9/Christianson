@@ -12,7 +12,6 @@ import os, sys
 import matplotlib.pyplot as plt 
 import nwbmatic as ntm
 import pynapple as nap
-import pynacollada as pyna
 import pickle
 import warnings
 import seaborn as sns
@@ -20,7 +19,8 @@ from scipy.signal import hilbert, fftconvolve
 from pingouin import circ_r, circ_mean, circ_rayleigh
 from scipy.stats import mannwhitneyu
 import matplotlib.colors as colors
-from matplotlib.backends.backend_pdf import PdfPages    
+from matplotlib.backends.backend_pdf import PdfPages
+from functions_DM import *    
 
 #%% 
 
@@ -285,7 +285,7 @@ for r,s in enumerate(datasets):
 
     # lfp_filt_theta_wake = pyna.eeg_processing.bandpass_filter(lfp_wake, 30, 150, 1250)
        
-    lfp_filt_theta = pyna.eeg_processing.bandpass_filter(lfpsig, 6, 9, 1250)
+    lfp_filt_theta = bandpass_filter_zerophase(lfpsig, 6, 9, 1250)
            
     h_power = nap.Tsd(t = lfp_filt_theta.index.values, d = hilbert(lfp_filt_theta))
      

@@ -80,7 +80,15 @@ for s in datasets:
     spikes_by_celltype = spikes.getby_category('celltype')
     if 'pyr' in spikes._metadata['celltype'].values:
         pyr = spikes_by_celltype['pyr']
-    else: pyr = []        
+    else: pyr = []     
+    
+    keep = []
+    
+    for i in pyr.index:
+        if pyr.restrict(nap.IntervalSet(epochs['wake'][0]))._metadata['rate'][i] > 0.5:
+            keep.append(i)
+
+    pyr2 = pyr[keep]
        
     if 'fs' in spikes._metadata['celltype'].values:
         fs = spikes_by_celltype['fs']
@@ -88,13 +96,13 @@ for s in datasets:
         
     # print (fs)
            
-    if len(pyr) > 0: 
+    if len(pyr2) > 0: 
                
-        for i in pyr:
+        for i in pyr2:
             count = 0
             
             for j in range(len(rip_ep)):
-                r_pyr = pyr[i].count(ripdur[j], nap.IntervalSet(start = rip_ep['start'][j], end = rip_ep['end'][j])) 
+                r_pyr = pyr2[i].count(ripdur[j], nap.IntervalSet(start = rip_ep['start'][j], end = rip_ep['end'][j])) 
                 
                 if sum(r_pyr) > 0:
                     count += 1
@@ -135,7 +143,7 @@ for s in datasets:
         part_all_fs_ko.extend(allpart_fs)
         # sess_part_fs_ko.append(np.mean(allpart_fs))
         
-    del pyr, fs
+    del pyr, pyr2, fs
 
 #%% Organize data by celltype 
 
