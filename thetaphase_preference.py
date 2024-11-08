@@ -162,8 +162,8 @@ def circular_hist(ax, x, bins=16, density=True, offset=0, gaps=True):
 
 warnings.filterwarnings("ignore")
 
-# data_directory = '/media/dhruv/Expansion/Processed'
-data_directory = '/media/adrien/Expansion/Processed'
+data_directory = '/media/dhruv/Expansion/Processed'
+# data_directory = '/media/adrien/Expansion/Processed'
 
 # data_directory = '/media/adrien/Expansion/Processed'
 datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
@@ -277,7 +277,8 @@ for r,s in enumerate(datasets):
         
 #%% 
 
-    ep = rem_ep
+    # ep = rem_ep
+    ep = rip_ep
     # ep = moving_ep
     downsample = 2
     

@@ -9,6 +9,7 @@ Created on Tue Nov  7 16:00:04 2023
 import numpy as np 
 import pandas as pd
 import pynapple as nap
+import nwbmatic as ntm
 import seaborn as sns
 import os, sys
 import matplotlib.pyplot as plt 
@@ -16,8 +17,8 @@ from scipy.stats import mannwhitneyu
 
 #%% 
 
-data_directory = '/media/dhruv/Expansion/Processed'
-# data_directory = '/media/dhruv/Expansion/Processed/CA3'
+# data_directory = '/media/dhruv/Expansion/Processed'
+data_directory = '/media/dhruv/Expansion/Processed/CA3'
 datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
 
 isWT = []
@@ -36,12 +37,15 @@ bwfcells = []
 for s in datasets:
     print(s)
     name = s.split('-')[0]
-        
+           
     if name == 'B2613' or name == 'B2618'  or name == 'B2627' or name == 'B2628':
         isWT = 0
     else: isWT = 1
     
     path = os.path.join(data_directory, s)
+    data = ntm.load_session(path, 'neurosuite')
+    epochs = data.epochs
+    
 
 #%% Load classified spikes 
 
@@ -52,13 +56,13 @@ for s in datasets:
     spikes = tsd.to_tsgroup()
     spikes.set_info(group = sp2['group'], location = sp2['location'], celltype = sp2['celltype'], tr2pk = sp2['tr2pk'])
     
-    rates.extend(spikes._metadata['rate'].values)
+    rates.extend(spikes.restrict(nap.IntervalSet(epochs['wake'][0]))._metadata['rate'].values)
     t2p.extend(spikes._metadata['tr2pk'].values)
     celltype.extend(spikes._metadata['celltype'].values)
     
     if name == 'B2613' or name == 'B2618' or name == 'B2627' or name == 'B2628':
-        genotype.extend(np.zeros_like(spikes._metadata['rate'].values, dtype = 'bool'))
-    else: genotype.extend(np.ones_like(spikes._metadata['rate'].values, dtype ='bool'))
+        genotype.extend(np.zeros_like(spikes.restrict(nap.IntervalSet(epochs['wake'][0]))._metadata['rate'].values, dtype = 'bool'))
+    else: genotype.extend(np.ones_like(spikes.restrict(nap.IntervalSet(epochs['wake'][0]))._metadata['rate'].values, dtype ='bool'))
 
 #%% Ratio of FS versus broad waveform cells
     
@@ -91,8 +95,8 @@ for s in datasets:
         else: 
             print('nope!')
         
-    if s == 'B2625-240321':
-        sys.exit()
+    # if s == 'B2625-240321':
+    #     sys.exit()
     
 #%% Sorting the ratio of FS to broad waveform cells
 
@@ -180,8 +184,8 @@ t, p = mannwhitneyu(cellratios_wt, cellratios_ko)
 
 # plt.xlim([0, 1.5])
 # plt.xticks([0, 0.4, 0.8, 1.2])
-# plt.ylim([0, 50])
-# plt.yticks([0, 20, 40])
+# plt.ylim([0, 55])
+# plt.yticks([0, 25, 50])
 # plt.axhline(10, linestyle = '--', color = 'k')
 # # plt.axvline(0.38, linestyle = '--', color = 'k')
 # plt.axvline(0.55, linestyle = '--', color = 'k')

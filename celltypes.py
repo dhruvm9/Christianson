@@ -9,6 +9,7 @@ Created on Mon Oct  9 10:25:36 2023
 import numpy as np 
 import pandas as pd 
 import nwbmatic as ntm
+import pynapple as nap
 import os, sys
 import matplotlib.pyplot as plt 
 import pickle 
@@ -17,9 +18,9 @@ import pickle
 
 # data_directory = '/media/dhruv/Expansion/Processed'
 data_directory = '/media/dhruv/Expansion/Processed/CA3'
-# datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
+datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
 # datasets = np.genfromtxt(os.path.join(data_directory,'dataset_test.list'), delimiter = '\n', dtype = str, comments = '#')
-datasets = np.genfromtxt(os.path.join(data_directory,'dataset_new_toadd.list'), delimiter = '\n', dtype = str, comments = '#')
+# datasets = np.genfromtxt(os.path.join(data_directory,'dataset_new_toadd.list'), delimiter = '\n', dtype = str, comments = '#')
 
 isWT = []
 
@@ -37,19 +38,19 @@ for s in datasets:
     spikes = data.spikes
     epochs = data.epochs
     
-    meanwf, maxch = data.load_mean_waveforms()
+    # meanwf, maxch = data.load_mean_waveforms()
     
-    with open(os.path.join(path, 'meanwf.pickle'), 'wb') as pickle_file:
-        pickle.dump(meanwf, pickle_file)
+    # with open(os.path.join(path, 'meanwf.pickle'), 'wb') as pickle_file:
+    #     pickle.dump(meanwf, pickle_file)
         
-    with open(os.path.join(path, 'maxch.pickle'), 'wb') as pickle_file:
-        pickle.dump(maxch, pickle_file)
+    # with open(os.path.join(path, 'maxch.pickle'), 'wb') as pickle_file:
+    #     pickle.dump(maxch, pickle_file)
         
-    # with open(os.path.join(path, 'meanwf.pickle'), 'rb') as pickle_file:
-    #     meanwf = pickle.load(pickle_file)
+    with open(os.path.join(path, 'meanwf.pickle'), 'rb') as pickle_file:
+        meanwf = pickle.load(pickle_file)
     
-    # with open(os.path.join(path, 'maxch.pickle'), 'rb') as pickle_file:
-    #     maxch = pickle.load(pickle_file)
+    with open(os.path.join(path, 'maxch.pickle'), 'rb') as pickle_file:
+        maxch = pickle.load(pickle_file)
         
     spikes.set_info(maxch = maxch)
     
@@ -128,9 +129,9 @@ for s in datasets:
         #     celltype[i] = 'fs'
         # else: celltype[i] = 'other'
     
-        if tr2pk[i]*1e3 > 0.55 and spikes[i].rate < 10:
+        if tr2pk[i]*1e3 > 0.55 and spikes.restrict(nap.IntervalSet(epochs['wake'][0]))._metadata['rate'][i] < 10:
             celltype[i] = 'pyr'
-        elif tr2pk[i]*1e3 < 0.55 and spikes[i].rate > 10:
+        elif tr2pk[i]*1e3 < 0.55 and spikes.restrict(nap.IntervalSet(epochs['wake'][0]))._metadata['rate'][i] > 10:
             celltype[i] = 'fs'
         else: celltype[i] = 'other'
     
@@ -159,13 +160,13 @@ for s in datasets:
     plt.figure()
     plt.title(s)
     if 'pyr' in celltype.values == True:
-        plt.scatter(pyr._metadata['tr2pk'], pyr._metadata['rate'], color = 'b', label = 'EX')
+        plt.scatter(pyr._metadata['tr2pk'], pyr.restrict(nap.IntervalSet(epochs['wake'][0]))._metadata['rate'], color = 'b', label = 'EX')
     
     if 'fs' in celltype.values == True:
-        plt.scatter(fs._metadata['tr2pk'], fs._metadata['rate'], color = 'r', label = 'FS')
+        plt.scatter(fs._metadata['tr2pk'], fs.restrict(nap.IntervalSet(epochs['wake'][0]))._metadata['rate'], color = 'r', label = 'FS')
     
     if 'other' in celltype.values == True:
-        plt.scatter(oth._metadata['tr2pk'], oth._metadata['rate'], color = 'silver')
+        plt.scatter(oth._metadata['tr2pk'], oth.restrict(nap.IntervalSet(epochs['wake'][0]))._metadata['rate'], color = 'silver')
    
     plt.axhline(10, linestyle = '--', color = 'k')
     # plt.axvline(0.38, linestyle = '--', color = 'k')

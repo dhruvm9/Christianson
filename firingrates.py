@@ -17,8 +17,8 @@ from scipy.stats import mannwhitneyu
 
 #%% 
 
-data_directory = '/media/dhruv/Expansion/Processed'
-# data_directory = '/media/dhruv/Expansion/Processed/CA3'
+# data_directory = '/media/dhruv/Expansion/Processed'
+data_directory = '/media/dhruv/Expansion/Processed/CA3'
 datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
 
 celltype = []
@@ -58,7 +58,7 @@ oth_rip_rate_wt = []
 oth_rip_rate_ko = []
 
 
-for s in datasets[1:]:
+for s in datasets:
     print(s)
     name = s.split('-')[0]
     path = os.path.join(data_directory, s)
