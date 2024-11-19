@@ -18,11 +18,11 @@ from scipy.signal import filtfilt
 
 data_directory = '/media/dhruv/Expansion/Processed'
 # data_directory = '/media/dhruv/Expansion/Processed/CA3'
-datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
-# datasets = np.genfromtxt(os.path.join(data_directory,'dataset_new_toadd.list'), delimiter = '\n', dtype = str, comments = '#')
+# datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
+datasets = np.genfromtxt(os.path.join(data_directory,'dataset_new_toadd.list'), delimiter = '\n', dtype = str, comments = '#')
 # datasets = np.genfromtxt(os.path.join(data_directory,'dataset_test.list'), delimiter = '\n', dtype = str, comments = '#')
-ripplechannels = np.genfromtxt(os.path.join(data_directory,'ripplechannel.list'), delimiter = '\n', dtype = str, comments = '#')
-# ripplechannels = np.genfromtxt(os.path.join(data_directory,'ripplechannel_new_toadd.list'), delimiter = '\n', dtype = str, comments = '#')
+# ripplechannels = np.genfromtxt(os.path.join(data_directory,'ripplechannel.list'), delimiter = '\n', dtype = str, comments = '#')
+ripplechannels = np.genfromtxt(os.path.join(data_directory,'ripplechannel_new_toadd.list'), delimiter = '\n', dtype = str, comments = '#')
 # ripplechannels = np.genfromtxt(os.path.join(data_directory,'ripplechannel_test.list'), delimiter = '\n', dtype = str, comments = '#')
 
 for r,s in enumerate(datasets):

@@ -22,11 +22,11 @@ from functions_DM import *
 
 warnings.filterwarnings("ignore")
 
-# data_directory = '/media/dhruv/Expansion/Processed'
-data_directory = '/media/dhruv/Expansion/Processed/CA3'
+data_directory = '/media/dhruv/Expansion/Processed'
+# data_directory = '/media/dhruv/Expansion/Processed/CA3'
 # data_directory = '/media/adrien/Expansion/Processed'
-# datasets = np.genfromtxt(os.path.join(data_directory,'remapping_DM.list'), delimiter = '\n', dtype = str, comments = '#')
-datasets = np.genfromtxt(os.path.join(data_directory,'remapping_CA3.list'), delimiter = '\n', dtype = str, comments = '#')
+datasets = np.genfromtxt(os.path.join(data_directory,'remapping_DM.list'), delimiter = '\n', dtype = str, comments = '#')
+# datasets = np.genfromtxt(os.path.join(data_directory,'remapping_CA3.list'), delimiter = '\n', dtype = str, comments = '#')
 
 env_stability_wt = []
 env_stability_ko = []
@@ -69,7 +69,7 @@ for s in datasets:
        
     path = os.path.join(data_directory, s)
     
-    if name == 'B2618' or name == 'B2627' or name == 'B2628':
+    if name == 'B2618' or name == 'B2627' or name == 'B2628' or name == 'B3805':
         isWT = 0
     else: isWT = 1 
 
@@ -89,11 +89,11 @@ for s in datasets:
         
     xypos = np.array(position[['x', 'z']])
     
-    if name == 'B2625':
+    if name == 'B2625' or name == 'B3800':
         rad = 0.6
-    elif name == 'B2618':
+    elif name == 'B2618' :
         rad = 0.95
-    elif s == 'B2627-240528' or s == 'B2627-240530':
+    elif s == 'B2627-240528' or s == 'B2627-240530' or name == 'B3804' or name == 'B3807':
         rad = 0.05
     else: rad = 0    
         
@@ -117,6 +117,8 @@ for s in datasets:
     # plt.plot(rot_pos['x'].restrict(w1), rot_pos['z'].restrict(w1))
     # plt.subplot(122)
     # plt.plot(rot_pos['x'].restrict(w2), rot_pos['z'].restrict(w2))
+    
+    
     
     
 #%% Get cells with wake rate more than 0.5Hz
@@ -158,9 +160,9 @@ for s in datasets:
 #%% Compute place fields in the 2 arenas
     
         placefields1, binsxy1 = nap.compute_2d_tuning_curves(group = pyr2, 
-                                                           features = rot_pos[['x', 'z']], 
-                                                           ep = ep1, 
-                                                           nb_bins=24)  
+                                                            features = rot_pos[['x', 'z']], 
+                                                            ep = ep1, 
+                                                            nb_bins=24)  
                
         px1 = occupancy_prob(rot_pos, ep1, nb_bins=24, norm = True)
     
@@ -168,9 +170,9 @@ for s in datasets:
         
         
         placefields2, binsxy2 = nap.compute_2d_tuning_curves(group = pyr2, 
-                                                           features = rot_pos[['x', 'z']], 
-                                                           ep = ep2, 
-                                                           nb_bins=24)
+                                                            features = rot_pos[['x', 'z']], 
+                                                            ep = ep2, 
+                                                            nb_bins=24)
                 
         px2 = occupancy_prob(rot_pos, ep2, nb_bins=24, norm = True)
         
@@ -438,7 +440,7 @@ sinfos2.extend(halfsession1_corr_ko)
 
 allinfos2 = pd.DataFrame(data = [sinfos2, genotype2], index = ['corr', 'type']).T
 
-###Half-session corr: 2nd env 
+# ###Half-session corr: 2nd env 
 
 wt = np.array(['WT' for x in range(len(halfsession2_corr_wt))])
 ko = np.array(['KO' for x in range(len(halfsession2_corr_ko))])
@@ -795,8 +797,12 @@ for dots in ax.collections[old_len_collections:]:
 ax.set_xlim(xlim)
 ax.set_ylim(ylim)
 plt.ylabel('Correlation (R)')
+plt.axhline(0, linestyle = '--', color = 'silver')
 ax.set_box_aspect(1)
 
 #%% Stats for PV corr
 
-t_pvcorr, p_pvcorr = mannwhitneyu(pvcorr_wt, pvcorr_ko)
+z_pvcorr_wt, p_pvcorr_wt = wilcoxon(np.array(pvcorr_wt)-0)
+z_pvcorr_ko, p_pvcorr_ko = wilcoxon(np.array(pvcorr_ko)-0)
+
+

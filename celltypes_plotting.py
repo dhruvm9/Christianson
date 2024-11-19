@@ -38,7 +38,7 @@ for s in datasets:
     print(s)
     name = s.split('-')[0]
            
-    if name == 'B2613' or name == 'B2618'  or name == 'B2627' or name == 'B2628':
+    if name == 'B2613' or name == 'B2618'  or name == 'B2627' or name == 'B2628' or name == 'B3805' or name == 'B3813':
         isWT = 0
     else: isWT = 1
     
@@ -152,7 +152,7 @@ t, p = mannwhitneyu(cellratios_wt, cellratios_ko)
 # oth = [i for i, x in enumerate(np.array(celltype)[genotype]) if x == 'other']
 
 # plt.figure()
-# # plt.suptitle('Cell Type Classification')
+# plt.suptitle('Cell Type Classification')
 
 # # plt.subplot(121)
 # # plt.title('WT')
@@ -183,9 +183,9 @@ t, p = mannwhitneyu(cellratios_wt, cellratios_ko)
 # plt.scatter([t2p_ko[i] for i in oth], [rates_ko[i] for i in oth] , marker =  'x',  color = 'silver', label = 'KO Unclassified')        
 
 # plt.xlim([0, 1.5])
-# plt.xticks([0, 0.4, 0.8, 1.2])
-# plt.ylim([0, 55])
-# plt.yticks([0, 25, 50])
+# plt.xticks([0, 0.3, 0.6, 0.9, 1.2, 1.5])
+# plt.ylim([0, 65])
+# plt.yticks([0, 30, 60])
 # plt.axhline(10, linestyle = '--', color = 'k')
 # # plt.axvline(0.38, linestyle = '--', color = 'k')
 # plt.axvline(0.55, linestyle = '--', color = 'k')

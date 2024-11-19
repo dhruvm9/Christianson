@@ -32,7 +32,7 @@ for s in datasets:
     name = s.split('-')[0]
     path = os.path.join(data_directory, s)
     
-    if name == 'B2613' or name == 'B2618' or name == 'B2627' or name == 'B2628':
+    if name == 'B2613' or name == 'B2618' or name == 'B2627' or name == 'B2628' or name == 'B3805':
         isWT = 0
     else: isWT = 1 
     

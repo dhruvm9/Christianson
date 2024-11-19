@@ -44,7 +44,7 @@ for r,s in enumerate(datasets):
     epochs = data.epochs
     position = data.position
     
-    if name == 'B2613' or name == 'B2618' or name == 'B2627' or name == 'B2628':
+    if name == 'B2613' or name == 'B2618' or name == 'B2627' or name == 'B2628' or name == 'B3805' or name == 'B3813':
         isWT = 0
     else: isWT = 1 
     

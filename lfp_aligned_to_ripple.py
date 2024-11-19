@@ -35,7 +35,7 @@ for r,s in enumerate(datasets):
     data.load_neurosuite_xml(path)
     epochs = data.epochs
     
-    if name == 'B2613' or name == 'B2618' or name == 'B2627' or name == 'B2628':
+    if name == 'B2613' or name == 'B2618' or name == 'B2627' or name == 'B2628' or name == 'B3805':
         isWT = 0
     else: isWT = 1 
     
@@ -94,7 +94,7 @@ plt.title('WT')
 plt.plot(sessions_WT, color = 'silver')
 plt.plot(sessions_WT.mean(axis = 1), color = 'royalblue', linewidth = 2)
 plt.xlabel('Time from SWR (s)')
-plt.ylim([-1000, 2000])
+plt.ylim([-1500, 2800])
 plt.gca().set_box_aspect(1)
 # plt.yticks([])
 plt.subplot(122)
@@ -102,6 +102,6 @@ plt.title('KO')
 plt.plot(sessions_KO, color = 'silver')
 plt.plot(sessions_KO.mean(axis = 1), color = 'indianred', linewidth = 2)
 plt.xlabel('Time from SWR (s)')
-plt.ylim([-1000, 2000])
+plt.ylim([-1500, 2800])
 # plt.yticks([])
 plt.gca().set_box_aspect(1)

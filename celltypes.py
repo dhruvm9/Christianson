@@ -18,9 +18,9 @@ import pickle
 
 # data_directory = '/media/dhruv/Expansion/Processed'
 data_directory = '/media/dhruv/Expansion/Processed/CA3'
-datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
+# datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
 # datasets = np.genfromtxt(os.path.join(data_directory,'dataset_test.list'), delimiter = '\n', dtype = str, comments = '#')
-# datasets = np.genfromtxt(os.path.join(data_directory,'dataset_new_toadd.list'), delimiter = '\n', dtype = str, comments = '#')
+datasets = np.genfromtxt(os.path.join(data_directory,'dataset_new_toadd.list'), delimiter = '\n', dtype = str, comments = '#')
 
 isWT = []
 
@@ -28,7 +28,7 @@ for s in datasets:
     print(s)
     name = s.split('/')[-1]
         
-    if name == 'B2613' or name == 'B2618' or name == 'B2627' or name == 'B2628':
+    if name == 'B2613' or name == 'B2618' or name == 'B2627' or name == 'B2628' or name == 'B3805' or name == 'B3813':
         isWT = 0
     else: isWT = 1
     
@@ -38,19 +38,19 @@ for s in datasets:
     spikes = data.spikes
     epochs = data.epochs
     
-    # meanwf, maxch = data.load_mean_waveforms()
+    meanwf, maxch = data.load_mean_waveforms()
     
-    # with open(os.path.join(path, 'meanwf.pickle'), 'wb') as pickle_file:
-    #     pickle.dump(meanwf, pickle_file)
+    with open(os.path.join(path, 'meanwf.pickle'), 'wb') as pickle_file:
+        pickle.dump(meanwf, pickle_file)
         
-    # with open(os.path.join(path, 'maxch.pickle'), 'wb') as pickle_file:
-    #     pickle.dump(maxch, pickle_file)
+    with open(os.path.join(path, 'maxch.pickle'), 'wb') as pickle_file:
+        pickle.dump(maxch, pickle_file)
         
-    with open(os.path.join(path, 'meanwf.pickle'), 'rb') as pickle_file:
-        meanwf = pickle.load(pickle_file)
+    # with open(os.path.join(path, 'meanwf.pickle'), 'rb') as pickle_file:
+    #     meanwf = pickle.load(pickle_file)
     
-    with open(os.path.join(path, 'maxch.pickle'), 'rb') as pickle_file:
-        maxch = pickle.load(pickle_file)
+    # with open(os.path.join(path, 'maxch.pickle'), 'rb') as pickle_file:
+    #     maxch = pickle.load(pickle_file)
         
     spikes.set_info(maxch = maxch)
     

@@ -70,7 +70,7 @@ for s in datasets:
     tracking_data =  pd.read_hdf(data_directory + '/' + s + '.h5', mode = 'r')
 
     #Columns containing x and y coordinates (Modify as needed)
-    position_cols = [0,1,3,4,6,7,9,10,12, 13]
+    position_cols = [0,1,3,4,6,7,9,10,12,13]
     
     #Select only those columns with tracked data
     #It selects all rows (because of :) but only the columns specified by position_cols from the tracking_data DataFrame.
@@ -203,15 +203,15 @@ for s in datasets:
     
     #%% 
     
-    plt.figure()
-    plt.title(s)
-    plt.imshow(im, origin = 'lower')
-    ax = sns.scatterplot(data = position.as_dataframe(), x = x[tokeep], y = y[tokeep])
-    ax.add_patch(rectL)
-    ax.add_patch(rectL_inner)
-    ax.add_patch(rectR)
-    ax.add_patch(rectR_inner)
-    # test = nap.IntervalSet(start=37, end=39)
+    # plt.figure()
+    # plt.title(s)
+    # plt.imshow(im, origin = 'lower')
+    # ax = sns.scatterplot(data = position.as_dataframe(), x = x[tokeep], y = y[tokeep])
+    # ax.add_patch(rectL)
+    # ax.add_patch(rectL_inner)
+    # ax.add_patch(rectR)
+    # ax.add_patch(rectR_inner)
+    # test = nap.IntervalSet(start=32, end=33)
     # plt.plot(position['x'].restrict(test), position['y'].restrict(test), 'o', zorder = 2, label = 'left ROI', color = 'k')
     # plt.plot(nosepos['x'].restrict(test), nosepos['y'].restrict(test), 'o', zorder = 2, label = 'left ROI', color = 'r')
     
@@ -243,8 +243,15 @@ for s in datasets:
     inrectL_times = nap.Ts(pos_inL.index.values[inrectL_idx])
     inrectR_times = nap.Ts(pos_inR.index.values[inrectR_idx])
     
-    lefttimes_inner = inrectL_times.find_support(2/30)
-    righttimes_inner = inrectR_times.find_support(2/30)
+    if len(inrectL_times) > 0:
+        lefttimes_inner = inrectL_times.find_support(2/30)
+    else: lefttimes_inner = nap.IntervalSet(start = 0, end = 0)
+        
+    if len(inrectR_times) > 0:
+        righttimes_inner = inrectR_times.find_support(2/30)
+    else: righttimes_inner = nap.IntervalSet(start = 0, end = 0)
+    
+    
     
     # lefttimes_inner = inrectL_times.find_support(1)
     # righttimes_inner = inrectR_times.find_support(1)
@@ -260,7 +267,7 @@ for s in datasets:
     # ax = sns.scatterplot(data = position.as_dataframe(), x = x[tokeep], y = y[tokeep])
     # ax.add_patch(rectL)
     # ax.add_patch(rectL_inner)
-    # plt.plot(position['x'].restrict(betweenL), position['y'].restrict(betweenL), 'o', zorder = 2, label = 'left ROI', color = 'k')
+    # # plt.plot(pos_inL['x'].restrict(betweenL), pos_inL['y'].restrict(betweenL), 'o', zorder = 2, label = 'left ROI', color = 'k')
     # plt.legend(loc = 'upper right')
     
 #%% Compute distance of nose and body parts for epochs inside rectangle 
@@ -318,17 +325,17 @@ for s in datasets:
     
 #%% 
 
-    # plt.figure()
-    # plt.title(s)
-    # plt.imshow(im, origin = 'lower')
-    # ax = sns.scatterplot(data = position.as_dataframe(), x = x[tokeep], y = y[tokeep])
-    # ax.add_patch(rectL)
-    # ax.add_patch(rectL_inner)
-    # ax.add_patch(rectR)
-    # ax.add_patch(rectR_inner)
-    # plt.plot(position['x'].restrict(all_lefttimes), position['y'].restrict(all_lefttimes), 'o', zorder = 2, label = 'left ROI', color = 'k')
-    # plt.plot(position['x'].restrict(all_righttimes), position['y'].restrict(all_righttimes), 'o', zorder = 2, label = 'right ROI', color = 'r')
-    # plt.legend(loc = 'upper right')
+    plt.figure()
+    plt.title(s)
+    plt.imshow(im, origin = 'lower')
+    ax = sns.scatterplot(data = position.as_dataframe(), x = x[tokeep], y = y[tokeep])
+    ax.add_patch(rectL)
+    ax.add_patch(rectL_inner)
+    ax.add_patch(rectR)
+    ax.add_patch(rectR_inner)
+    plt.plot(position['x'].restrict(all_lefttimes), position['y'].restrict(all_lefttimes), 'o', zorder = 2, label = 'left ROI', color = 'k')
+    plt.plot(position['x'].restrict(all_righttimes), position['y'].restrict(all_righttimes), 'o', zorder = 2, label = 'right ROI', color = 'r')
+    plt.legend(loc = 'upper right')
 
 #%% Plot the position of the tracked points
 
