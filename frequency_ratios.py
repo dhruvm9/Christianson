@@ -10,19 +10,22 @@ import numpy as np
 import pandas as pd
 import nwbmatic as ntm
 import pynapple as nap 
-import pynacollada as pyna
 import pickle
 import scipy.io
 import os, sys
 import seaborn as sns
 import matplotlib.pyplot as plt 
+from functions_DM import *
 from scipy.stats import mannwhitneyu
 from scipy.signal import hilbert
+import warnings
 
 #%% 
 
+warnings.filterwarnings("ignore")
+
 # data_directory = '/media/dhruv/Expansion/Processed'
-data_directory = '/media/adrien/Expansion/Processed'
+data_directory = '/media/adrien/Expansion/Processed/CA3'
 datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
 ripplechannels = np.genfromtxt(os.path.join(data_directory,'ripplechannel.list'), delimiter = '\n', dtype = str, comments = '#')
 
@@ -64,7 +67,7 @@ for r,s in enumerate(datasets):
     epochs = data.epochs
     position = data.position
     
-    if name == 'B2613' or name == 'B2618' or name == 'B2627' or name == 'B2628':
+    if name == 'B2613' or name == 'B2618' or name == 'B2627' or name == 'B2628' or name == 'B3805' or name == 'B3813':
         isWT = 0
     else: isWT = 1 
     
@@ -93,10 +96,10 @@ for r,s in enumerate(datasets):
  
 #%% Filter LFP and do power ratios
 
-    lfp_filt_delta = pyna.eeg_processing.bandpass_filter(lfp, 1, 4, 1250)
-    lfp_filt_theta = pyna.eeg_processing.bandpass_filter(lfp, 6, 9, 1250)
-    lfp_filt_gammalow = pyna.eeg_processing.bandpass_filter(lfp, 30, 50, 1250)
-    lfp_filt_gammahigh = pyna.eeg_processing.bandpass_filter(lfp, 70, 90, 1250)
+    lfp_filt_delta = bandpass_filter(lfp, 1, 4, 1250, order = 2)
+    lfp_filt_theta = bandpass_filter(lfp, 6, 9, 1250)
+    lfp_filt_gammalow = bandpass_filter(lfp, 30, 50, 1250)
+    lfp_filt_gammahigh = bandpass_filter(lfp, 70, 90, 1250)
 
     delta_power = nap.Tsd(lfp_filt_delta.index.values, np.abs(hilbert(lfp_filt_delta.values)))
     theta_power = nap.Tsd(lfp_filt_theta.index.values, np.abs(hilbert(lfp_filt_theta.values)))
@@ -161,16 +164,17 @@ for r,s in enumerate(datasets):
         
 #%% Organize data to plot 
 
-e = np.array(['LowGamma/Theta (WT)' for x in range(len(glt_w_wt))])
-e2 = np.array(['LowGamma/Theta (KO)' for x in range(len(glt_w_ko))])
+e = np.array(['LowG/Th_WT' for x in range(len(glt_w_wt))])
+e2 = np.array(['LowG/Th_KO' for x in range(len(glt_w_ko))])
 
-e3 = np.array(['HighGamma/Theta (WT)' for x in range(len(glt_w_wt))])
-e4 = np.array(['HighGamma/Theta (KO)' for x in range(len(glt_w_ko))])
+e3 = np.array(['HighG/Th_WT' for x in range(len(ght_w_wt))])
+e4 = np.array(['HighGa/Th_KO' for x in range(len(ght_w_ko))])
 
-# e5 = np.array(['Theta/Delta (WT)' for x in range(len(glt_w_wt))])
-# e6 = np.array(['Theta/Delta (KO)' for x in range(len(glt_w_ko))])
+e5 = np.array(['Th/D_WT' for x in range(len(td_w_wt))])
+e6 = np.array(['Th/D_KO' for x in range(len(td_w_ko))])
 
 types = np.hstack([e, e2, e3, e4])
+# types = np.hstack([e5, e6])
 
 wakerates = []
 wakerates.extend(glt_w_wt)
@@ -183,16 +187,17 @@ wakerates.extend(ght_w_ko)
 wakedf = pd.DataFrame(data = [wakerates, types], index = ['rate', 'type']).T
 
 ##NREM 
-e = np.array(['LowGamma/Theta (WT)' for x in range(len(glt_n_wt))])
-e2 = np.array(['LowGamma/Theta (KO)' for x in range(len(glt_n_ko))])
+e = np.array(['LowG/Th_WT' for x in range(len(glt_n_wt))])
+e2 = np.array(['LowG/Th_KO' for x in range(len(glt_n_ko))])
 
-e3 = np.array(['HighGamma/Theta (WT)' for x in range(len(glt_n_wt))])
-e4 = np.array(['HighGamma/Theta (KO)' for x in range(len(glt_n_ko))])
+e3 = np.array(['HighG/Th_WT' for x in range(len(ght_n_wt))])
+e4 = np.array(['HighG/Th_KO' for x in range(len(ght_n_ko))])
 
-# e5 = np.array(['Theta/Delta (WT)' for x in range(len(glt_n_wt))])
-# e6 = np.array(['Theta/Delta (KO)' for x in range(len(glt_n_ko))])
+e5 = np.array(['Th/D_WT' for x in range(len(td_n_wt))])
+e6 = np.array(['Th/D_KO' for x in range(len(td_n_ko))])
 
 types = np.hstack([e, e2, e3, e4])
+# types = np.hstack([e5, e6])
 
 nremrates = []
 nremrates.extend(glt_n_wt)
@@ -205,16 +210,17 @@ nremrates.extend(ght_n_ko)
 nremdf = pd.DataFrame(data = [nremrates, types], index = ['rate', 'type']).T
 
 ##REM 
-e = np.array(['LowGamma/Theta (WT)' for x in range(len(glt_r_wt))])
-e2 = np.array(['LowGamma/Theta (KO)' for x in range(len(glt_r_ko))])
+e = np.array(['LowG/Theta (WT)' for x in range(len(glt_r_wt))])
+e2 = np.array(['LowG/Theta (KO)' for x in range(len(glt_r_ko))])
 
-e3 = np.array(['HighGamma/Theta (WT)' for x in range(len(glt_r_wt))])
-e4 = np.array(['HighGamma/Theta (KO)' for x in range(len(glt_r_ko))])
+e3 = np.array(['HighG/Th_WT' for x in range(len(ght_r_wt))])
+e4 = np.array(['HighG/Th_KO' for x in range(len(ght_r_ko))])
 
-e5 = np.array(['Theta/Delta (WT)' for x in range(len(glt_r_wt))])
-e6 = np.array(['Theta/Delta (KO)' for x in range(len(glt_r_ko))])
+e5 = np.array(['Th/D_WT' for x in range(len(td_r_wt))])
+e6 = np.array(['Th/D_KO' for x in range(len(td_r_ko))])
 
 types = np.hstack([e, e2, e3, e4])
+# types = np.hstack([e5, e6])
 
 remrates = []
 remrates.extend(glt_r_wt)

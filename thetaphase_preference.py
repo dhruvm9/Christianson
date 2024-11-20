@@ -17,7 +17,7 @@ import warnings
 import seaborn as sns
 from scipy.signal import hilbert, fftconvolve
 from pingouin import circ_r, circ_mean, circ_rayleigh
-from scipy.stats import mannwhitneyu
+from scipy.stats import mannwhitneyu, circvar
 import matplotlib.colors as colors
 from matplotlib.backends.backend_pdf import PdfPages
 from functions_DM import *    
@@ -162,8 +162,8 @@ def circular_hist(ax, x, bins=16, density=True, offset=0, gaps=True):
 
 warnings.filterwarnings("ignore")
 
-data_directory = '/media/dhruv/Expansion/Processed'
-# data_directory = '/media/adrien/Expansion/Processed'
+# data_directory = '/media/dhruv/Expansion/Processed'
+data_directory = '/media/adrien/Expansion/Processed'
 
 # data_directory = '/media/adrien/Expansion/Processed'
 datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
@@ -277,8 +277,7 @@ for r,s in enumerate(datasets):
         
 #%% 
 
-    # ep = rem_ep
-    ep = rip_ep
+    ep = rem_ep
     # ep = moving_ep
     downsample = 2
     
@@ -452,6 +451,9 @@ for r,s in enumerate(datasets):
 #%% Delete variables before next iteration     
     
     del pyr, pv
+    
+    sys.exit()
+    
         
 #%% Out of loop plotting 
             
@@ -635,6 +637,8 @@ circular_hist(ax[1], np.array(means_pv_ko)[np.array(tokeep_pv_ko)], bins = 16)
 
 #%% 
 
+### CA1 wake
+
 # with open("means_pyr_wt_wake", "rb") as fp:   # Unpickling
 #     means_pyr_wt_wake = pickle.load(fp)
 
@@ -659,18 +663,118 @@ circular_hist(ax[1], np.array(means_pv_ko)[np.array(tokeep_pv_ko)], bins = 16)
 # with open("tokeep_pv_ko_wake", "rb") as fp:   # Unpickling
 #     tokeep_pv_ko_wake = pickle.load(fp)
     
+ ###CA1 REM   
+    
+# with open("means_pyr_wt_rem", "rb") as fp:   # Unpickling
+#     means_pyr_wt_wake = pickle.load(fp)
+
+# with open("means_pyr_ko_rem", "rb") as fp:   # Unpickling
+#     means_pyr_ko_wake = pickle.load(fp)
+        
+# with open("means_pv_wt_rem", "rb") as fp:   # Unpickling
+#     means_pv_wt_wake = pickle.load(fp)
+    
+# with open("means_pv_ko_rem", "rb") as fp:   # Unpickling
+#     means_pv_ko_wake = pickle.load(fp)
+    
+# with open("tokeep_pyr_wt_rem", "rb") as fp:   # Unpickling
+#     tokeep_pyr_wt_wake = pickle.load(fp)
+
+# with open("tokeep_pyr_ko_rem", "rb") as fp:   # Unpickling
+#     tokeep_pyr_ko_wake = pickle.load(fp)
+        
+# with open("tokeep_pv_wt_rem", "rb") as fp:   # Unpickling
+#     tokeep_pv_wt_wake = pickle.load(fp)
+    
+# with open("tokeep_pv_ko_rem", "rb") as fp:   # Unpickling
+#     tokeep_pv_ko_wake = pickle.load(fp)
+    
+
+###CA1 RIPPLES
+
+# with open("means_pyr_wt_rip", "rb") as fp:   # Unpickling
+#     means_pyr_wt_wake = pickle.load(fp)
+
+# with open("means_pyr_ko_rip", "rb") as fp:   # Unpickling
+#     means_pyr_ko_wake = pickle.load(fp)
+        
+# with open("means_pv_wt_rip", "rb") as fp:   # Unpickling
+#     means_pv_wt_wake = pickle.load(fp)
+    
+# with open("means_pv_ko_rip", "rb") as fp:   # Unpickling
+#     means_pv_ko_wake = pickle.load(fp)
+    
+# with open("tokeep_pyr_wt_rip", "rb") as fp:   # Unpickling
+#     tokeep_pyr_wt_wake = pickle.load(fp)
+
+# with open("tokeep_pyr_ko_rip", "rb") as fp:   # Unpickling
+#     tokeep_pyr_ko_wake = pickle.load(fp)
+        
+# with open("tokeep_pv_wt_rip", "rb") as fp:   # Unpickling
+#     tokeep_pv_wt_wake = pickle.load(fp)
+    
+# with open("tokeep_pv_ko_rip", "rb") as fp:   # Unpickling
+#     tokeep_pv_ko_wake = pickle.load(fp)
+    
+
+### CA3 wake
+
+# with open("means_pyr_wt_wake_ca3", "rb") as fp:   # Unpickling
+#     means_pyr_wt_wake = pickle.load(fp)
+
+# with open("means_pyr_ko_wake_ca3", "rb") as fp:   # Unpickling
+#     means_pyr_ko_wake = pickle.load(fp)
+        
+# with open("means_pv_wt_wake_ca3", "rb") as fp:   # Unpickling
+#     means_pv_wt_wake = pickle.load(fp)
+    
+# with open("means_pv_ko_wake_ca3", "rb") as fp:   # Unpickling
+#     means_pv_ko_wake = pickle.load(fp)
+    
+# with open("tokeep_pyr_wt_wake_ca3", "rb") as fp:   # Unpickling
+#     tokeep_pyr_wt_wake = pickle.load(fp)
+
+# with open("tokeep_pyr_ko_wake_ca3", "rb") as fp:   # Unpickling
+#     tokeep_pyr_ko_wake = pickle.load(fp)
+        
+# with open("tokeep_pv_wt_wake_ca3", "rb") as fp:   # Unpickling
+#     tokeep_pv_wt_wake = pickle.load(fp)
+    
+# with open("tokeep_pv_ko_wake_ca3", "rb") as fp:   # Unpickling
+#     tokeep_pv_ko_wake = pickle.load(fp)
+
+
 # fig, ax = plt.subplots(1,2, subplot_kw=dict(projection = 'polar'))
 # fig.suptitle('WT')
 # ax[0].set_title('PYR')
 # circular_hist(ax[0], np.array(means_pyr_wt_wake)[np.array(tokeep_pyr_wt_wake)], bins = 16)
+# r = 0.25
+# # r = circ_r(np.array(means_pyr_wt_wake)[np.array(tokeep_pyr_wt_wake)])
+# theta = circ_mean(np.array(means_pyr_wt_wake)[np.array(tokeep_pyr_wt_wake)])
+# ax[0].annotate('', xy=(theta, r), xytext=(0, 0), arrowprops=dict(facecolor='k'))
+
 # ax[1].set_title('FS')
 # circular_hist(ax[1], np.array(means_pv_wt_wake)[np.array(tokeep_pv_wt_wake)], bins = 16)
+# r = 0.3
+# # r = circ_r(np.array(means_pv_wt_wake)[np.array(tokeep_pv_wt_wake)])
+# theta = circ_mean(np.array(means_pv_wt_wake)[np.array(tokeep_pv_wt_wake)])
+# ax[1].annotate('', xy=(theta, r), xytext=(0, 0), arrowprops=dict(facecolor='k'))
+
     
 # fig, ax = plt.subplots(1,2, subplot_kw=dict(projection = 'polar'))
 # fig.suptitle('KO')
 # ax[0].set_title('PYR')
+# r = 0.25
+# # r = circ_r(np.array(means_pyr_ko_wake)[np.array(tokeep_pyr_ko_wake)])
+# theta = circ_mean(np.array(means_pyr_ko_wake)[np.array(tokeep_pyr_ko_wake)])
+# ax[0].annotate('', xy=(theta, r), xytext=(0, 0), arrowprops=dict(facecolor='k'))
+
 # circular_hist(ax[0], np.array(means_pyr_ko_wake)[np.array(tokeep_pyr_ko_wake)], bins = 16)
 # ax[1].set_title('FS')
 # circular_hist(ax[1], np.array(means_pv_ko_wake)[np.array(tokeep_pv_ko_wake)], bins = 16)
+# r = 0.3
+# # r = circ_r(np.array(means_pv_ko_wake)[np.array(tokeep_pv_ko_wake)])
+# theta = circ_mean(np.array(means_pv_ko_wake)[np.array(tokeep_pv_ko_wake)])
+# ax[1].annotate('', xy=(theta, r), xytext=(0, 0), arrowprops=dict(facecolor='k'))
 
-        
+
