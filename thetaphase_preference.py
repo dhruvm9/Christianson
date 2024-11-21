@@ -452,7 +452,7 @@ for r,s in enumerate(datasets):
     
     del pyr, pv
     
-    sys.exit()
+    # sys.exit()
     
         
 #%% Out of loop plotting 
@@ -496,6 +496,90 @@ ax[1].plot(np.array(means_pv_ko)[np.array(tokeep_pv_ko)], np.array(mrl_pv_ko)[np
 # ax[1].plot(np.array(means_pv_wt)[np.array(tokeep_pv_wt)], np.array(mrl_pv_wt)[np.array(tokeep_pv_wt)], 'o', color = 'indianred', label = 'WT')
 # ax[1].plot(np.array(means_pv_ko)[np.array(tokeep_pv_ko)], np.array(mrl_pv_ko)[np.array(tokeep_pv_ko)], 'o', color = 'k', label = 'KO')
 # ax[1].legend(loc = 'upper right')
+
+#%% Organize MRL 
+
+wt1 = np.array(['WT' for x in range(len(np.array(mrl_pyr_wt)[np.array(tokeep_pyr_wt)]))])
+wt2 = np.array(['WT' for x in range(len(np.array(mrl_pv_wt)[np.array(tokeep_pv_wt)]))])
+
+ko1 = np.array(['KO' for x in range(len(np.array(mrl_pyr_wt)[np.array(tokeep_pyr_wt)]))])
+ko2 = np.array(['KO' for x in range(len(np.array(mrl_pv_wt)[np.array(tokeep_pv_wt)]))])
+
+genotype = np.hstack([wt1, ko1, wt2, ko2])
+
+ex = np.array(['PYR' for x in range(len(np.array(mrl_pyr_wt)[np.array(tokeep_pyr_wt)]))])
+inh = np.array(['FS' for x in range(len(np.array(mrl_pv_wt)[np.array(tokeep_pv_wt)]))])
+
+ex2 = np.array(['PYR' for x in range(len(np.array(mrl_pyr_ko)[np.array(tokeep_pyr_ko)]))])
+inh2 = np.array(['FS' for x in range(len(np.array(mrl_pv_ko)[np.array(tokeep_pv_ko)]))])
+
+ctype = np.hstack([ex, ex2, inh, inh2])
+
+sigfracs = []
+sigfracs.extend(np.array(mrl_pyr_wt)[np.array(tokeep_pyr_wt)])
+sigfracs.extend(np.array(mrl_pyr_ko)[np.array(tokeep_pyr_ko)])
+sigfracs.extend(np.array(mrl_pv_wt)[np.array(tokeep_pv_wt)])
+sigfracs.extend(np.array(mrl_pv_ko)[np.array(tokeep_pv_ko)])
+
+infos = pd.DataFrame(data = [sigfracs, ctype, genotype], index = ['frac', 'celltype', 'genotype']).T
+
+#%% Plotting MRL
+
+plt.figure()
+plt.subplot(121)
+plt.title('PYR')
+sns.set_style('white')
+palette = ['lightsteelblue', 'lightcoral']
+ax = sns.violinplot( x = infos[infos['celltype'] == 'PYR']['genotype'], y=infos[infos['celltype'] == 'PYR']['frac'].astype(float) , data = infos, dodge=False,
+                    palette = palette,cut = 2,
+                    scale="width", inner=None)
+ax.tick_params(bottom=True, left=True)
+xlim = ax.get_xlim()
+ylim = ax.get_ylim()
+for violin in ax.collections:
+    x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
+    violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
+sns.boxplot(x = infos[infos['celltype'] == 'PYR']['genotype'], y=infos[infos['celltype'] == 'PYR']['frac'] , data = infos, saturation=1, showfliers=False,
+            width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
+old_len_collections = len(ax.collections)
+sns.stripplot(x = infos[infos['celltype'] == 'PYR']['genotype'], y=infos[infos['celltype'] == 'PYR']['frac'], data = infos, color = 'k', dodge=False, ax=ax)
+
+for dots in ax.collections[old_len_collections:]:
+    dots.set_offsets(dots.get_offsets())
+ax.set_xlim(xlim)
+ax.set_ylim(ylim)
+plt.ylabel('Mean vector length')
+ax.set_box_aspect(1)
+
+plt.subplot(122)
+plt.title('FS')
+sns.set_style('white')
+palette = ['royalblue', 'indianred']
+ax = sns.violinplot( x = infos[infos['celltype'] == 'FS']['genotype'], y=infos[infos['celltype'] == 'FS']['frac'].astype(float) , data = infos, dodge=False,
+                    palette = palette,cut = 2,
+                    scale="width", inner=None)
+ax.tick_params(bottom=True, left=True)
+xlim = ax.get_xlim()
+ylim = ax.get_ylim()
+for violin in ax.collections:
+    x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
+    violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
+sns.boxplot(x = infos[infos['celltype'] == 'FS']['genotype'], y=infos[infos['celltype'] == 'FS']['frac'] , data = infos, saturation=1, showfliers=False,
+            width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
+old_len_collections = len(ax.collections)
+sns.stripplot(x = infos[infos['celltype'] == 'FS']['genotype'], y=infos[infos['celltype'] == 'FS']['frac'], data = infos, color = 'k', dodge=False, ax=ax)
+
+for dots in ax.collections[old_len_collections:]:
+    dots.set_offsets(dots.get_offsets())
+ax.set_xlim(xlim)
+ax.set_ylim(ylim)
+plt.ylabel('Mean vector length')
+ax.set_box_aspect(1)
+
+#%% Stats for MRL
+
+t_pyr, p_pyr = mannwhitneyu(np.array(mrl_pyr_wt)[np.array(tokeep_pyr_wt)], np.array(mrl_pyr_ko)[np.array(tokeep_pyr_ko)])
+t_pv, p_pv = mannwhitneyu(np.array(mrl_pv_wt)[np.array(tokeep_pv_wt)], np.array(mrl_pv_ko)[np.array(tokeep_pv_ko)])
 
 
 #%% Organize fraction of significantly coupled cells
@@ -594,17 +678,44 @@ fig, ax = plt.subplots(1,2, subplot_kw=dict(projection = 'polar'))
 fig.suptitle('WT')
 ax[0].set_title('PYR')
 circular_hist(ax[0], np.array(means_pyr_wt)[np.array(tokeep_pyr_wt)], bins = 16)
+r = 0.25
+# r = circ_r(np.array(means_pyr_ko_wake)[np.array(tokeep_pyr_ko_wake)])
+theta = circ_mean(np.array(means_pyr_wt)[np.array(tokeep_pyr_wt)])
+ax[0].annotate('', xy=(theta, r), xytext=(0, 0), arrowprops=dict(facecolor='k'))
+
 ax[1].set_title('FS')
 circular_hist(ax[1], np.array(means_pv_wt)[np.array(tokeep_pv_wt)], bins = 16)
+r = 0.25
+# r = circ_r(np.array(means_pyr_ko_wake)[np.array(tokeep_pyr_ko_wake)])
+theta = circ_mean(np.array(means_pv_wt)[np.array(tokeep_pv_wt)])
+ax[1].annotate('', xy=(theta, r), xytext=(0, 0), arrowprops=dict(facecolor='k'))
+
+
+
     
 fig, ax = plt.subplots(1,2, subplot_kw=dict(projection = 'polar'))
 fig.suptitle('KO')
 ax[0].set_title('PYR')
 circular_hist(ax[0], np.array(means_pyr_ko)[np.array(tokeep_pyr_ko)], bins = 16)
+r = 0.25
+# r = circ_r(np.array(means_pyr_ko_wake)[np.array(tokeep_pyr_ko_wake)])
+theta = circ_mean(np.array(means_pyr_ko)[np.array(tokeep_pyr_ko)])
+ax[0].annotate('', xy=(theta, r), xytext=(0, 0), arrowprops=dict(facecolor='k'))
+
+
 ax[1].set_title('FS')
 circular_hist(ax[1], np.array(means_pv_ko)[np.array(tokeep_pv_ko)], bins = 16)
-
+r = 0.25
+# r = circ_r(np.array(means_pyr_ko_wake)[np.array(tokeep_pyr_ko_wake)])
+theta = circ_mean(np.array(means_pv_ko)[np.array(tokeep_pv_ko)])
+ax[1].annotate('', xy=(theta, r), xytext=(0, 0), arrowprops=dict(facecolor='k'))
     
+var_pyr_wt = circvar(np.array(means_pyr_wt)[np.array(tokeep_pyr_wt)])
+var_pv_wt = circvar(np.array(means_pv_wt)[np.array(tokeep_pv_wt)])
+
+var_pyr_ko = circvar(np.array(means_pyr_ko)[np.array(tokeep_pyr_ko)])
+var_pv_ko = circvar(np.array(means_pv_ko)[np.array(tokeep_pv_ko)])
+
 
 #%% 
 
@@ -631,7 +742,32 @@ circular_hist(ax[1], np.array(means_pv_ko)[np.array(tokeep_pv_ko)], bins = 16)
 #     pickle.dump(tokeep_pv_wt, fp)    
     
 # with open("tokeep_pv_ko_wake", "wb") as fp:   #Pickling
-#     pickle.dump(tokeep_pv_ko, fp)    
+#     pickle.dump(tokeep_pv_ko, fp)   
+
+# with open("mrl_pyr_wt_wake", "wb") as fp:   #Pickling
+#     pickle.dump(mrl_pyr_wt, fp)    
+    
+# with open("mrl_pyr_ko_wake", "wb") as fp:   #Pickling
+#     pickle.dump(mrl_pyr_ko, fp)    
+    
+# with open("mrl_pv_wt_wake", "wb") as fp:   #Pickling
+#     pickle.dump(mrl_pv_wt, fp)    
+    
+# with open("mrl_pv_ko_wake", "wb") as fp:   #Pickling
+#     pickle.dump(mrl_pv_ko, fp)    
+ 
+# with open("var_pyr_wt_wake", "wb") as fp:   #Pickling
+#     pickle.dump(var_pyr_wt, fp)    
+    
+# with open("var_pyr_ko_wake", "wb") as fp:   #Pickling
+#     pickle.dump(var_pyr_ko, fp)    
+    
+# with open("var_pv_wt_wake", "wb") as fp:   #Pickling
+#     pickle.dump(var_pv_wt, fp)    
+    
+# with open("var_pv_ko_wake", "wb") as fp:   #Pickling
+#     pickle.dump(var_pv_ko, fp)    
+
 
 # multipage(data_directory + '/' + 'Phaseplots.pdf', dpi=250)
 
@@ -650,6 +786,22 @@ circular_hist(ax[1], np.array(means_pv_ko)[np.array(tokeep_pv_ko)], bins = 16)
     
 # with open("means_pv_ko_wake", "rb") as fp:   # Unpickling
 #     means_pv_ko_wake = pickle.load(fp)
+
+# ###
+
+# with open("mrl_pyr_wt_wake", "rb") as fp:   # Unpickling
+#     mrl_pyr_wt_wake = pickle.load(fp)
+
+# with open("mrl_pyr_ko_wake", "rb") as fp:   # Unpickling
+#     mrl_pyr_ko_wake = pickle.load(fp)
+        
+# with open("mrl_pv_wt_wake", "rb") as fp:   # Unpickling
+#     mrl_pv_wt_wake = pickle.load(fp)
+    
+# with open("mrl_pv_ko_wake", "rb") as fp:   # Unpickling
+#     mrl_pv_ko_wake = pickle.load(fp)
+
+# ###
     
 # with open("tokeep_pyr_wt_wake", "rb") as fp:   # Unpickling
 #     tokeep_pyr_wt_wake = pickle.load(fp)
@@ -662,6 +814,22 @@ circular_hist(ax[1], np.array(means_pv_ko)[np.array(tokeep_pv_ko)], bins = 16)
     
 # with open("tokeep_pv_ko_wake", "rb") as fp:   # Unpickling
 #     tokeep_pv_ko_wake = pickle.load(fp)
+
+# ###
+
+# with open("var_pyr_wt_wake", "rb") as fp:   # Unpickling
+#     var_pyr_wt_wake = pickle.load(fp)
+
+# with open("var_pyr_ko_wake", "rb") as fp:   # Unpickling
+#     var_pyr_ko_wake = pickle.load(fp)
+        
+# with open("var_pv_wt_wake", "rb") as fp:   # Unpickling
+#     var_pv_wt_wake = pickle.load(fp)
+    
+# with open("var_pv_ko_wake", "rb") as fp:   # Unpickling
+#     var_pv_ko_wake = pickle.load(fp)
+    
+
     
  ###CA1 REM   
     
@@ -688,7 +856,32 @@ circular_hist(ax[1], np.array(means_pv_ko)[np.array(tokeep_pv_ko)], bins = 16)
     
 # with open("tokeep_pv_ko_rem", "rb") as fp:   # Unpickling
 #     tokeep_pv_ko_wake = pickle.load(fp)
+
+# with open("mrl_pyr_wt_rem", "rb") as fp:   # Unpickling
+#     mrl_pyr_wt_wake = pickle.load(fp)
+
+# with open("mrl_pyr_ko_rem", "rb") as fp:   # Unpickling
+#     mrl_pyr_ko_wake = pickle.load(fp)
+        
+# with open("mrl_pv_wt_rem", "rb") as fp:   # Unpickling
+#     mrl_pv_wt_wake = pickle.load(fp)
     
+# with open("mrl_pv_ko_rem", "rb") as fp:   # Unpickling
+#     mrl_pv_ko_wake = pickle.load(fp)
+
+# with open("var_pyr_wt_rem", "rb") as fp:   # Unpickling
+#     var_pyr_wt_rem = pickle.load(fp)
+
+# with open("var_pyr_ko_rem", "rb") as fp:   # Unpickling
+#     var_pyr_ko_rem = pickle.load(fp)
+        
+# with open("var_pv_wt_rem", "rb") as fp:   # Unpickling
+#     var_pv_wt_rem = pickle.load(fp)
+    
+# with open("var_pv_ko_rem", "rb") as fp:   # Unpickling
+#     var_pv_ko_rem = pickle.load(fp)
+
+
 
 ###CA1 RIPPLES
 
@@ -715,6 +908,32 @@ circular_hist(ax[1], np.array(means_pv_ko)[np.array(tokeep_pv_ko)], bins = 16)
     
 # with open("tokeep_pv_ko_rip", "rb") as fp:   # Unpickling
 #     tokeep_pv_ko_wake = pickle.load(fp)
+
+# with open("mrl_pyr_wt_wake", "rb") as fp:   # Unpickling
+#     mrl_pyr_wt_wake = pickle.load(fp)
+
+# with open("mrl_pyr_ko_wake", "rb") as fp:   # Unpickling
+#     mrl_pyr_ko_wake = pickle.load(fp)
+        
+# with open("mrl_pv_wt_wake", "rb") as fp:   # Unpickling
+#     mrl_pv_wt_wake = pickle.load(fp)
+    
+# with open("mrl_pv_ko_wake", "rb") as fp:   # Unpickling
+#     mrl_pv_ko_wake = pickle.load(fp)
+
+# with open("var_pyr_wt_rip", "rb") as fp:   # Unpickling
+#     var_pyr_wt_rip = pickle.load(fp)
+
+# with open("var_pyr_ko_rip", "rb") as fp:   # Unpickling
+#     var_pyr_ko_rip = pickle.load(fp)
+        
+# with open("var_pv_wt_rip", "rb") as fp:   # Unpickling
+#     var_pv_wt_rip = pickle.load(fp)
+    
+# with open("var_pv_ko_rip", "rb") as fp:   # Unpickling
+#     var_pv_ko_rip = pickle.load(fp)
+
+
     
 
 ### CA3 wake
@@ -742,6 +961,33 @@ circular_hist(ax[1], np.array(means_pv_ko)[np.array(tokeep_pv_ko)], bins = 16)
     
 # with open("tokeep_pv_ko_wake_ca3", "rb") as fp:   # Unpickling
 #     tokeep_pv_ko_wake = pickle.load(fp)
+
+# with open("mrl_pyr_wt_wake_ca3", "rb") as fp:   # Unpickling
+#     mrl_pyr_wt_wake = pickle.load(fp)
+
+# with open("mrl_pyr_ko_wake_ca3", "rb") as fp:   # Unpickling
+#     mrl_pyr_ko_wake = pickle.load(fp)
+        
+# with open("mrl_pv_wt_wake_ca3", "rb") as fp:   # Unpickling
+#     mrl_pv_wt_wake = pickle.load(fp)
+    
+# with open("mrl_pv_ko_wake_ca3", "rb") as fp:   # Unpickling
+#     mrl_pv_ko_wake = pickle.load(fp)
+
+# with open("var_pyr_wt_wake_ca3", "rb") as fp:   # Unpickling
+#     var_pyr_wt_wake_ca3 = pickle.load(fp)
+
+# with open("var_pyr_ko_wake_ca3", "rb") as fp:   # Unpickling
+#     var_pyr_ko_wake_ca3 = pickle.load(fp)
+        
+# with open("var_pv_wt_wake_ca3", "rb") as fp:   # Unpickling
+#     var_pv_wt_wake_ca3 = pickle.load(fp)
+    
+# with open("var_pv_ko_wake_ca3", "rb") as fp:   # Unpickling
+#     var_pv_ko_wake_ca3 = pickle.load(fp)
+    
+
+
 
 
 # fig, ax = plt.subplots(1,2, subplot_kw=dict(projection = 'polar'))
@@ -777,4 +1023,82 @@ circular_hist(ax[1], np.array(means_pv_ko)[np.array(tokeep_pv_ko)], bins = 16)
 # theta = circ_mean(np.array(means_pv_ko_wake)[np.array(tokeep_pv_ko_wake)])
 # ax[1].annotate('', xy=(theta, r), xytext=(0, 0), arrowprops=dict(facecolor='k'))
 
+#%% 
 
+# wt1 = np.array(['WT' for x in range(len(np.array(mrl_pyr_wt_wake)[np.array(tokeep_pyr_wt_wake)]))])
+# wt2 = np.array(['WT' for x in range(len(np.array(mrl_pv_wt_wake)[np.array(tokeep_pv_wt_wake)]))])
+
+# ko1 = np.array(['KO' for x in range(len(np.array(mrl_pyr_ko_wake)[np.array(tokeep_pyr_ko_wake)]))])
+# ko2 = np.array(['KO' for x in range(len(np.array(mrl_pv_ko_wake)[np.array(tokeep_pv_ko_wake)]))])
+
+# genotype = np.hstack([wt1, ko1, wt2, ko2])
+
+# ex = np.array(['PYR' for x in range(len(np.array(mrl_pyr_wt_wake)[np.array(tokeep_pyr_wt_wake)]))])
+# inh = np.array(['FS' for x in range(len(np.array(mrl_pv_wt_wake)[np.array(tokeep_pv_wt_wake)]))])
+
+# ex2 = np.array(['PYR' for x in range(len(np.array(mrl_pyr_ko_wake)[np.array(tokeep_pyr_ko_wake)]))])
+# inh2 = np.array(['FS' for x in range(len(np.array(mrl_pv_ko_wake)[np.array(tokeep_pv_ko_wake)]))])
+
+# ctype = np.hstack([ex, ex2, inh, inh2])
+
+# sigfracs = []
+# sigfracs.extend(np.array(mrl_pyr_wt_wake)[np.array(tokeep_pyr_wt_wake)])
+# sigfracs.extend(np.array(mrl_pyr_ko_wake)[np.array(tokeep_pyr_ko_wake)])
+# sigfracs.extend(np.array(mrl_pv_wt_wake)[np.array(tokeep_pv_wt_wake)])
+# sigfracs.extend(np.array(mrl_pv_ko_wake)[np.array(tokeep_pv_ko_wake)])
+
+# infos = pd.DataFrame(data = [sigfracs, ctype, genotype], index = ['frac', 'celltype', 'genotype']).T
+
+# plt.figure()
+# plt.subplot(121)
+# plt.title('PYR')
+# sns.set_style('white')
+# palette = ['lightsteelblue', 'lightcoral']
+# ax = sns.violinplot( x = infos[infos['celltype'] == 'PYR']['genotype'], y=infos[infos['celltype'] == 'PYR']['frac'].astype(float) , data = infos, dodge=False,
+#                     palette = palette,cut = 2,
+#                     scale="width", inner=None)
+# ax.tick_params(bottom=True, left=True)
+# xlim = ax.get_xlim()
+# ylim = ax.get_ylim()
+# for violin in ax.collections:
+#     x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
+#     violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
+# sns.boxplot(x = infos[infos['celltype'] == 'PYR']['genotype'], y=infos[infos['celltype'] == 'PYR']['frac'] , data = infos, saturation=1, showfliers=False,
+#             width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
+# old_len_collections = len(ax.collections)
+# sns.stripplot(x = infos[infos['celltype'] == 'PYR']['genotype'], y=infos[infos['celltype'] == 'PYR']['frac'], data = infos, color = 'k', dodge=False, ax=ax)
+
+# for dots in ax.collections[old_len_collections:]:
+#     dots.set_offsets(dots.get_offsets())
+# ax.set_xlim(xlim)
+# ax.set_ylim(ylim)
+# plt.ylabel('Mean vector length')
+# ax.set_box_aspect(1)
+
+# plt.subplot(122)
+# plt.title('FS')
+# sns.set_style('white')
+# palette = ['royalblue', 'indianred']
+# ax = sns.violinplot( x = infos[infos['celltype'] == 'FS']['genotype'], y=infos[infos['celltype'] == 'FS']['frac'].astype(float) , data = infos, dodge=False,
+#                     palette = palette,cut = 2,
+#                     scale="width", inner=None)
+# ax.tick_params(bottom=True, left=True)
+# xlim = ax.get_xlim()
+# ylim = ax.get_ylim()
+# for violin in ax.collections:
+#     x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
+#     violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
+# sns.boxplot(x = infos[infos['celltype'] == 'FS']['genotype'], y=infos[infos['celltype'] == 'FS']['frac'] , data = infos, saturation=1, showfliers=False,
+#             width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
+# old_len_collections = len(ax.collections)
+# sns.stripplot(x = infos[infos['celltype'] == 'FS']['genotype'], y=infos[infos['celltype'] == 'FS']['frac'], data = infos, color = 'k', dodge=False, ax=ax)
+
+# for dots in ax.collections[old_len_collections:]:
+#     dots.set_offsets(dots.get_offsets())
+# ax.set_xlim(xlim)
+# ax.set_ylim(ylim)
+# plt.ylabel('Mean vector length')
+# ax.set_box_aspect(1)
+
+# t_pyr, p_pyr = mannwhitneyu(np.array(mrl_pyr_wt_wake)[np.array(tokeep_pyr_wt_wake)], np.array(mrl_pyr_ko_wake)[np.array(tokeep_pyr_ko_wake)])
+# t_pv, p_pv = mannwhitneyu(np.array(mrl_pv_wt_wake)[np.array(tokeep_pv_wt_wake)], np.array(mrl_pv_ko_wake)[np.array(tokeep_pv_ko_wake)])
