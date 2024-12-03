@@ -14,6 +14,7 @@ import nwbmatic as ntm
 import pynapple as nap
 import pynacollada as pyna
 from scipy.signal import find_peaks, hilbert
+from functions_DM import *    
 
 #%% 
 
@@ -39,39 +40,15 @@ for r,s in enumerate(datasets):
     epochs = data.epochs
     position = data.position
     
-    if name == 'B2613' or name == 'B2618':
+    if name == 'B2613' or name == 'B2618' or name == 'B2628' or name == 'B3805' or name == 'B3813':
         isWT = 0
     else: isWT = 1 
     
     lfp = nap.load_eeg(path + '/' + s + '.eeg', channel = int(ripplechannels[r]), n_channels = 32, frequency = fs)
-    
-    file = os.path.join(path, s +'.sws.evt')
-    sws_ep = data.read_neuroscope_intervals(name = 'SWS', path2file = file)
-    
+            
     file = os.path.join(path, s +'.rem.evt')
     rem_ep = data.read_neuroscope_intervals(name = 'REM', path2file = file)
-    
-    file = os.path.join(path, s +'.evt.py.rip')
-    rip_ep = data.read_neuroscope_intervals(name = 'rip', path2file = file)
-    
-#%% Load spikes 
-
-    sp2 = np.load(os.path.join(path, 'spikedata.npz'), allow_pickle = True)
-    time_support = nap.IntervalSet(sp2['start'], sp2['end'])
-    tsd = nap.Tsd(t=sp2['t'], d=sp2['index'], time_support = time_support)
-    spikes = tsd.to_tsgroup()
-    spikes.set_info(group = sp2['group'], location = sp2['location'], celltype = sp2['celltype'], tr2pk = sp2['tr2pk'])
-            
-#%% 
-    
-    spikes_by_celltype = spikes.getby_category('celltype')
-    if 'pyr' in spikes._metadata['celltype'].values:
-        pyr = spikes_by_celltype['pyr']
-    else: pyr = []
-    
-    if 'fs' in spikes._metadata['celltype'].values:
-        pv = spikes_by_celltype['fs']
-    else: pv = []
+          
     
 #%% Compute speed during wake 
        
@@ -88,21 +65,22 @@ for r,s in enumerate(datasets):
         
 #%% 
     
-    lfp_filt_theta = pyna.eeg_processing.bandpass_filter(lfp.restrict(moving_ep), 5, 12, fs)
+    lfp_filt_theta = bandpass_filter_zerophase(lfp.restrict(moving_ep), 6, 9, fs)
     power_theta = nap.Tsd(lfp_filt_theta.index.values, np.abs(hilbert(lfp_filt_theta.values)))
     
-    power_thresh = power_theta.threshold(np.percentile(power_theta.values, 80))
+    power_thresh = power_theta.threshold(np.percentile(power_theta.values, 90))
     
 ### Wake epoch with power threshold and movement 
     
     wake = power_thresh.restrict(moving_ep).time_support
+    wake = wake.drop_short_intervals(0.1)
        
     
     lfp_wake = lfp.restrict(nap.IntervalSet(wake))
     lfp_rem = lfp.restrict(nap.IntervalSet(rem_ep))    
     
-    lfp_filt_wake = pyna.eeg_processing.bandpass_filter(lfp_wake, 1, 80, 1250)
-    lfp_filt_rem = pyna.eeg_processing.bandpass_filter(lfp_rem, 1, 80, 1250)
+    lfp_filt_wake = bandpass_filter_zerophase(lfp_wake, 1, 80, 1250)
+    lfp_filt_rem = bandpass_filter_zerophase(lfp_rem, 1, 80, 1250)
     
     peaks_w = find_peaks(lfp_filt_wake, distance = 100)[0]
     troughs_w = find_peaks(-lfp_filt_wake, distance = 100)[0]
@@ -114,17 +92,17 @@ for r,s in enumerate(datasets):
 
 ### Check peaks
     
-    plt.figure()
-    plt.plot(lfp_wake)
-    plt.plot(lfp_filt_wake)
-    plt.plot(lfp_filt_wake[peaks_w], 'o')
-    plt.plot(lfp_filt_wake[troughs_w], 'o')
+    # plt.figure()
+    # plt.plot(lfp_wake)
+    # plt.plot(lfp_filt_wake)
+    # plt.plot(lfp_filt_wake[peaks_w], 'o')
+    # plt.plot(lfp_filt_wake[troughs_w], 'o')
     
-    plt.figure()
-    plt.plot(lfp_rem)
-    plt.plot(lfp_filt_rem)
-    plt.plot(lfp_filt_rem[peaks_r], 'o')
-    plt.plot(lfp_filt_rem[troughs_r], 'o')
+    # plt.figure()
+    # plt.plot(lfp_rem)
+    # plt.plot(lfp_filt_rem)
+    # plt.plot(lfp_filt_rem[peaks_r], 'o')
+    # plt.plot(lfp_filt_rem[troughs_r], 'o')
     
     
 #%% 
@@ -149,8 +127,8 @@ for r,s in enumerate(datasets):
     dur_asc_r = asc_r['end'] - asc_r['start'] 
     dur_des_r = des_r['end'] - des_r['start'] 
                
-    asymmetry_wake = np.log10(dur_asc_w.values[0:min(len(dur_asc_w), len(dur_des_w))] / dur_des_w.values [0:min(len(dur_asc_w), len(dur_des_w))])
-    asymmetry_rem = np.log10(dur_asc_r.values[0:min(len(dur_asc_r), len(dur_des_r))] /dur_des_r.values [0:min(len(dur_asc_r), len(dur_des_r))])
+    asymmetry_wake = np.log10(dur_asc_w[0:min(len(dur_asc_w), len(dur_des_w))] / dur_des_w[0:min(len(dur_asc_w), len(dur_des_w))])
+    asymmetry_rem = np.log10(dur_asc_r[0:min(len(dur_asc_r), len(dur_des_r))] /dur_des_r[0:min(len(dur_asc_r), len(dur_des_r))])
     
     if isWT == 1:
         asym_wake_wt.extend(asymmetry_wake)
@@ -161,29 +139,56 @@ for r,s in enumerate(datasets):
     
 #%% Plotting
 
-bins = 200
+bins = np.linspace(-1, 1, 50)
+
+asym_wake_wt_counts,_ = np.histogram(asym_wake_wt, bins)     
+p_wake_wt = asym_wake_wt_counts/sum(asym_wake_wt_counts)
+
+asym_wake_ko_counts,_ = np.histogram(asym_wake_ko, bins)     
+p_wake_ko = asym_wake_ko_counts/sum(asym_wake_ko_counts)
+
+asym_rem_wt_counts,_ = np.histogram(asym_rem_wt, bins)     
+p_rem_wt = asym_rem_wt_counts/sum(asym_rem_wt_counts)
+
+asym_rem_ko_counts,_ = np.histogram(asym_rem_ko, bins)     
+p_rem_ko = asym_rem_ko_counts/sum(asym_rem_ko_counts)
 
 plt.figure()
-plt.suptitle('Theta Asymmetry')
+plt.suptitle('Theta Asymmetry (Wake)')
 plt.subplot(121)
 plt.title('WT')
-plt.hist(asym_wake_wt, bins, color = 'b', alpha = 0.5, label = 'Wake')
-plt.hist(asym_rem_wt, bins, color = 'k', alpha = 0.5, label = 'REM')
+plt.stairs(p_wake_wt, bins, color = 'royalblue')
 plt.axvline(0, color = 'silver', linestyle = '--')
-plt.legend(loc = 'upper right')
 plt.xlim([-1, 1])
-plt.ylabel('# theta cycles')
+plt.ylabel('Fraction of theta cycles')
 plt.xlabel('Asymmetry Index')
 plt.gca().set_box_aspect(1)
 plt.subplot(122)
 plt.title('KO')
-plt.hist(asym_wake_ko, bins, color = 'r', alpha = 0.5, label = 'Wake')
-plt.hist(asym_rem_ko, bins, color = 'k', alpha = 0.5, label = 'REM')
+plt.stairs(p_wake_ko, bins, color = 'indianred')
 plt.axvline(0, color = 'silver', linestyle = '--')
-plt.legend(loc = 'upper right')
 plt.xlim([-1, 1])
 plt.xlabel('Asymmetry Index')
-plt.ylabel('# theta cycles')
+plt.ylabel('Fraction of theta cycles')
+plt.gca().set_box_aspect(1)
+
+plt.figure()
+plt.suptitle('Theta Asymmetry (REM)')
+plt.subplot(121)
+plt.title('WT')
+plt.stairs(p_rem_wt, bins, color = 'royalblue')
+plt.axvline(0, color = 'silver', linestyle = '--')
+plt.xlim([-1, 1])
+plt.ylabel('% theta cycles')
+plt.xlabel('Asymmetry Index')
+plt.gca().set_box_aspect(1)
+plt.subplot(122)
+plt.title('KO')
+plt.stairs(p_rem_ko, bins, color = 'indianred')
+plt.axvline(0, color = 'silver', linestyle = '--')
+plt.xlim([-1, 1])
+plt.xlabel('Asymmetry Index')
+plt.ylabel('Fraction of theta cycles')
 plt.gca().set_box_aspect(1)
 
     

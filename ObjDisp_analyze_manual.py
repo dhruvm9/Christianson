@@ -15,14 +15,28 @@ import os, sys
 import seaborn as sns
 import matplotlib.pyplot as plt
 from pylab import *
-from scipy.stats import mannwhitneyu, wilcoxon
+from scipy.stats import mannwhitneyu, wilcoxon, pearsonr
 
 #%% 
 
 data_directory = '/media/DataDhruv/Recordings/Christianson/ObjDisp-240802'
 
 # info1 = pd.read_excel(os.path.join(data_directory,'info1.xlsx'))
-info2 = pd.read_excel(os.path.join(data_directory,'info2.xlsx'))
+# info2 = pd.read_excel(os.path.join(data_directory,'info2.xlsx'))
+info2 = pd.read_excel(os.path.join(data_directory,'Manual_compiled.xlsx'))
+# info2 = pd.read_excel(os.path.join(data_directory,'Manvauto.xlsx'))
+
+#%% 
+
+# r, p = pearsonr(info2['manual'], info2['automated'])
+
+# plt.figure()
+# plt.scatter(info2['manual'], info2['automated'], label = 'R = ' + str(round(r,2)))
+# plt.gca().axline((min(min(info2['manual']),min(info2['automated'])),min(min(info2['manual']),min(info2['automated']))), slope=1, color = 'silver', linestyle = '--')
+# plt.xlabel('DI manual avg')
+# plt.ylabel('DI automated')
+# plt.axis('square')
+# plt.legend(loc = 'upper right')
 
 #%% 
 
@@ -49,15 +63,15 @@ info2 = pd.read_excel(os.path.join(data_directory,'info2.xlsx'))
 
 #%% 
 
-m_wt1 = info2[(info2['Sex'] == 'M') & (info2['Genotype'] == 'WT')]['DI1'].values
-m_ko1 = info2[(info2['Sex'] == 'M') & (info2['Genotype'] == 'KO')]['DI1'].values
-f_wt1 = info2[(info2['Sex'] == 'F') & (info2['Genotype'] == 'WT')]['DI1'].values
-f_ko1 = info2[(info2['Sex'] == 'F') & (info2['Genotype'] == 'KO')]['DI1'].values
+m_wt1 = info2[(info2['Sex'] == 'M') & (info2['Genotype'] == 'WT')]['mean'].values
+m_ko1 = info2[(info2['Sex'] == 'M') & (info2['Genotype'] == 'KO')]['mean'].values
+f_wt1 = info2[(info2['Sex'] == 'F') & (info2['Genotype'] == 'WT')]['mean'].values
+f_ko1 = info2[(info2['Sex'] == 'F') & (info2['Genotype'] == 'KO')]['mean'].values
 
-m_wt2 = info2[(info2['Sex'] == 'M') & (info2['Genotype'] == 'WT')]['DI2'].values
-m_ko2 = info2[(info2['Sex'] == 'M') & (info2['Genotype'] == 'KO')]['DI2'].values
-f_wt2 = info2[(info2['Sex'] == 'F') & (info2['Genotype'] == 'WT')]['DI2'].values
-f_ko2 = info2[(info2['Sex'] == 'F') & (info2['Genotype'] == 'KO')]['DI2'].values
+# m_wt2 = info2[(info2['Sex'] == 'M') & (info2['Genotype'] == 'WT')]['DI2'].values
+# m_ko2 = info2[(info2['Sex'] == 'M') & (info2['Genotype'] == 'KO')]['DI2'].values
+# f_wt2 = info2[(info2['Sex'] == 'F') & (info2['Genotype'] == 'WT')]['DI2'].values
+# f_ko2 = info2[(info2['Sex'] == 'F') & (info2['Genotype'] == 'KO')]['DI2'].values
 
 wt_m = np.array(['WT_male' for x in range(len(m_wt1))])
 ko_m = np.array(['KO_male' for x in range(len(m_ko1))])
@@ -66,9 +80,9 @@ ko_f = np.array(['KO_female' for x in range(len(f_ko1))])
 
 gtype = np.hstack([wt_m, ko_m, wt_f, ko_f])
 DI1s = np.hstack([m_wt1, m_ko1, f_wt1, f_ko1])
-DI2s = np.hstack([m_wt2, m_ko2, f_wt2, f_ko2])
+# DI2s = np.hstack([m_wt2, m_ko2, f_wt2, f_ko2])
 
-infos_phase2 = pd.DataFrame(data = [DI1s, DI2s, gtype], index = ['DI1', 'DI2', 'genotype']).T
+infos_phase2 = pd.DataFrame(data = [DI1s, gtype], index = ['DI1', 'genotype']).T
 
 #%% DI1 
 
@@ -299,24 +313,24 @@ infos_phase2 = pd.DataFrame(data = [DI1s, DI2s, gtype], index = ['DI1', 'DI2', '
 
 
 plt.figure()
-plt.boxplot(info2['DI1'][info2['Genotype'] == 'WT'], positions = [0], showfliers= False, patch_artist=True,boxprops=dict(facecolor='royalblue', color='royalblue'),
+plt.boxplot(info2['mean'][info2['Genotype'] == 'WT'], positions = [0], showfliers= False, patch_artist=True,boxprops=dict(facecolor='royalblue', color='royalblue'),
             capprops=dict(color='royalblue'),
             whiskerprops=dict(color='royalblue'),
             medianprops=dict(color='white', linewidth = 2))
-plt.boxplot(info2['DI1'][info2['Genotype'] == 'KO'], positions = [0.3], showfliers= False, patch_artist=True,boxprops=dict(facecolor='indianred', color='indianred'),
+plt.boxplot(info2['mean'][info2['Genotype'] == 'KO'], positions = [0.3], showfliers= False, patch_artist=True,boxprops=dict(facecolor='indianred', color='indianred'),
             capprops=dict(color='indianred'),
             whiskerprops=dict(color='indianred'),
             medianprops=dict(color='white', linewidth = 2))
 
-x1 = np.random.normal(0, 0.01, size=len(info2['DI1'][info2['Genotype'] == 'WT'][info2['Sex'] == 'M']))
-x2 = np.random.normal(0, 0.01, size=len(info2['DI1'][info2['Genotype'] == 'WT'][info2['Sex'] == 'F']))
-x3 = np.random.normal(0.3, 0.01, size=len(info2['DI1'][info2['Genotype'] == 'KO'][info2['Sex'] == 'M']))
-x4 = np.random.normal(0.3, 0.01, size=len(info2['DI1'][info2['Genotype'] == 'KO'][info2['Sex'] == 'F']))
+x1 = np.random.normal(0, 0.01, size=len(info2['mean'][info2['Genotype'] == 'WT'][info2['Sex'] == 'M']))
+# x2 = np.random.normal(0, 0.01, size=len(info2['mean'][info2['Genotype'] == 'WT'][info2['Sex'] == 'F']))
+x3 = np.random.normal(0.3, 0.01, size=len(info2['mean'][info2['Genotype'] == 'KO'][info2['Sex'] == 'M']))
+# x4 = np.random.normal(0.3, 0.01, size=len(info2['mean'][info2['Genotype'] == 'KO'][info2['Sex'] == 'F']))
                       
-plt.plot(x1, info2['DI1'][info2['Genotype'] == 'WT'][info2['Sex'] == 'M'], '.', color = 'k', fillstyle = 'none', markersize = 8, zorder =3, label = 'male')
-plt.plot(x2, info2['DI1'][info2['Genotype'] == 'WT'][info2['Sex'] == 'F'], '.', color = 'k', fillstyle = 'full', markersize = 8, zorder =3, label = 'female')
-plt.plot(x3, info2['DI1'][info2['Genotype'] == 'KO'][info2['Sex'] == 'M'], '.', color = 'k', fillstyle = 'none', markersize = 8, zorder =3)
-plt.plot(x4, info2['DI1'][info2['Genotype'] == 'KO'][info2['Sex'] == 'F'], '.', color = 'k', fillstyle = 'full', markersize = 8, zorder =3)
+plt.plot(x1, info2['mean'][info2['Genotype'] == 'WT'][info2['Sex'] == 'M'], '.', color = 'k', fillstyle = 'none', markersize = 8, zorder =3, label = 'male')
+# plt.plot(x2, info2['mean'][info2['Genotype'] == 'WT'][info2['Sex'] == 'F'], '.', color = 'k', fillstyle = 'full', markersize = 8, zorder =3, label = 'female')
+plt.plot(x3, info2['mean'][info2['Genotype'] == 'KO'][info2['Sex'] == 'M'], '.', color = 'k', fillstyle = 'none', markersize = 8, zorder =3)
+# plt.plot(x4, info2['mean'][info2['Genotype'] == 'KO'][info2['Sex'] == 'F'], '.', color = 'k', fillstyle = 'full', markersize = 8, zorder =3)
 
 plt.ylabel('Discrimination Index')
 plt.axhline(0, linestyle = '--',  color = 'silver')
@@ -324,8 +338,8 @@ plt.legend(loc = 'upper left')
 plt.xticks([0, 0.3],['WT', 'KO'])
 plt.gca().set_box_aspect(1)
 
-z_wt, p_wt = wilcoxon(np.array(info2['DI1'][info2['Genotype'] == 'WT'])-0)
-z_ko, p_ko = wilcoxon(np.array(info2['DI1'][info2['Genotype'] == 'KO'])-0)
+z_wt, p_wt = wilcoxon(np.array(info2['mean'][info2['Genotype'] == 'WT'])-0)
+z_ko, p_ko = wilcoxon(np.array(info2['mean'][info2['Genotype'] == 'KO'])-0)
 
 # z, p = wilcoxon(info2['DI1'][info2['Genotype'] == 'KO'][info2['Sex'] == 'M']-0)
 # z, p = wilcoxon(info2['DI1'][info2['Genotype'] == 'KO'][info2['Sex'] == 'F']-0)

@@ -257,3 +257,150 @@ def bandpass_filter_zerophase(data, lowcut, highcut, fs, order=4):
 
     else:
         raise RuntimeError("Unknown format. Should be Tsd/TsdFrame")
+        
+def MorletWavelet(f, ncyc, si):
+    
+    #Parameters
+    s = ncyc/(2*np.pi*f)    #SD of the gaussian
+    tbound = (4*s);   #time bounds - at least 4SD on each side, 0 in center
+    tbound = si*np.floor(tbound/si)
+    t = np.arange(-tbound,tbound,si) #time
+    
+    #Wavelet
+    sinusoid = np.exp(2*np.pi*f*t*-1j)
+    gauss = np.exp(-(t**2)/(2*(s**2)))
+    
+    A = 1
+    wavelet = A * sinusoid * gauss
+    wavelet = wavelet / np.linalg.norm(wavelet)
+    return wavelet 
+
+   
+def smoothAngularTuningCurves(tuning_curves, sigma=2):
+    from scipy.ndimage import gaussian_filter1d
+    
+    tmp = np.concatenate((tuning_curves.values, tuning_curves.values, tuning_curves.values))
+    tmp = gaussian_filter1d(tmp, sigma=sigma, axis=0)
+
+    return pd.DataFrame(index = tuning_curves.index,
+        data = tmp[tuning_curves.shape[0]:tuning_curves.shape[0]*2], 
+        columns = tuning_curves.columns
+        )
+
+def shuffleByCircularSpikes(spikes, ep):
+    shuffled = {}
+    for n in spikes.keys():
+        # print('n = ' + str(n))
+        
+        for j in range(len(ep)):
+            # print('j = ' + str(j))
+            spk = spikes[n].restrict(ep[j])
+            shift = np.random.uniform(0, (ep[j]['end'][0] - ep[j]['start'][0]))
+            spk_shifted = (spk.index.values + shift) % (ep[j]['end'][0] - ep[j]['start'][0]) + ep[j]['start'][0]
+            
+            if  j == 0:
+                shuffled[n] = spk_shifted
+            else:
+                shuffled[n] = np.append(shuffled[n], spk_shifted)
+            
+    for n in shuffled.keys():
+        shuffled[n] = nap.Ts(shuffled[n])
+        
+    shuffled = nap.TsGroup(shuffled)
+    return shuffled
+
+def shuffleByIntervalSpikes(spikes, epochs):
+	shuffled = {}
+	for n in spikes.keys():
+		isi = []
+		for i in range(len(epochs)):
+			spk = spikes[n].restrict(epochs.loc[[i]])
+			tmp = np.diff(spk.index.values)
+			np.random.shuffle(tmp)
+			isi.append(tmp)
+		shuffled[n] = nap.Ts(t = np.cumsum(np.hstack(isi)) + epochs.loc[0,'start'])
+	return shuffled
+
+                
+def circular_hist(ax, x, bins=16, density=True, offset=0, gaps=True):
+    """
+    Produce a circular histogram of angles on ax.
+
+    Parameters
+    ----------
+    ax : matplotlib.axes._subplots.PolarAxesSubplot
+        axis instance created with subplot_kw=dict(projection='polar').
+
+    x : array
+        Angles to plot, expected in units of radians.
+
+    bins : int, optional
+        Defines the number of equal-width bins in the range. The default is 16.
+
+    density : bool, optional
+        If True plot frequency proportional to area. If False plot frequency
+        proportional to radius. The default is True.
+
+    offset : float, optional
+        Sets the offset for the location of the 0 direction in units of
+        radians. The default is 0.
+
+    gaps : bool, optional
+        Whether to allow gaps between bins. When gaps = False the bins are
+        forced to partition the entire [-pi, pi] range. The default is True.
+
+    Returns
+    -------
+    n : array or list of arrays
+        The number of values in each bin.
+
+    bins : array
+        The edges of the bins.
+
+    patches : `.BarContainer` or list of a single `.Polygon`
+        Container of individual artists used to create the histogram
+        or list of such containers if there are multiple input datasets.
+    """
+    # Wrap angles to [-pi, pi)
+    x = (x+np.pi) % (2*np.pi) - np.pi
+
+    # Force bins to partition entire circle
+    if not gaps:
+        bins = np.linspace(-np.pi, np.pi, num=bins+1)
+
+    # Bin data and record counts
+    n, bins = np.histogram(x, bins=bins)
+
+    # Compute width of each bin
+    widths = np.diff(bins)
+
+    # By default plot frequency proportional to area
+    if density:
+        # Area to assign each bin
+        area = n / x.size
+        # Calculate corresponding bin radius
+        radius = (area/np.pi) ** .5
+    # Otherwise plot frequency proportional to radius
+    else:
+        radius = n
+
+    # Plot data on ax
+    patches = ax.bar(bins[:-1], radius, zorder=1, align='edge', width=widths,
+                     edgecolor='C0', fill=False, linewidth=1)
+
+    # Set the direction of the zero angle
+    ax.set_theta_offset(offset)
+
+    # Remove ylabels for area plots (they are mostly obstructive)
+    if density:
+        ax.set_yticks([])
+
+    return n, bins, patches
+
+def pc_frates(spikes,rate_map, ep):
+    rates = pd.DataFrame(index=spikes.keys(), columns= ['mean','peak'])  
+    for i in spikes.keys():
+        rates.loc[i,'mean'] = len(spikes[i].restrict(ep))/ep.tot_length('s')
+        rates.loc[i,'peak'] = rate_map[i].max()
+    return rates
+

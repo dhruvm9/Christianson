@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Nov  8 15:49:53 2023
+Created on Tue Nov 19 12:11:36 2024
 
 @author: dhruv
 """
@@ -17,8 +17,8 @@ from scipy.stats import mannwhitneyu
 
 #%% 
 
-data_directory = '/media/dhruv/Expansion/Processed'
-# data_directory = '/media/dhruv/Expansion/Processed/CA3'
+# data_directory = '/media/dhruv/Expansion/Processed'
+data_directory = '/media/dhruv/Expansion/Processed/CA3'
 datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
 
 celltype = []
@@ -76,8 +76,8 @@ for s in datasets:
     file = os.path.join(path, s +'.rem.evt')
     rem_ep = nap.IntervalSet(data.read_neuroscope_intervals(name = 'REM', path2file = file))
     
-    file = os.path.join(path, s +'.evt.py.rip')
-    rip_ep = data.read_neuroscope_intervals(name = 'rip', path2file = file)
+    # file = os.path.join(path, s +'.evt.py.rip')
+    # rip_ep = data.read_neuroscope_intervals(name = 'rip', path2file = file)
     
     
         
@@ -96,7 +96,7 @@ for s in datasets:
     nr = spikes.restrict(sws_ep)
     rm = spikes.restrict(rem_ep)
     
-    rp = spikes.restrict(nap.IntervalSet(rip_ep))
+    # rp = spikes.restrict(nap.IntervalSet(rip_ep))
     
 #%% Sort by genotype
 
@@ -106,7 +106,7 @@ for s in datasets:
             pyr_wake_rate_wt.extend(wk.getby_category('celltype')['pyr']._metadata['rate'].values)
             pyr_nrem_rate_wt.extend(nr.getby_category('celltype')['pyr']._metadata['rate'].values)
             pyr_rem_rate_wt.extend(rm.getby_category('celltype')['pyr']._metadata['rate'].values)
-            pyr_rip_rate_wt.extend(rp.getby_category('celltype')['pyr']._metadata['rate'].values)
+            # pyr_rip_rate_wt.extend(rp.getby_category('celltype')['pyr']._metadata['rate'].values)
         
                
         if 'fs' in wk.getby_category('celltype').keys():
@@ -114,7 +114,7 @@ for s in datasets:
             fs_wake_rate_wt.extend(wk.getby_category('celltype')['fs']._metadata['rate'].values)
             fs_nrem_rate_wt.extend(nr.getby_category('celltype')['fs']._metadata['rate'].values)
             fs_rem_rate_wt.extend(rm.getby_category('celltype')['fs']._metadata['rate'].values)
-            fs_rip_rate_wt.extend(rp.getby_category('celltype')['fs']._metadata['rate'].values)
+            # fs_rip_rate_wt.extend(rp.getby_category('celltype')['fs']._metadata['rate'].values)
             
         
         if 'other' in wk.getby_category('celltype').keys():
@@ -122,7 +122,7 @@ for s in datasets:
             oth_wake_rate_wt.extend(wk.getby_category('celltype')['other']._metadata['rate'].values)
             oth_nrem_rate_wt.extend(nr.getby_category('celltype')['other']._metadata['rate'].values)
             oth_rem_rate_wt.extend(rm.getby_category('celltype')['other']._metadata['rate'].values)
-            oth_rip_rate_wt.extend(rp.getby_category('celltype')['other']._metadata['rate'].values)
+            # oth_rip_rate_wt.extend(rp.getby_category('celltype')['other']._metadata['rate'].values)
         
     else: 
         
@@ -131,24 +131,24 @@ for s in datasets:
             pyr_wake_rate_ko.extend(wk.getby_category('celltype')['pyr']._metadata['rate'].values)
             pyr_nrem_rate_ko.extend(nr.getby_category('celltype')['pyr']._metadata['rate'].values)
             pyr_rem_rate_ko.extend(rm.getby_category('celltype')['pyr']._metadata['rate'].values)
-            pyr_rip_rate_ko.extend(rp.getby_category('celltype')['pyr']._metadata['rate'].values)
+            # pyr_rip_rate_ko.extend(rp.getby_category('celltype')['pyr']._metadata['rate'].values)
         
         if 'fs' in wk.getby_category('celltype').keys():
         
             fs_wake_rate_ko.extend(wk.getby_category('celltype')['fs']._metadata['rate'].values)
             fs_nrem_rate_ko.extend(nr.getby_category('celltype')['fs']._metadata['rate'].values)
             fs_rem_rate_ko.extend(rm.getby_category('celltype')['fs']._metadata['rate'].values)
-            fs_rip_rate_ko.extend(rp.getby_category('celltype')['fs']._metadata['rate'].values)
+            # fs_rip_rate_ko.extend(rp.getby_category('celltype')['fs']._metadata['rate'].values)
         
         if 'other' in wk.getby_category('celltype').keys():
         
             oth_wake_rate_ko.extend(wk.getby_category('celltype')['other']._metadata['rate'].values)
             oth_nrem_rate_ko.extend(nr.getby_category('celltype')['other']._metadata['rate'].values)
             oth_rem_rate_ko.extend(rm.getby_category('celltype')['other']._metadata['rate'].values)
-            oth_rip_rate_ko.extend(rp.getby_category('celltype')['other']._metadata['rate'].values)
+            # oth_rip_rate_ko.extend(rp.getby_category('celltype')['other']._metadata['rate'].values)
             
     
-    del wk, nr, rm, rp
+    del wk, nr, rm
         
 #%% Organize data to plot 
 

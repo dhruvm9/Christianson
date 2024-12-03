@@ -62,7 +62,7 @@ for s in datasets:
     sex = s.split('_')[1] #Second character is sex (ignore)
     taskphase = s.split('_')[-1] #Last character is encoding or recall phase (Modify these portions as needed)
     
-    im = plt.imread(data_directory + '/' + s[0] + '.png')
+    im = plt.imread(data_directory + '/' + s + '.png')
     
     #Read the tracking data
     #reads an HDF5 file and stores its contents into a Pandas DataFrame named tracking_data.
@@ -157,7 +157,19 @@ for s in datasets:
     #Create a variable for the coordinates of the left and right object
     objL_coords = np.hstack([x_objL, y_objL])
     objR_coords = np.hstack([x_objR, y_objR])
+    
+#%% Speed calculation 
 
+    speedbinsize = np.diff(position.index.values)[0]
+    time_bins = np.arange(position.index[0], position.index[-1] + speedbinsize, speedbinsize)
+    index = np.digitize(position.index.values, time_bins)
+    tmp = position.as_dataframe().groupby(index).mean()
+    tmp.index = time_bins[np.unique(index)-1]+(speedbinsize)/2
+    distance = np.sqrt(np.power(np.diff(tmp['x']), 2) + np.power(np.diff(tmp['y']), 2)) 
+    speed = pd.Series(index = tmp.index.values[0:-1]+ speedbinsize/2, data = distance/speedbinsize) 
+    speed2 = speed.rolling(window = 25, win_type='gaussian', center=True, min_periods=1).mean(std=10)
+    speed2 = nap.Tsd(speed2)
+         
 #%% Building rectangle around objects and selecting times when animal is in rectangle
     
     rectL_inner = patches.Rectangle((x_objL - 27, y_objL - 28), 75, 120, linewidth=1, edgecolor='g', facecolor='none')
@@ -315,27 +327,55 @@ for s in datasets:
     
     all_lefttimes = lefttimes_inner.union(leftfacing)
     # all_lefttimes = all_lefttimes.merge_close_intervals(1)
+    
     all_righttimes = righttimes_inner.union(rightfacing)
     # all_righttimes = all_righttimes.merge_close_intervals(1)
     
-    objL_dur = all_lefttimes.tot_length()
-    objR_dur = all_righttimes.tot_length()
+#%% Filter by velocity 
+
+    # bins = np.arange(0,260,5)
+    # plt.figure()
+    # plt.title(s)
+    # plt.hist(speed2.restrict(all_lefttimes),bins, alpha = 0.5)
+    # plt.hist(speed2.restrict(all_righttimes),bins, alpha = 0.5)
+    
+    immo = speed2.restrict(all_lefttimes.union(all_righttimes)).threshold(23, 'below')
+    
+    
+    all_lefts = all_lefttimes.set_diff(immo.time_support)
+    all_rights = all_righttimes.set_diff(immo.time_support)
+    
+    all_lefts = all_lefts.drop_short_intervals(1/30)
+    all_lefts = all_lefts.drop_long_intervals(3)
+    
+    all_rights = all_rights.drop_short_intervals(1/30)
+    all_rights = all_rights.drop_long_intervals(3)
+    
+      
+#%%  
+    
+    objL_dur = all_lefts.tot_length()
+    objR_dur = all_rights.tot_length()
+    
+    # objL_dur = all_lefttimes.tot_length()
+    # objR_dur = all_righttimes.tot_length()
     
     DI = (objR_dur - objL_dur) / (objR_dur + objL_dur)
+    allDI_phase2.append(DI)
     
 #%% 
 
-    plt.figure()
-    plt.title(s)
-    plt.imshow(im, origin = 'lower')
-    ax = sns.scatterplot(data = position.as_dataframe(), x = x[tokeep], y = y[tokeep])
-    ax.add_patch(rectL)
-    ax.add_patch(rectL_inner)
-    ax.add_patch(rectR)
-    ax.add_patch(rectR_inner)
-    plt.plot(position['x'].restrict(all_lefttimes), position['y'].restrict(all_lefttimes), 'o', zorder = 2, label = 'left ROI', color = 'k')
-    plt.plot(position['x'].restrict(all_righttimes), position['y'].restrict(all_righttimes), 'o', zorder = 2, label = 'right ROI', color = 'r')
-    plt.legend(loc = 'upper right')
+    # plt.figure()
+    # plt.title(s)
+    # plt.imshow(im, origin = 'lower')
+    # ax = sns.scatterplot(data = position.as_dataframe(), x = x[tokeep], y = y[tokeep])
+    # ax.add_patch(rectL)
+    # ax.add_patch(rectL_inner)
+    # ax.add_patch(rectR)
+    # ax.add_patch(rectR_inner)
+    # plt.plot(position['x'].restrict(all_lefts), position['y'].restrict(all_lefts), 'o', zorder = 2, label = 'left ROI', color = 'k')
+    # plt.plot(position['x'].restrict(all_rights), position['y'].restrict(all_rights), 'o', zorder = 2, label = 'right ROI', color = 'r')
+    # plt.legend(loc = 'upper right')
 
 #%% Plot the position of the tracked points
 
@@ -454,77 +494,77 @@ for s in datasets:
     # objR_dur = (ep_objR['end'] - ep_objR['start']).sum()
     
     #Quantify object displacement
-    if '8' in s.split('_')[2]:
-        DI = (objR_dur - objL_dur) / (objR_dur + objL_dur)
-        # DI = objR_dur / (objR_dur + objL_dur)
-        print('right moved!')
-    else:
-        DI = (objL_dur - objR_dur) / (objR_dur + objL_dur)
-        # DI = objL_dur / (objR_dur + objL_dur)
-        print('left moved!')
+    # if '8' in s.split('_')[2]:
+    #     DI = (objR_dur - objL_dur) / (objR_dur + objL_dur)
+    #     # DI = objR_dur / (objR_dur + objL_dur)
+    #     print('right moved!')
+    # else:
+    #     DI = (objL_dur - objR_dur) / (objR_dur + objL_dur)
+    #     # DI = objL_dur / (objR_dur + objL_dur)
+    #     print('left moved!')
     
-    #Sort results by task phase and sex (not relevant for now)
-    if taskphase == '1':
-        all_lefts_phase1.append(objL_dur)
-        all_rights_phase1.append(objR_dur)
-        allDI_phase1.append(DI)
-        allmice_phase1.append(mousename)
-        allsex_phase1.append(sex)
+    # #Sort results by task phase and sex (not relevant for now)
+    # if taskphase == '1':
+    #     all_lefts_phase1.append(objL_dur)
+    #     all_rights_phase1.append(objR_dur)
+    #     allDI_phase1.append(DI)
+    #     allmice_phase1.append(mousename)
+    #     allsex_phase1.append(sex)
         
-        #Sort results by genotype (not relevant for now)
-        if s[0] == '2':
-            genotype_phase1.append('WT')
-        else: genotype_phase1.append('KO')
+    #     #Sort results by genotype (not relevant for now)
+    #     if s[0] == '2':
+    #         genotype_phase1.append('WT')
+    #     else: genotype_phase1.append('KO')
         
-    else:
-        all_lefts_phase2.append(objL_dur)
-        all_rights_phase2.append(objR_dur)
-        allDI_phase2.append(DI)
-        allmice_phase2.append(mousename)
-        allsex_phase2.append(sex)
+    # else:
+    #     all_lefts_phase2.append(objL_dur)
+    #     all_rights_phase2.append(objR_dur)
+    #     allDI_phase2.append(DI)
+    #     allmice_phase2.append(mousename)
+    #     allsex_phase2.append(sex)
         
-        if s[0] == '2':
-            genotype_phase2.append('WT')
-        else: genotype_phase2.append('KO')
+    #     if s[0] == '2':
+    #         genotype_phase2.append('WT')
+    #     else: genotype_phase2.append('KO')
     
     
 #%% Compile the results from all sessions into a dataframe
 
-info1 = pd.DataFrame((zip(allmice_phase1, allsex_phase1, genotype_phase1, all_lefts_phase1, all_rights_phase1, allDI_phase1)), columns =['Name', 'sex', 'genotype', 'left', 'right', 'DI'])
+# info1 = pd.DataFrame((zip(allmice_phase1, allsex_phase1, genotype_phase1, all_lefts_phase1, all_rights_phase1, allDI_phase1)), columns =['Name', 'sex', 'genotype', 'left', 'right', 'DI'])
 
-m_wt = info1[(info1['sex'] == 'M') & (info1['genotype'] == 'WT')]['DI'].values
-m_ko = info1[(info1['sex'] == 'M') & (info1['genotype'] == 'KO')]['DI'].values
-f_ko = info1[(info1['sex'] == 'F') & (info1['genotype'] == 'KO')]['DI'].values
+# m_wt = info1[(info1['sex'] == 'M') & (info1['genotype'] == 'WT')]['DI'].values
+# m_ko = info1[(info1['sex'] == 'M') & (info1['genotype'] == 'KO')]['DI'].values
+# f_ko = info1[(info1['sex'] == 'F') & (info1['genotype'] == 'KO')]['DI'].values
 
-wt_m = np.array(['WT_male' for x in range(len(m_wt))])
-ko_m = np.array(['KO_male' for x in range(len(m_ko))])
-ko_f = np.array(['KO_female' for x in range(len(f_ko))])
+# wt_m = np.array(['WT_male' for x in range(len(m_wt))])
+# ko_m = np.array(['KO_male' for x in range(len(m_ko))])
+# ko_f = np.array(['KO_female' for x in range(len(f_ko))])
 
-gtype = np.hstack([wt_m, ko_m, ko_f])
-DIs = np.hstack([m_wt, m_ko, f_ko])
+# gtype = np.hstack([wt_m, ko_m, ko_f])
+# DIs = np.hstack([m_wt, m_ko, f_ko])
 
 #Look at the output of this variable to understand what the table looks like
 
 
-infos_phase1 = pd.DataFrame(data = [DIs, gtype], index = ['DI', 'genotype']).T
+# infos_phase1 = pd.DataFrame(data = [DIs, gtype], index = ['DI', 'genotype']).T
 
 
 ### PHASE 2 (Not relevant: but same thing for both task phases)
 
-info2 = pd.DataFrame((zip(allmice_phase2, allsex_phase2, genotype_phase2, all_lefts_phase2, all_rights_phase2, allDI_phase2)), columns =['Name', 'sex', 'genotype', 'left', 'right', 'DI'])
+# info2 = pd.DataFrame((zip(allmice_phase2, allsex_phase2, genotype_phase2, all_lefts_phase2, all_rights_phase2, allDI_phase2)), columns =['Name', 'sex', 'genotype', 'left', 'right', 'DI'])
 
-m_wt = info2[(info2['sex'] == 'M') & (info2['genotype'] == 'WT')]['DI'].values
-m_ko = info2[(info2['sex'] == 'M') & (info2['genotype'] == 'KO')]['DI'].values
-f_ko = info2[(info2['sex'] == 'F') & (info2['genotype'] == 'KO')]['DI'].values
+# m_wt = info2[(info2['sex'] == 'M') & (info2['genotype'] == 'WT')]['DI'].values
+# m_ko = info2[(info2['sex'] == 'M') & (info2['genotype'] == 'KO')]['DI'].values
+# f_ko = info2[(info2['sex'] == 'F') & (info2['genotype'] == 'KO')]['DI'].values
 
-wt_m = np.array(['WT_male' for x in range(len(m_wt))])
-ko_m = np.array(['KO_male' for x in range(len(m_ko))])
-ko_f = np.array(['KO_female' for x in range(len(f_ko))])
+# wt_m = np.array(['WT_male' for x in range(len(m_wt))])
+# ko_m = np.array(['KO_male' for x in range(len(m_ko))])
+# ko_f = np.array(['KO_female' for x in range(len(f_ko))])
 
-gtype = np.hstack([wt_m, ko_m, ko_f])
-DIs = np.hstack([m_wt, m_ko, f_ko])
+# gtype = np.hstack([wt_m, ko_m, ko_f])
+# DIs = np.hstack([m_wt, m_ko, f_ko])
 
-infos_phase2 = pd.DataFrame(data = [DIs, gtype], index = ['DI', 'genotype']).T
+# infos_phase2 = pd.DataFrame(data = [DIs, gtype], index = ['DI', 'genotype']).T
 
 
 #%% IGNORE
@@ -586,48 +626,48 @@ infos_phase2 = pd.DataFrame(data = [DIs, gtype], index = ['DI', 'genotype']).T
 
 #%% Plot all results (needs modification, will modify once everything is ready)
 
-label = ['WT male']
-x = np.arange(len(label))  # the label locations
-width = 0.35  # the width of the bars
+# label = ['WT male']
+# x = np.arange(len(label))  # the label locations
+# width = 0.35  # the width of the bars
 
-fig, ax = plt.subplots()
-rects1 = ax.bar(x - width/2, infos_phase1[infos_phase1['genotype'] == 'WT_male']['DI'].mean(), width, label='Encoding Phase')
-rects2 = ax.bar(x + width/2, infos_phase2[infos_phase2['genotype'] == 'WT_male']['DI'].mean(), width, label='Recall Phase')
-pval = np.vstack([(infos_phase1[infos_phase1['genotype'] == 'WT_male']['DI'].values), (infos_phase2[infos_phase2['genotype'] == 'WT_male']['DI'].values)])
-x2 = [x-width/2, x+width/2]
-plt.plot(x2, np.vstack(pval), 'o-', color = 'k')
+# fig, ax = plt.subplots()
+# rects1 = ax.bar(x - width/2, infos_phase1[infos_phase1['genotype'] == 'WT_male']['DI'].mean(), width, label='Encoding Phase')
+# rects2 = ax.bar(x + width/2, infos_phase2[infos_phase2['genotype'] == 'WT_male']['DI'].mean(), width, label='Recall Phase')
+# pval = np.vstack([(infos_phase1[infos_phase1['genotype'] == 'WT_male']['DI'].values), (infos_phase2[infos_phase2['genotype'] == 'WT_male']['DI'].values)])
+# x2 = [x-width/2, x+width/2]
+# plt.plot(x2, np.vstack(pval), 'o-', color = 'k')
 # Add some text for labels, title and custom x-axis tick labels, etc.
-ax.set_ylabel('Discrimination index')
-ax.set_title('WT male')
-ax.set_xticks(x)
-ax.legend(loc = 'upper right')
-ax.set_box_aspect(1)
-fig.tight_layout()
+# ax.set_ylabel('Discrimination index')
+# ax.set_title('WT male')
+# ax.set_xticks(x)
+# ax.legend(loc = 'upper right')
+# ax.set_box_aspect(1)
+# fig.tight_layout()
 
-fig, ax = plt.subplots()
-rects1 = ax.bar(x - width/2, infos_phase1[infos_phase1['genotype'] == 'KO_male']['DI'].mean(), width, label='Encoding Phase')
-rects2 = ax.bar(x + width/2, infos_phase2[infos_phase2['genotype'] == 'KO_male']['DI'].mean(), width, label='Recall Phase')
-pval = np.vstack([(infos_phase1[infos_phase1['genotype'] == 'KO_male']['DI'].values), (infos_phase2[infos_phase2['genotype'] == 'KO_male']['DI'].values)])
-x2 = [x-width/2, x+width/2]
-plt.plot(x2, np.vstack(pval), 'o-', color = 'k')
-# Add some text for labels, title and custom x-axis tick labels, etc.
-ax.set_ylabel('Discrimination index')
-ax.set_title('KO male')
-ax.set_xticks(x)
-ax.legend(loc = 'upper right')
-ax.set_box_aspect(1)
-fig.tight_layout()
+# fig, ax = plt.subplots()
+# rects1 = ax.bar(x - width/2, infos_phase1[infos_phase1['genotype'] == 'KO_male']['DI'].mean(), width, label='Encoding Phase')
+# rects2 = ax.bar(x + width/2, infos_phase2[infos_phase2['genotype'] == 'KO_male']['DI'].mean(), width, label='Recall Phase')
+# pval = np.vstack([(infos_phase1[infos_phase1['genotype'] == 'KO_male']['DI'].values), (infos_phase2[infos_phase2['genotype'] == 'KO_male']['DI'].values)])
+# x2 = [x-width/2, x+width/2]
+# plt.plot(x2, np.vstack(pval), 'o-', color = 'k')
+# # Add some text for labels, title and custom x-axis tick labels, etc.
+# ax.set_ylabel('Discrimination index')
+# ax.set_title('KO male')
+# ax.set_xticks(x)
+# ax.legend(loc = 'upper right')
+# ax.set_box_aspect(1)
+# fig.tight_layout()
 
-fig, ax = plt.subplots()
-rects1 = ax.bar(x - width/2, infos_phase1[infos_phase1['genotype'] == 'KO_female']['DI'].mean(), width, label='Encoding Phase')
-rects2 = ax.bar(x + width/2, infos_phase2[infos_phase2['genotype'] == 'KO_female']['DI'].mean(), width, label='Recall Phase')
-pval = np.vstack([(infos_phase1[infos_phase1['genotype'] == 'KO_female']['DI'].values), (infos_phase2[infos_phase2['genotype'] == 'KO_female']['DI'].values)])
-x2 = [x-width/2, x+width/2]
-plt.plot(x2, np.vstack(pval), 'o-', color = 'k')
-# Add some text for labels, title and custom x-axis tick labels, etc.
-ax.set_ylabel('Discrimination index')
-ax.set_title('KO female')
-ax.set_xticks(x)
-ax.legend(loc = 'upper right')
-ax.set_box_aspect(1)
-fig.tight_layout()
+# fig, ax = plt.subplots()
+# rects1 = ax.bar(x - width/2, infos_phase1[infos_phase1['genotype'] == 'KO_female']['DI'].mean(), width, label='Encoding Phase')
+# rects2 = ax.bar(x + width/2, infos_phase2[infos_phase2['genotype'] == 'KO_female']['DI'].mean(), width, label='Recall Phase')
+# pval = np.vstack([(infos_phase1[infos_phase1['genotype'] == 'KO_female']['DI'].values), (infos_phase2[infos_phase2['genotype'] == 'KO_female']['DI'].values)])
+# x2 = [x-width/2, x+width/2]
+# plt.plot(x2, np.vstack(pval), 'o-', color = 'k')
+# # Add some text for labels, title and custom x-axis tick labels, etc.
+# ax.set_ylabel('Discrimination index')
+# ax.set_title('KO female')
+# ax.set_xticks(x)
+# ax.legend(loc = 'upper right')
+# ax.set_box_aspect(1)
+# fig.tight_layout()

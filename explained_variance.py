@@ -73,7 +73,7 @@ for s in datasets:
     epochs = data.epochs
     position = data.position
     
-    if name == 'B2613' or name == 'B2618' or name == 'B2627' or name == 'B2628':
+    if name == 'B2613' or name == 'B2618' or name == 'B2627' or name == 'B2628' or name == 'B3805' or name == 'B3813':
         isWT = 0
     else: isWT = 1 
     
@@ -276,6 +276,16 @@ for s in datasets:
         binned_pre2 = binned_spikes.restrict(nap.IntervalSet(ripp_pre)).as_dataframe()
         binned_wake2 = binned_spikes.restrict(nap.IntervalSet(moving_ep)).as_dataframe()
         binned_post2_10 = binned_spikes.restrict(nap.IntervalSet(ripp_post_10)).as_dataframe()
+                
+        todrop = []
+        for i in binned_pre2.columns:
+            if ((binned_pre2[i] == 0).all() == True) or ((binned_wake2[i] == 0).all() == True) or ((binned_post2_10[i] == 0).all() == True):
+                todrop.append(i)
+        
+        binned_pre2 = binned_pre2.drop(todrop, axis=1)
+        binned_wake2 = binned_wake2.drop(todrop, axis=1)
+        binned_post2_10 = binned_post2_10.drop(todrop, axis=1)
+        
         # binned_post2_20 = binned_spikes.restrict(nap.IntervalSet(ripp_post_20)).as_dataframe()
         # binned_post2_rest = binned_spikes.restrict(nap.IntervalSet(ripp_post_rest)).as_dataframe()
 
@@ -350,7 +360,7 @@ for s in datasets:
                 
                 ncells_ko.append(len(pyr))
                 
-                sys.exit()
+                # sys.exit()
                 
 #%% Organize EV and REV to plot 
 

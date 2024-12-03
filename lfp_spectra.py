@@ -128,13 +128,15 @@ ix = np.where(freqs<=300)
 plt.figure()
 plt.subplot(131)
 plt.title('Wake')
-plt.semilogx(freqs[ix], 10*np.log10(PSD_wake_wt.iloc[ix].mean(axis=1)), 'o-', label = 'WT', color = 'royalblue')
+# plt.semilogx(freqs[ix], 10*np.log10(PSD_wake_wt.iloc[ix].mean(axis=1)), 'o-', label = 'WT', color = 'royalblue')
+plt.semilogx(freqs[ix], 10*np.log10(PSD_wake_wt.iloc[ix]), 'o-', label = 'WT', color = 'royalblue')
 # err = 10*np.log10(PSD_wake_wt.iloc[ix].sem(axis=1))
 # plt.fill_between(freqs[ix],
 #                   10*np.log10(PSD_wake_wt.iloc[ix].mean(axis=1))-err, 
 #                   10*np.log10(PSD_wake_wt.iloc[ix].mean(axis=1))+err, color = 'royalblue', alpha = 0.2)
 
-plt.semilogx(freqs[ix], 10*np.log10(PSD_wake_ko.iloc[ix].mean(axis=1)), 'o-', label = 'KO', color = 'indianred')
+# plt.semilogx(freqs[ix], 10*np.log10(PSD_wake_ko.iloc[ix].mean(axis=1)), 'o-', label = 'KO', color = 'indianred')
+plt.semilogx(freqs[ix], 10*np.log10(PSD_wake_ko.iloc[ix]), 'o-', label = 'KO', color = 'indianred')
 # err = 10*np.log10(PSD_wake_ko.iloc[ix].sem(axis=1))
 # plt.fill_between(freqs[ix],
 #                  10*np.log10(PSD_wake_ko.iloc[ix].mean(axis=1))-err, 
