@@ -319,113 +319,180 @@ for r,s in enumerate(datasets):
         
         sess_tokeep_pv = []
         shu_threshold_pv = {}
+        
+#%% Compute Rayleigh test PYR
+    
+        # for ii in phasepref_pyr.columns:
+        #     MRL = circ_r(phasepref_pyr.index.values, w = phasepref_pyr[ii])
+        #     meanbin = circ_mean(phasepref_pyr.index.values, w = phasepref_pyr[ii])
+        #     z, p = circ_rayleigh(phasepref_pyr.index.values, w = phasepref_pyr[ii])
+        #     # print(p)
+            
+        #     sess_mrl_pyr.append(MRL)
+        #     sess_mean_pyr.append(meanbin)
+            
+        #     if isWT == 1:
+        #         mrl_pyr_wt.append(MRL)    
+        #         means_pyr_wt.append(meanbin)
+                
+        #         if p < 0.05:
+        #             tokeep_pyr_wt.append(True)
+        #             sess_tokeep_pyr.append(True)
+        #         else:
+        #             tokeep_pyr_wt.append(False)
+        #             sess_tokeep_pyr.append(False)
+                    
+        #     else:
+        #         mrl_pyr_ko.append(MRL)    
+        #         means_pyr_ko.append(meanbin)
+           
+        #         if p < 0.05:
+        #             tokeep_pyr_ko.append(True)
+        #             sess_tokeep_pyr.append(True)
+        #         else:
+        #             tokeep_pyr_ko.append(False)
+        #             sess_tokeep_pyr.append(False)
+
+#%% Compute Rayleigh test FS
+    
+        # for ii in phasepref_pv.columns:
+        #     MRL = circ_r(phasepref_pv.index.values, w = phasepref_pv[ii])
+        #     meanbin = circ_mean(phasepref_pv.index.values, w = phasepref_pv[ii])
+        #     z, p = circ_rayleigh(phasepref_pv.index.values, w = phasepref_pv[ii])
+        #     # print(p)
+            
+        #     sess_mrl_pv.append(MRL)
+        #     sess_mean_pv.append(meanbin)
+            
+        #     if isWT == 1:
+        #         mrl_pv_wt.append(MRL)    
+        #         means_pv_wt.append(meanbin)
+                
+        #         if p < 0.05:
+        #             tokeep_pv_wt.append(True)
+        #             sess_tokeep_pv.append(True)
+        #         else:
+        #             tokeep_pv_wt.append(False)
+        #             sess_tokeep_pv.append(False)
+                    
+        #     else:
+        #         mrl_pv_ko.append(MRL)    
+        #         means_pv_ko.append(meanbin)
+           
+        #         if p < 0.05:
+        #             tokeep_pv_ko.append(True)
+        #             sess_tokeep_pv.append(True)
+        #         else:
+        #             tokeep_pv_ko.append(False)
+        #             sess_tokeep_pv.append(False)
+
 
 #%% Computing shuffles PYR 
     
-        for k in range(100):
-            # print('k = ' + str(k))
-            shu_pyr = shuffleByCircularSpikes(pyr, ep)    
-            phasepref_shu_pyr = nap.compute_1d_tuning_curves(shu_pyr, phase, 40, ep)  
-            phasepref_shu_pyr = smoothAngularTuningCurves(phasepref_shu_pyr, sigma=3)
+        # for k in range(100):
+        #     # print('k = ' + str(k))
+        #     shu_pyr = shuffleByCircularSpikes(pyr, ep)    
+        #     phasepref_shu_pyr = nap.compute_1d_tuning_curves(shu_pyr, phase, 40, ep)  
+        #     phasepref_shu_pyr = smoothAngularTuningCurves(phasepref_shu_pyr, sigma=3)
         
-            for ii in phasepref_shu_pyr.columns:
-                MRL = circ_r(phasepref_shu_pyr.index.values, w = phasepref_shu_pyr[ii])
+        #     for ii in phasepref_shu_pyr.columns:
+        #         MRL = circ_r(phasepref_shu_pyr.index.values, w = phasepref_shu_pyr[ii])
                 
-                if k == 0:
-                    shu_mrl_pyr[ii] = MRL
-                else: 
-                    shu_mrl_pyr[ii] = np.append(shu_mrl_pyr[ii], MRL)
+        #         if k == 0:
+        #             shu_mrl_pyr[ii] = MRL
+        #         else: 
+        #             shu_mrl_pyr[ii] = np.append(shu_mrl_pyr[ii], MRL)
                
         
-        for ii in phasepref_pyr.columns:
-            shu_threshold_pyr[ii] = np.percentile(shu_mrl_pyr[ii], 95)
-            MRL = circ_r(phasepref_pyr.index.values, w = phasepref_pyr[ii])
-            meanbin = circ_mean(phasepref_pyr.index.values, w = phasepref_pyr[ii])
+        # for ii in phasepref_pyr.columns:
+        #     shu_threshold_pyr[ii] = np.percentile(shu_mrl_pyr[ii], 95)
+        #     MRL = circ_r(phasepref_pyr.index.values, w = phasepref_pyr[ii])
+        #     meanbin = circ_mean(phasepref_pyr.index.values, w = phasepref_pyr[ii])
             
-            # plt.figure()
-            # plt.title(MRL > shu_threshold_pyr[ii])
-            # plt.hist(shu_mrl_pyr[ii])
-            # plt.axvline(MRL)
+        #     # plt.figure()
+        #     # plt.title(MRL > shu_threshold_pyr[ii])
+        #     # plt.hist(shu_mrl_pyr[ii])
+        #     # plt.axvline(MRL)
             
-            sess_mrl_pyr.append(MRL)
-            sess_mean_pyr.append(meanbin)
+        #     sess_mrl_pyr.append(MRL)
+        #     sess_mean_pyr.append(meanbin)
             
                             
-            if isWT == 1:
-                mrl_pyr_wt.append(MRL)    
-                means_pyr_wt.append(meanbin)
+        #     if isWT == 1:
+        #         mrl_pyr_wt.append(MRL)    
+        #         means_pyr_wt.append(meanbin)
                 
-                if MRL > shu_threshold_pyr[ii]:
-                    tokeep_pyr_wt.append(True)
-                    sess_tokeep_pyr.append(True)
-                else:
-                    tokeep_pyr_wt.append(False)
-                    sess_tokeep_pyr.append(False)
+        #         if MRL > shu_threshold_pyr[ii]:
+        #             tokeep_pyr_wt.append(True)
+        #             sess_tokeep_pyr.append(True)
+        #         else:
+        #             tokeep_pyr_wt.append(False)
+        #             sess_tokeep_pyr.append(False)
              
                                                    
-            else:
-                mrl_pyr_ko.append(MRL)    
-                means_pyr_ko.append(meanbin)
+        #     else:
+        #         mrl_pyr_ko.append(MRL)    
+        #         means_pyr_ko.append(meanbin)
            
-                if MRL > shu_threshold_pyr[ii]:
-                    tokeep_pyr_ko.append(True)
-                    sess_tokeep_pyr.append(True)
-                else:
-                    tokeep_pyr_ko.append(False)
-                    sess_tokeep_pyr.append(False)
+        #         if MRL > shu_threshold_pyr[ii]:
+        #             tokeep_pyr_ko.append(True)
+        #             sess_tokeep_pyr.append(True)
+        #         else:
+        #             tokeep_pyr_ko.append(False)
+        #             sess_tokeep_pyr.append(False)
      
 #%% Computing shuffles FS
     
-        for k in range(100):
-            shu_pv = shuffleByCircularSpikes(pv, ep)    
-            phasepref_shu_pv = nap.compute_1d_tuning_curves(shu_pv, phase, 40, ep)  
-            phasepref_shu_pv = smoothAngularTuningCurves(phasepref_shu_pv, sigma=3)
+        # for k in range(100):
+        #     shu_pv = shuffleByCircularSpikes(pv, ep)    
+        #     phasepref_shu_pv = nap.compute_1d_tuning_curves(shu_pv, phase, 40, ep)  
+        #     phasepref_shu_pv = smoothAngularTuningCurves(phasepref_shu_pv, sigma=3)
         
-            for ii in phasepref_shu_pv.columns:
-                MRL = circ_r(phasepref_shu_pv.index.values, w = phasepref_shu_pv[ii])
+        #     for ii in phasepref_shu_pv.columns:
+        #         MRL = circ_r(phasepref_shu_pv.index.values, w = phasepref_shu_pv[ii])
                 
-                if k == 0:
-                    shu_mrl_pv[ii] = MRL
-                else: 
-                    shu_mrl_pv[ii] = np.append(shu_mrl_pv[ii], MRL)
+        #         if k == 0:
+        #             shu_mrl_pv[ii] = MRL
+        #         else: 
+        #             shu_mrl_pv[ii] = np.append(shu_mrl_pv[ii], MRL)
                
         
-        for ii in phasepref_pv.columns:
-            shu_threshold_pv[ii] = np.percentile(shu_mrl_pv[ii], 95)
-            MRL = circ_r(phasepref_pv.index.values, w = phasepref_pv[ii])
-            meanbin = circ_mean(phasepref_pv.index.values, w = phasepref_pv[ii])
+        # for ii in phasepref_pv.columns:
+        #     shu_threshold_pv[ii] = np.percentile(shu_mrl_pv[ii], 95)
+        #     MRL = circ_r(phasepref_pv.index.values, w = phasepref_pv[ii])
+        #     meanbin = circ_mean(phasepref_pv.index.values, w = phasepref_pv[ii])
             
-            # plt.figure()
-            # plt.title(MRL > shu_threshold_pv[ii])
-            # plt.hist(shu_mrl_pv[ii])
-            # plt.axvline(MRL)
+        #     # plt.figure()
+        #     # plt.title(MRL > shu_threshold_pv[ii])
+        #     # plt.hist(shu_mrl_pv[ii])
+        #     # plt.axvline(MRL)
             
-            sess_mrl_pv.append(MRL)
-            sess_mean_pv.append(meanbin)
+        #     sess_mrl_pv.append(MRL)
+        #     sess_mean_pv.append(meanbin)
             
                             
-            if isWT == 1:
-                mrl_pv_wt.append(MRL)    
-                means_pv_wt.append(meanbin)
+        #     if isWT == 1:
+        #         mrl_pv_wt.append(MRL)    
+        #         means_pv_wt.append(meanbin)
                 
-                if MRL > shu_threshold_pv[ii]:
-                    tokeep_pv_wt.append(True)
-                    sess_tokeep_pv.append(True)
-                else:
-                    tokeep_pv_wt.append(False)
-                    sess_tokeep_pv.append(False)
+        #         if MRL > shu_threshold_pv[ii]:
+        #             tokeep_pv_wt.append(True)
+        #             sess_tokeep_pv.append(True)
+        #         else:
+        #             tokeep_pv_wt.append(False)
+        #             sess_tokeep_pv.append(False)
      
                 
-            else:
-                mrl_pv_ko.append(MRL)    
-                means_pv_ko.append(meanbin)
+        #     else:
+        #         mrl_pv_ko.append(MRL)    
+        #         means_pv_ko.append(meanbin)
            
-                if MRL > shu_threshold_pv[ii]:
-                    tokeep_pv_ko.append(True)
-                    sess_tokeep_pv.append(True)
-                else:
-                    tokeep_pv_ko.append(False)
-                    sess_tokeep_pv.append(False)
+        #         if MRL > shu_threshold_pv[ii]:
+        #             tokeep_pv_ko.append(True)
+        #             sess_tokeep_pv.append(True)
+        #         else:
+        #             tokeep_pv_ko.append(False)
+        #             sess_tokeep_pv.append(False)
        
 
 #%%                 

@@ -12,13 +12,13 @@ import os, sys
 import matplotlib.pyplot as plt 
 import nwbmatic as ntm
 import pynapple as nap
-import pynacollada as pyna
 from scipy.signal import find_peaks, hilbert
 from functions_DM import *    
 
 #%% 
 
-data_directory = '/media/dhruv/Expansion/Processed'
+# data_directory = '/media/dhruv/Expansion/Processed'
+data_directory = '/media/adrien/Expansion/Processed'
 datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
 ripplechannels = np.genfromtxt(os.path.join(data_directory,'ripplechannel.list'), delimiter = '\n', dtype = str, comments = '#')
 
