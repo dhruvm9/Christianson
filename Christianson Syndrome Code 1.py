@@ -4,8 +4,6 @@ Spyder Editor
 
 This is a temporary script file.
 """
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Created on Mon Aug 19 12:39:59 2024
 

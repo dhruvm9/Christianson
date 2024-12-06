@@ -102,16 +102,16 @@ for s in datasets:
     
 #%% Plot tracking 
 
-    # plt.figure()
-    # plt.title(mousename)
-    # plt.imshow(im, origin = 'lower')
-    # ax = sns.scatterplot(data = position.as_dataframe(), x = position.as_dataframe()['x'], y = position.as_dataframe()['y'])
+    plt.figure()
+    plt.title(mousename)
+    plt.imshow(im, origin = 'lower')
+    ax = sns.scatterplot(data = position.as_dataframe(), x = position.as_dataframe()['x'], y = position.as_dataframe()['y'])
     
     
 #%% Compute distance between positions of consecutive frames 
 
     distance = np.sqrt(np.power(np.diff(position['x']), 2) + np.power(np.diff(position['y']), 2)) 
-    tot_dist = (sum(distance) * 60) / 470 ##approx conversion to cm
+    tot_dist = (sum(distance) * 60) / 430 ##approx conversion to cm
     
 #%% Sort results by genotype
         
