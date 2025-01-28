@@ -25,6 +25,7 @@ from scipy.stats import mannwhitneyu, wilcoxon
 
 ##Add path to data folder
 data_directory = '/media/DataDhruv/Recordings/Christianson/H3_cohort3'
+# data_directory = '/media/DataDhruv/Recordings/Christianson/H3F_cohort4'
 
 ##File with list of all sessions
 datasets = np.genfromtxt(os.path.normpath(os.path.join(data_directory,'dataset.list')), delimiter = '\n', dtype = str, comments = '#')

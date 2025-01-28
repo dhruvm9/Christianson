@@ -17,8 +17,8 @@ from scipy.stats import mannwhitneyu
 
 #%% 
 
-# data_directory = '/media/dhruv/Expansion/Processed'
-data_directory = '/media/dhruv/Expansion/Processed/CA3'
+data_directory = '/media/dhruv/Expansion/Processed'
+# data_directory = '/media/dhruv/Expansion/Processed/CA3'
 datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
 
 isWT = []
@@ -33,6 +33,10 @@ cellratios_ko = []
 
 pvcells = []
 bwfcells = []
+
+allcells = []
+excells = []
+inhcells = []
 
 for s in datasets:
     print(s)
@@ -60,9 +64,24 @@ for s in datasets:
     t2p.extend(spikes._metadata['tr2pk'].values)
     celltype.extend(spikes._metadata['celltype'].values)
     
-    if name == 'B2613' or name == 'B2618' or name == 'B2627' or name == 'B2628':
+    if name == 'B2613' or name == 'B2618' or name == 'B2627' or name == 'B2628' or name == 'B3805' or name == 'B3813':
         genotype.extend(np.zeros_like(spikes.restrict(nap.IntervalSet(epochs['wake'][0]))._metadata['rate'].values, dtype = 'bool'))
     else: genotype.extend(np.ones_like(spikes.restrict(nap.IntervalSet(epochs['wake'][0]))._metadata['rate'].values, dtype ='bool'))
+    
+    allcells.append(len(spikes))
+    
+    if 'fs' in spikes.getby_category('celltype').keys():
+        fscells = spikes.getby_category('celltype')['fs']
+        inhcells.append(len(fscells))
+    else: 
+        inhcells.append(0)
+        
+    if 'pyr' in spikes.getby_category('celltype').keys():
+        pyrcells = spikes.getby_category('celltype')['pyr']
+        excells.append(len(pyrcells))
+    else: 
+        excells.append(0)
+    
 
 #%% Ratio of FS versus broad waveform cells
     
@@ -72,7 +91,7 @@ for s in datasets:
             print('found!')
             print(len(spikes))
             fscells = spikes.getby_category('celltype')['fs']
-            
+                        
             pvcells.append(len(fscells))
             
             bwf = 0 

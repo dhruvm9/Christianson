@@ -27,7 +27,8 @@ from scipy.stats import mannwhitneyu, wilcoxon
 warnings.filterwarnings("ignore")
 
 ##Add path to data folder
-data_directory = '/media/DataDhruv/Recordings/Christianson/test_cohort3'
+# data_directory = '/media/DataDhruv/Recordings/Christianson/test_cohort3'
+data_directory = '/media/DataDhruv/Recordings/Christianson/testF_cohort4'
 
 ##File with list of all sessions
 datasets = np.genfromtxt(os.path.normpath(os.path.join(data_directory,'dataset.list')), delimiter = '\n', dtype = str, comments = '#')
@@ -171,23 +172,56 @@ for r, s in enumerate(datasets):
          
 #%% Building rectangle around objects and selecting times when animal is in rectangle
 
-    if dispobj == 'right':    
+### COHORT3 MALE
 
-        rectL_inner = patches.Rectangle((x_objL - 26, y_objL - 28), 77, 120, linewidth=1, edgecolor='g', facecolor='none')
-        rectL = patches.Rectangle((x_objL - 47.5, y_objL - 49.5), 120, 163, linewidth=1, edgecolor='b', facecolor='none')
-        
-        rectR_inner = patches.Rectangle((x_objR - 31, y_objR - 35), 75, 125, linewidth=1, edgecolor='g', facecolor='none')
-        rectR = patches.Rectangle((x_objR - 52.5, y_objR - 56.5), 118, 168, linewidth=1, edgecolor='b', facecolor='none')
+    if sex == 'M':
+
+        if dispobj == 'right':    
     
+            rectL_inner = patches.Rectangle((x_objL - 26, y_objL - 28), 77, 120, linewidth=1, edgecolor='g', facecolor='none')
+            rectL = patches.Rectangle((x_objL - 47.5, y_objL - 49.5), 120, 163, linewidth=1, edgecolor='b', facecolor='none')
+            
+            rectR_inner = patches.Rectangle((x_objR - 31, y_objR - 35), 75, 125, linewidth=1, edgecolor='g', facecolor='none')
+            rectR = patches.Rectangle((x_objR - 52.5, y_objR - 56.5), 118, 168, linewidth=1, edgecolor='b', facecolor='none')
+        
+        else: 
+            
+            rectL_inner = patches.Rectangle((x_objL - 26, y_objL - 35), 77, 120, linewidth=1, edgecolor='g', facecolor='none')
+            rectL = patches.Rectangle((x_objL - 47.5, y_objL - 56.5), 120, 163, linewidth=1, edgecolor='b', facecolor='none')
+            
+            rectR_inner = patches.Rectangle((x_objR - 31, y_objR - 25), 75, 125, linewidth=1, edgecolor='g', facecolor='none')
+            rectR = patches.Rectangle((x_objR - 52.5, y_objR - 46.5), 118, 168, linewidth=1, edgecolor='b', facecolor='none')
+        
+
+### COHORT4 FEMALE
+
     else: 
-        
-        rectL_inner = patches.Rectangle((x_objL - 26, y_objL - 35), 77, 120, linewidth=1, edgecolor='g', facecolor='none')
-        rectL = patches.Rectangle((x_objL - 47.5, y_objL - 56.5), 120, 163, linewidth=1, edgecolor='b', facecolor='none')
-        
-        rectR_inner = patches.Rectangle((x_objR - 31, y_objR - 25), 75, 125, linewidth=1, edgecolor='g', facecolor='none')
-        rectR = patches.Rectangle((x_objR - 52.5, y_objR - 46.5), 118, 168, linewidth=1, edgecolor='b', facecolor='none')
-    
-        
+
+        if dispobj == 'right' and (mousename not in ['1103', '1114', '1115', '1122', '2710', '2711']):  
+            
+            rectL_inner = patches.Rectangle((x_objL - 29, y_objL - 23), 77, 120, linewidth=1, edgecolor='g', facecolor='none')
+            rectL = patches.Rectangle((x_objL - 50.5, y_objL - 44.5), 120, 163, linewidth=1, edgecolor='b', facecolor='none')
+         
+            rectR_inner = patches.Rectangle((x_objR - 30, y_objR - 35), 75, 125, linewidth=1, edgecolor='g', facecolor='none')
+            rectR = patches.Rectangle((x_objR - 51.5, y_objR - 56.5), 118, 168, linewidth=1, edgecolor='b', facecolor='none')
+            
+        elif (dispobj == 'right') and (mousename in ['1103', '1114', '1115', '1122', '2710', '2711']):
+                    
+            rectL_inner = patches.Rectangle((x_objL - 29, y_objL - 23), 77, 120, linewidth=1, edgecolor='g', facecolor='none')
+            rectL = patches.Rectangle((x_objL - 50.5, y_objL - 44.5), 120, 163, linewidth=1, edgecolor='b', facecolor='none')
+         
+            rectR_inner = patches.Rectangle((x_objR - 35, y_objR - 36), 75, 125, linewidth=1, edgecolor='g', facecolor='none')
+            rectR = patches.Rectangle((x_objR - 56.5, y_objR - 57.5), 118, 168, linewidth=1, edgecolor='b', facecolor='none')
+               
+        else: 
+            
+            rectL_inner = patches.Rectangle((x_objL - 26, y_objL - 32), 77, 120, linewidth=1, edgecolor='g', facecolor='none')
+            rectL = patches.Rectangle((x_objL - 47.5, y_objL - 53.5), 120, 163, linewidth=1, edgecolor='b', facecolor='none')
+            
+            rectR_inner = patches.Rectangle((x_objR - 36, y_objR - 25), 75, 125, linewidth=1, edgecolor='g', facecolor='none')
+            rectR = patches.Rectangle((x_objR - 57.5, y_objR - 46.5), 118, 168, linewidth=1, edgecolor='b', facecolor='none')
+
+      
     rectL_coords = rectL.get_corners()
     rectR_coords = rectR.get_corners()
     rectL_inner_coords = rectL_inner.get_corners()
@@ -222,13 +256,13 @@ for r, s in enumerate(datasets):
     
     # if dispobj == 'left':
     
-    #     plt.figure()
-    #     plt.title(s)
-    #     plt.imshow(im, origin = 'lower')
-    #     plt.gca().add_patch(rectL)
-    #     plt.gca().add_patch(rectL_inner)
-    #     plt.gca().add_patch(rectR)
-    #     plt.gca().add_patch(rectR_inner)
+        # plt.figure()
+        # plt.title(s)
+        # plt.imshow(im, origin = 'lower')
+        # plt.gca().add_patch(rectL)
+        # plt.gca().add_patch(rectL_inner)
+        # plt.gca().add_patch(rectR)
+        # plt.gca().add_patch(rectR_inner)
         
     
     
@@ -617,14 +651,14 @@ x1 = np.random.normal(0, 0.01, size=len(infos_phase2['DI'][infos_phase2['genotyp
 x3 = np.random.normal(0.3, 0.01, size=len(infos_phase2['DI'][infos_phase2['genotype'] == 'KO']))
 # x4 = np.random.normal(0.3, 0.01, size=len(info2['mean'][info2['Genotype'] == 'KO'][info2['Sex'] == 'F']))
                       
-plt.plot(x1, infos_phase2['DI'][infos_phase2['genotype'] == 'WT'], '.', color = 'k', fillstyle = 'none', markersize = 8, zorder =3, label = 'male')
+plt.plot(x1, infos_phase2['DI'][infos_phase2['genotype'] == 'WT'], '.', color = 'k', fillstyle = 'none', markersize = 8, zorder =3)
 # plt.plot(x2, info2['mean'][info2['Genotype'] == 'WT'][info2['Sex'] == 'F'], '.', color = 'k', fillstyle = 'full', markersize = 8, zorder =3, label = 'female')
 plt.plot(x3, infos_phase2['DI'][infos_phase2['genotype'] == 'KO'], '.', color = 'k', fillstyle = 'none', markersize = 8, zorder =3)
 # plt.plot(x4, info2['mean'][info2['Genotype'] == 'KO'][info2['Sex'] == 'F'], '.', color = 'k', fillstyle = 'full', markersize = 8, zorder =3)
 
 plt.ylabel('Discrimination Index')
 plt.axhline(0, linestyle = '--',  color = 'silver')
-plt.legend(loc = 'upper left')
+# plt.legend(loc = 'upper left')
 plt.xticks([0, 0.3],['WT', 'KO'])
 plt.gca().set_box_aspect(1)
 
