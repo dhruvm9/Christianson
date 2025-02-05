@@ -59,6 +59,7 @@ for r,s in enumerate(datasets):
     lfpnrem = lfp.restrict(sws_ep)
             
     signal = pyna.eeg_processing.bandpass_filter(lfpnrem, 100, 200, 1250)
+    # signal = pyna.eeg_processing.bandpass_filter(lfpnrem, 90, 120, 1250)
     
     plt.figure(figsize=(15,5))
     plt.subplot(211)

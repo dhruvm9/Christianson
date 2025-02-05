@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Dec  6 09:40:59 2024
+Created on Wed Jan 29 10:50:06 2025
 
 @author: dhruv
 """
@@ -20,47 +20,41 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import warnings 
 from pylab import *
-from scipy.stats import mannwhitneyu, wilcoxon
+from scipy.stats import mannwhitneyu, wilcoxon, f_oneway, kruskal
+import scikit_posthocs as sp
+import statsmodels.api as sm
+from statsmodels.formula.api import ols
+from statsmodels.stats.multicomp import pairwise_tukeyhsd
 
 #%% 
 
 warnings.filterwarnings("ignore")
 
 ##Add path to data folder
-# data_directory = '/media/DataDhruv/Recordings/Christianson/test_cohort3'
-data_directory = '/media/DataDhruv/Recordings/Christianson/testF_cohort4'
+data_directory = '/media/DataDhruv/Recordings/Christianson/encoding_cohort3'
+# data_directory = '/media/DataDhruv/Recordings/Christianson/encodingF_cohort4'
 
 ##File with list of all sessions
 datasets = np.genfromtxt(os.path.normpath(os.path.join(data_directory,'dataset.list')), delimiter = '\n', dtype = str, comments = '#')
-displaced = np.genfromtxt(os.path.normpath(os.path.join(data_directory,'displaced.list')), delimiter = '\n', dtype = str, comments = '#')
 
 ## Variables to store final results 
-allsex_phase1 = []
-allsex_phase2 = []
+allmice = []
 
-allmice_phase1 = []
-allmice_phase2 = []
+all_lefts_wt = []
+all_lefts_ko = []
 
-all_lefts_phase1 = []
-all_lefts_phase2 = []
+all_rights_wt = []
+all_rights_ko = []
 
-all_rights_phase1 = []
-all_rights_phase2 = []
-
-genotype_phase1 = []
-genotype_phase2 = []
-
-allDI_phase1 = []
-allDI_phase2 = []
 
 ##Loop through each session from the list
 
-for r, s in enumerate(datasets):
+for s in datasets:
     print(s)
     mousename = s.split('_')[0] #The first character is the mouse name
     sex = s.split('_')[1] #Second character is sex (ignore)
     taskphase = s.split('_')[-1] #Last character is encoding or recall phase (Modify these portions as needed)
-    dispobj = displaced[r]
+    
     
     im = plt.imread(data_directory + '/' + s + '.png')
     
@@ -82,8 +76,8 @@ for r, s in enumerate(datasets):
     
     # If recall phase, analyze only the first 3 min (180s) of task. Each video has 30 frames per second.
     # if taskphase == '2':
-    trackedpos = trackedpos[0:30*180]
-    likelihoods = likelihoods[:,0:30*180]
+    # trackedpos = trackedpos[0:30*180]
+    # likelihoods = likelihoods[:,0:30*180]
     
     #Cutoff value of likelihood for reliable tracking
     pcutoff = 0.6
@@ -176,51 +170,86 @@ for r, s in enumerate(datasets):
 
     if sex == 'M':
 
-        if dispobj == 'right':    
-    
-            rectL_inner = patches.Rectangle((x_objL - 26, y_objL - 28), 77, 120, linewidth=1, edgecolor='g', facecolor='none')
-            rectL = patches.Rectangle((x_objL - 47.5, y_objL - 49.5), 120, 163, linewidth=1, edgecolor='b', facecolor='none')
-            
-            rectR_inner = patches.Rectangle((x_objR - 31, y_objR - 35), 75, 125, linewidth=1, edgecolor='g', facecolor='none')
-            rectR = patches.Rectangle((x_objR - 52.5, y_objR - 56.5), 118, 168, linewidth=1, edgecolor='b', facecolor='none')
+        rectL_inner = patches.Rectangle((x_objL - 26, y_objL - 28), 77, 120, linewidth=1, edgecolor='g', facecolor='none')
+        rectL = patches.Rectangle((x_objL - 47.5, y_objL - 49.5), 120, 163, linewidth=1, edgecolor='b', facecolor='none')
         
-        else: 
-            
-            rectL_inner = patches.Rectangle((x_objL - 26, y_objL - 35), 77, 120, linewidth=1, edgecolor='g', facecolor='none')
-            rectL = patches.Rectangle((x_objL - 47.5, y_objL - 56.5), 120, 163, linewidth=1, edgecolor='b', facecolor='none')
-            
-            rectR_inner = patches.Rectangle((x_objR - 31, y_objR - 25), 75, 125, linewidth=1, edgecolor='g', facecolor='none')
-            rectR = patches.Rectangle((x_objR - 52.5, y_objR - 46.5), 118, 168, linewidth=1, edgecolor='b', facecolor='none')
-        
+        rectR_inner = patches.Rectangle((x_objR - 31, y_objR - 26), 75, 125, linewidth=1, edgecolor='g', facecolor='none')
+        rectR = patches.Rectangle((x_objR - 52.5, y_objR - 47.5), 118, 168, linewidth=1, edgecolor='b', facecolor='none')
 
 ### COHORT4 FEMALE
-
+    
     else: 
-
-        if dispobj == 'right' and (mousename not in ['1103', '1114', '1115', '1122', '2710', '2711']):  
+        
+        splcases = ['647', '650', '1102', '1114', '1121', '1122', '2698', '1097', '1103', '1112', '1113', '1115']
+        
+        if mousename not in splcases:
+        
+            rectL_inner = patches.Rectangle((x_objL - 26, y_objL - 22), 77, 120, linewidth=1, edgecolor='g', facecolor='none')
+            rectL = patches.Rectangle((x_objL - 47.5, y_objL - 43.5), 120, 163, linewidth=1, edgecolor='b', facecolor='none')
             
-            rectL_inner = patches.Rectangle((x_objL - 29, y_objL - 23), 77, 120, linewidth=1, edgecolor='g', facecolor='none')
-            rectL = patches.Rectangle((x_objL - 50.5, y_objL - 44.5), 120, 163, linewidth=1, edgecolor='b', facecolor='none')
-         
-            rectR_inner = patches.Rectangle((x_objR - 30, y_objR - 35), 75, 125, linewidth=1, edgecolor='g', facecolor='none')
-            rectR = patches.Rectangle((x_objR - 51.5, y_objR - 56.5), 118, 168, linewidth=1, edgecolor='b', facecolor='none')
+            rectR_inner = patches.Rectangle((x_objR - 31, y_objR - 26), 75, 125, linewidth=1, edgecolor='g', facecolor='none')
+            rectR = patches.Rectangle((x_objR - 52.5, y_objR - 47.5), 118, 168, linewidth=1, edgecolor='b', facecolor='none')
+        
+        elif mousename in ['647', '1114']:
             
-        elif (dispobj == 'right') and (mousename in ['1103', '1114', '1115', '1122', '2710', '2711']):
+            rectL_inner = patches.Rectangle((x_objL - 30, y_objL - 22), 77, 120, linewidth=1, edgecolor='g', facecolor='none')
+            rectL = patches.Rectangle((x_objL - 51.5, y_objL - 43.5), 120, 163, linewidth=1, edgecolor='b', facecolor='none')
+            
+            rectR_inner = patches.Rectangle((x_objR - 31, y_objR - 26), 75, 125, linewidth=1, edgecolor='g', facecolor='none')
+            rectR = patches.Rectangle((x_objR - 52.5, y_objR - 47.5), 118, 168, linewidth=1, edgecolor='b', facecolor='none')
+        
+        elif mousename in ['650', '1102', '1121', '1122', '2698']:
+            
+            rectL_inner = patches.Rectangle((x_objL - 35, y_objL - 22), 77, 120, linewidth=1, edgecolor='g', facecolor='none')
+            rectL = patches.Rectangle((x_objL - 56.5, y_objL - 43.5), 120, 163, linewidth=1, edgecolor='b', facecolor='none')
+            
+            rectR_inner = patches.Rectangle((x_objR - 31, y_objR - 26), 75, 125, linewidth=1, edgecolor='g', facecolor='none')
+            rectR = patches.Rectangle((x_objR - 52.5, y_objR - 47.5), 118, 168, linewidth=1, edgecolor='b', facecolor='none')
                     
-            rectL_inner = patches.Rectangle((x_objL - 29, y_objL - 23), 77, 120, linewidth=1, edgecolor='g', facecolor='none')
-            rectL = patches.Rectangle((x_objL - 50.5, y_objL - 44.5), 120, 163, linewidth=1, edgecolor='b', facecolor='none')
-         
-            rectR_inner = patches.Rectangle((x_objR - 35, y_objR - 36), 75, 125, linewidth=1, edgecolor='g', facecolor='none')
-            rectR = patches.Rectangle((x_objR - 56.5, y_objR - 57.5), 118, 168, linewidth=1, edgecolor='b', facecolor='none')
-               
-        else: 
             
-            rectL_inner = patches.Rectangle((x_objL - 26, y_objL - 32), 77, 120, linewidth=1, edgecolor='g', facecolor='none')
-            rectL = patches.Rectangle((x_objL - 47.5, y_objL - 53.5), 120, 163, linewidth=1, edgecolor='b', facecolor='none')
+        elif mousename == '1103':
             
-            rectR_inner = patches.Rectangle((x_objR - 36, y_objR - 25), 75, 125, linewidth=1, edgecolor='g', facecolor='none')
-            rectR = patches.Rectangle((x_objR - 57.5, y_objR - 46.5), 118, 168, linewidth=1, edgecolor='b', facecolor='none')
-
+            rectL_inner = patches.Rectangle((x_objL - 30, y_objL - 22), 77, 120, linewidth=1, edgecolor='g', facecolor='none')
+            rectL = patches.Rectangle((x_objL - 51.5, y_objL - 43.5), 120, 163, linewidth=1, edgecolor='b', facecolor='none')
+            
+            rectR_inner = patches.Rectangle((x_objR - 28, y_objR - 26), 75, 125, linewidth=1, edgecolor='g', facecolor='none')
+            rectR = patches.Rectangle((x_objR - 49.5, y_objR - 47.5), 118, 168, linewidth=1, edgecolor='b', facecolor='none')
+            
+        elif mousename == '1115':
+            
+            rectL_inner = patches.Rectangle((x_objL - 35, y_objL - 22), 77, 120, linewidth=1, edgecolor='g', facecolor='none')
+            rectL = patches.Rectangle((x_objL - 56.5, y_objL - 43.5), 120, 163, linewidth=1, edgecolor='b', facecolor='none')
+            
+            rectR_inner = patches.Rectangle((x_objR - 28, y_objR - 26), 75, 125, linewidth=1, edgecolor='g', facecolor='none')
+            rectR = patches.Rectangle((x_objR - 49.5, y_objR - 47.5), 118, 168, linewidth=1, edgecolor='b', facecolor='none')
+                        
+                        
+        elif mousename == '1097': 
+            
+            rectL_inner = patches.Rectangle((x_objL - 30, y_objL - 22), 77, 120, linewidth=1, edgecolor='g', facecolor='none')
+            rectL = patches.Rectangle((x_objL - 51.5, y_objL - 43.5), 120, 163, linewidth=1, edgecolor='b', facecolor='none')
+            
+            rectR_inner = patches.Rectangle((x_objR - 35, y_objR - 26), 75, 125, linewidth=1, edgecolor='g', facecolor='none')
+            rectR = patches.Rectangle((x_objR - 56.5, y_objR - 47.5), 118, 168, linewidth=1, edgecolor='b', facecolor='none')
+            
+        elif mousename == '1113': 
+            
+            rectL_inner = patches.Rectangle((x_objL - 27, y_objL - 22), 77, 120, linewidth=1, edgecolor='g', facecolor='none')
+            rectL = patches.Rectangle((x_objL - 48.5, y_objL - 43.5), 120, 163, linewidth=1, edgecolor='b', facecolor='none')
+            
+            rectR_inner = patches.Rectangle((x_objR - 35, y_objR - 26), 75, 125, linewidth=1, edgecolor='g', facecolor='none')
+            rectR = patches.Rectangle((x_objR - 56.5, y_objR - 47.5), 118, 168, linewidth=1, edgecolor='b', facecolor='none')
+        
+       
+        else: #Animal 1112 
+            
+            rectL_inner = patches.Rectangle((x_objL - 24, y_objL - 22), 77, 120, linewidth=1, edgecolor='g', facecolor='none')
+            rectL = patches.Rectangle((x_objL - 45.5, y_objL - 43.5), 120, 163, linewidth=1, edgecolor='b', facecolor='none')
+            
+            rectR_inner = patches.Rectangle((x_objR - 35, y_objR - 25), 75, 125, linewidth=1, edgecolor='g', facecolor='none')
+            rectR = patches.Rectangle((x_objR - 56.5, y_objR - 46.5), 118, 168, linewidth=1, edgecolor='b', facecolor='none')
+                   
+                
       
     rectL_coords = rectL.get_corners()
     rectR_coords = rectR.get_corners()
@@ -419,14 +448,8 @@ for r, s in enumerate(datasets):
     objL_dur = all_lefttimes.tot_length()
     objR_dur = all_righttimes.tot_length()
     
-    if dispobj == 'right':
-        DI = (objR_dur - objL_dur) / (objR_dur + objL_dur)
-               
-    else: 
-        DI = (objL_dur - objR_dur) / (objL_dur + objR_dur)    
-       
     
-    
+        
 #%% 
 
     plt.figure()
@@ -446,222 +469,187 @@ for r, s in enumerate(datasets):
 
 #%% 
     
-    # #Compute time spent in each radius zone
-    # objL_dur = (ep_objL['end'] - ep_objL['start']).sum()
-    # objR_dur = (ep_objR['end'] - ep_objR['start']).sum()
-    
-    #Quantify object displacement
-    # if '8' in s.split('_')[2]:
-    #     DI = (objR_dur - objL_dur) / (objR_dur + objL_dur)
-    #     # DI = objR_dur / (objR_dur + objL_dur)
-    #     print('right moved!')
-    # else:
-    #     DI = (objL_dur - objR_dur) / (objR_dur + objL_dur)
-    #     # DI = objL_dur / (objR_dur + objL_dur)
-    #     print('left moved!')
-    
-    # #Sort results by task phase and sex (not relevant for now)
-    if taskphase == '1':
-        all_lefts_phase1.append(objL_dur)
-        all_rights_phase1.append(objR_dur)
-        allDI_phase1.append(DI)
-        allmice_phase1.append(mousename)
-        
-        
-        #Sort results by genotype (not relevant for now)
-        if s[0] == '2':
-            genotype_phase1.append('WT')
-            # print('WT')
-        else: 
-            genotype_phase1.append('KO')
-            # print('KO')
-        
-    else:
-        all_lefts_phase2.append(objL_dur)
-        all_rights_phase2.append(objR_dur)
-        allDI_phase2.append(DI)
-        allmice_phase2.append(mousename)
+    allmice.append(mousename)
+
+    if s[0] == '2':
                 
-        if s[0] == '2':
-            genotype_phase2.append('WT')
-            # print('WT')
-        else: 
-            genotype_phase2.append('KO')
-            # print('KO')
+        all_lefts_wt.append(objL_dur)
+        all_rights_wt.append(objR_dur)
+        
+    else: 
+        
+        all_lefts_ko.append(objL_dur)
+        all_rights_ko.append(objR_dur)
+        
+   
     
     
 #%% Compile the results from all sessions into a dataframe
 
-# info1 = pd.DataFrame((zip(allmice_phase1, allsex_phase1, genotype_phase1, all_lefts_phase1, all_rights_phase1, allDI_phase1)), columns =['Name', 'sex', 'genotype', 'left', 'right', 'DI'])
+wt = np.array(['WT' for x in range(len(all_lefts_wt))])
+ko = np.array(['KO' for x in range(len(all_lefts_ko))])
 
-# m_wt = info1[(info1['sex'] == 'M') & (info1['genotype'] == 'WT')]['DI'].values
-# m_ko = info1[(info1['sex'] == 'M') & (info1['genotype'] == 'KO')]['DI'].values
-# f_ko = info1[(info1['sex'] == 'F') & (info1['genotype'] == 'KO')]['DI'].values
+genotype = np.hstack([wt, ko])
 
-# wt_m = np.array(['WT_male' for x in range(len(m_wt))])
-# ko_m = np.array(['KO_male' for x in range(len(m_ko))])
-# ko_f = np.array(['KO_female' for x in range(len(f_ko))])
+leftdurs = []
+leftdurs.extend(all_lefts_wt)
+leftdurs.extend(all_lefts_ko)
 
-# gtype = np.hstack([wt_m, ko_m, ko_f])
-# DIs = np.hstack([m_wt, m_ko, f_ko])
+rightdurs = []
+rightdurs.extend(all_rights_wt)
+rightdurs.extend(all_rights_ko)
 
-#Look at the output of this variable to understand what the table looks like
-
-
-# infos_phase1 = pd.DataFrame(data = [DIs, gtype], index = ['DI', 'genotype']).T
+durdf = pd.DataFrame(data = [leftdurs, rightdurs, genotype], index = ['left','right', 'genotype']).T
 
 
-### PHASE 2 (Not relevant: but same thing for both task phases)
+#%% Plot all results 
 
-info2 = pd.DataFrame((zip(allmice_phase2, genotype_phase2, all_lefts_phase2, all_rights_phase2, allDI_phase2)), columns =['Name', 'genotype', 'left', 'right', 'DI'])
-info2 = info2.dropna()
+label = ['WT male']
+x = np.arange(len(label))  # the label locations
+width = 0.35  # the width of the bars
 
-m_wt = info2[(info2['genotype'] == 'WT')]['DI'].values
-m_ko = info2[(info2['genotype'] == 'KO')]['DI'].values
+fig, ax = plt.subplots()
+rects1 = ax.bar(x - width/2, durdf[durdf['genotype'] == 'WT']['left'].mean(), width, label='Left', color = 'cadetblue')
+rects2 = ax.bar(x + width/2, durdf[durdf['genotype'] == 'WT']['right'].mean(), width, label='Right', color = 'violet')
+pval = np.vstack([(durdf[durdf['genotype'] == 'WT']['left'].values, durdf[durdf['genotype'] == 'WT']['right'].values)])
+x2 = [x-width/2, x+width/2]
+plt.plot(x2, np.vstack(pval), 'o-', fillstyle = 'none',  color = 'k')
+plt.errorbar(x2[0], np.mean(pval[0]), yerr = scipy.stats.sem(pval[0]) , fmt = 'o', color="k", linewidth = 2, capsize = 6)
+plt.errorbar(x2[1], np.mean(pval[1]), yerr = scipy.stats.sem(pval[1]) , fmt = 'o', color="k", linewidth = 2, capsize = 6)
+plt.ylim([0, 140])
 
-wt_m = np.array(['WT' for x in range(len(m_wt))])
-ko_m = np.array(['KO' for x in range(len(m_ko))])
-
-
-gtype = np.hstack([wt_m, ko_m])
-DIs = np.hstack([m_wt, m_ko])
-
-infos_phase2 = pd.DataFrame(data = [DIs, gtype], index = ['DI', 'genotype']).T
-
-
-#%% IGNORE
-
-# plt.figure()
-# plt.suptitle('Object Displacement')
-# plt.subplot(121)
-# plt.title('Encoding Phase')
-# sns.set_style('white')
-# palette = ['royalblue', 'indianred', 'darkslategray']
-# ax = sns.violinplot( x = infos_phase1['genotype'], y=infos_phase1['DI'].astype(float) , data = infos_phase1, dodge=False,
-#                     palette = palette,cut = 2,
-#                     scale="width", inner=None)
-# ax.tick_params(bottom=True, left=True)
-# xlim = ax.get_xlim()
-# ylim = ax.get_ylim()
-# for violin in ax.collections:
-#     x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
-#     violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
-# sns.boxplot(x = infos_phase1['genotype'], y=infos_phase1['DI'].astype(float) , data = infos_phase1, saturation=1, showfliers=False,
-#             width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
-# old_len_collections = len(ax.collections)
-# sns.stripplot(x = infos_phase1['genotype'], y=infos_phase1['DI'].astype(float) , data = infos_phase1, color = 'k', dodge=False, ax=ax)
-
-# for dots in ax.collections[old_len_collections:]:
-#     dots.set_offsets(dots.get_offsets())
-# ax.set_xlim(xlim)
-# ax.set_ylim(ylim)
-# plt.ylabel('Discrimination Index')
-# plt.axhline(0, linestyle = '--', color ='silver')
-# ax.set_box_aspect(1)
-
-# plt.subplot(122)
-# plt.title('Recall Phase')
-# sns.set_style('white')
-# palette = ['royalblue', 'indianred', 'darkslategray']
-# ax = sns.violinplot( x = infos_phase2['genotype'], y=infos_phase2['DI'].astype(float) , data = infos_phase2, dodge=False,
-#                     palette = palette,cut = 2,
-#                     scale="width", inner=None)
-# ax.tick_params(bottom=True, left=True)
-# xlim = ax.get_xlim()
-# ylim = ax.get_ylim()
-# for violin in ax.collections:
-#     x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
-#     violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
-# sns.boxplot(x = infos_phase2['genotype'], y=infos_phase2['DI'].astype(float) , data = infos_phase2, saturation=1, showfliers=False,
-#             width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
-# old_len_collections = len(ax.collections)
-# sns.stripplot(x = infos_phase2['genotype'], y=infos_phase2['DI'].astype(float) , data = infos_phase2, color = 'k', dodge=False, ax=ax)
-
-# for dots in ax.collections[old_len_collections:]:
-#     dots.set_offsets(dots.get_offsets())
-# ax.set_xlim(xlim)
-# ax.set_ylim(ylim)
-# plt.ylabel('Discrimination Index')
-# plt.axhline(0, linestyle = '--', color ='silver')
-# ax.set_box_aspect(1)
-
-
-#%% Plot all results (needs modification, will modify once everything is ready)
-
-# label = ['WT male']
-# x = np.arange(len(label))  # the label locations
-# width = 0.35  # the width of the bars
-
-# fig, ax = plt.subplots()
-# rects1 = ax.bar(x - width/2, infos_phase1[infos_phase1['genotype'] == 'WT_male']['DI'].mean(), width, label='Encoding Phase')
-# rects2 = ax.bar(x + width/2, infos_phase2[infos_phase2['genotype'] == 'WT_male']['DI'].mean(), width, label='Recall Phase')
-# pval = np.vstack([(infos_phase1[infos_phase1['genotype'] == 'WT_male']['DI'].values), (infos_phase2[infos_phase2['genotype'] == 'WT_male']['DI'].values)])
-# x2 = [x-width/2, x+width/2]
-# plt.plot(x2, np.vstack(pval), 'o-', color = 'k')
 # Add some text for labels, title and custom x-axis tick labels, etc.
-# ax.set_ylabel('Discrimination index')
-# ax.set_title('WT male')
-# ax.set_xticks(x)
-# ax.legend(loc = 'upper right')
-# ax.set_box_aspect(1)
-# fig.tight_layout()
+ax.set_ylabel('Interaction time (s)')
+ax.set_title('WT male')
+ax.set_xticks(x)
+ax.legend(loc = 'upper right')
+ax.set_box_aspect(1)
+fig.tight_layout()
 
-# fig, ax = plt.subplots()
-# rects1 = ax.bar(x - width/2, infos_phase1[infos_phase1['genotype'] == 'KO_male']['DI'].mean(), width, label='Encoding Phase')
-# rects2 = ax.bar(x + width/2, infos_phase2[infos_phase2['genotype'] == 'KO_male']['DI'].mean(), width, label='Recall Phase')
-# pval = np.vstack([(infos_phase1[infos_phase1['genotype'] == 'KO_male']['DI'].values), (infos_phase2[infos_phase2['genotype'] == 'KO_male']['DI'].values)])
-# x2 = [x-width/2, x+width/2]
-# plt.plot(x2, np.vstack(pval), 'o-', color = 'k')
-# # Add some text for labels, title and custom x-axis tick labels, etc.
-# ax.set_ylabel('Discrimination index')
-# ax.set_title('KO male')
-# ax.set_xticks(x)
-# ax.legend(loc = 'upper right')
-# ax.set_box_aspect(1)
-# fig.tight_layout()
-
-# fig, ax = plt.subplots()
-# rects1 = ax.bar(x - width/2, infos_phase1[infos_phase1['genotype'] == 'KO_female']['DI'].mean(), width, label='Encoding Phase')
-# rects2 = ax.bar(x + width/2, infos_phase2[infos_phase2['genotype'] == 'KO_female']['DI'].mean(), width, label='Recall Phase')
-# pval = np.vstack([(infos_phase1[infos_phase1['genotype'] == 'KO_female']['DI'].values), (infos_phase2[infos_phase2['genotype'] == 'KO_female']['DI'].values)])
-# x2 = [x-width/2, x+width/2]
-# plt.plot(x2, np.vstack(pval), 'o-', color = 'k')
-# # Add some text for labels, title and custom x-axis tick labels, etc.
-# ax.set_ylabel('Discrimination index')
-# ax.set_title('KO female')
-# ax.set_xticks(x)
-# ax.legend(loc = 'upper right')
-# ax.set_box_aspect(1)
-# fig.tight_layout()
+z, p = wilcoxon(all_lefts_wt, all_rights_wt)
 
 #%% 
 
-plt.figure()
-plt.boxplot(infos_phase2['DI'][infos_phase2['genotype'] == 'WT'], positions = [0], showfliers= False, patch_artist=True,boxprops=dict(facecolor='royalblue', color='royalblue'),
-            capprops=dict(color='royalblue'),
-            whiskerprops=dict(color='royalblue'),
-            medianprops=dict(color='white', linewidth = 2))
-plt.boxplot(infos_phase2['DI'][infos_phase2['genotype'] == 'KO'], positions = [0.3], showfliers= False, patch_artist=True,boxprops=dict(facecolor='indianred', color='indianred'),
-            capprops=dict(color='indianred'),
-            whiskerprops=dict(color='indianred'),
-            medianprops=dict(color='white', linewidth = 2))
+label = ['KO male']
+x = np.arange(len(label))  # the label locations
+width = 0.35  # the width of the bars
 
-x1 = np.random.normal(0, 0.01, size=len(infos_phase2['DI'][infos_phase2['genotype'] == 'WT']))
-# x2 = np.random.normal(0, 0.01, size=len(info2['mean'][info2['Genotype'] == 'WT'][info2['Sex'] == 'F']))
-x3 = np.random.normal(0.3, 0.01, size=len(infos_phase2['DI'][infos_phase2['genotype'] == 'KO']))
-# x4 = np.random.normal(0.3, 0.01, size=len(info2['mean'][info2['Genotype'] == 'KO'][info2['Sex'] == 'F']))
-                      
-plt.plot(x1, infos_phase2['DI'][infos_phase2['genotype'] == 'WT'], '.', color = 'k', fillstyle = 'none', markersize = 8, zorder =3)
-# plt.plot(x2, info2['mean'][info2['Genotype'] == 'WT'][info2['Sex'] == 'F'], '.', color = 'k', fillstyle = 'full', markersize = 8, zorder =3, label = 'female')
-plt.plot(x3, infos_phase2['DI'][infos_phase2['genotype'] == 'KO'], '.', color = 'k', fillstyle = 'none', markersize = 8, zorder =3)
-# plt.plot(x4, info2['mean'][info2['Genotype'] == 'KO'][info2['Sex'] == 'F'], '.', color = 'k', fillstyle = 'full', markersize = 8, zorder =3)
+fig, ax = plt.subplots()
+rects1 = ax.bar(x - width/2, durdf[durdf['genotype'] == 'KO']['left'].mean(), width, label='Left', color = 'cadetblue')
+rects2 = ax.bar(x + width/2, durdf[durdf['genotype'] == 'KO']['right'].mean(), width, label='Right', color = 'violet')
+pval = np.vstack([(durdf[durdf['genotype'] == 'KO']['left'].values, durdf[durdf['genotype'] == 'KO']['right'].values)])
+x2 = [x-width/2, x+width/2]
+plt.plot(x2, np.vstack(pval), 'o-', fillstyle = 'none',  color = 'k')
+plt.errorbar(x2[0], np.mean(pval[0]), yerr = scipy.stats.sem(pval[0]) , fmt = 'o', color="k", linewidth = 2, capsize = 6)
+plt.errorbar(x2[1], np.mean(pval[1]), yerr = scipy.stats.sem(pval[1]) , fmt = 'o', color="k", linewidth = 2, capsize = 6)
+plt.ylim([0, 140])
 
-plt.ylabel('Discrimination Index')
-plt.axhline(0, linestyle = '--',  color = 'silver')
-# plt.legend(loc = 'upper left')
-plt.xticks([0, 0.3],['WT', 'KO'])
-plt.ylim([-1.1, 1.1])
-plt.gca().set_box_aspect(1)
+# Add some text for labels, title and custom x-axis tick labels, etc.
+ax.set_ylabel('Interaction time (s)')
+ax.set_title('KO male')
+ax.set_xticks(x)
+ax.legend(loc = 'upper right')
+ax.set_box_aspect(1)
+fig.tight_layout()
 
-z_wt, p_wt = wilcoxon(np.array(infos_phase2['DI'][infos_phase2['genotype'] == 'WT'])-0)
-z_ko, p_ko = wilcoxon(np.array(infos_phase2['DI'][infos_phase2['genotype'] == 'KO'])-0)
+z, p = wilcoxon(all_lefts_ko, all_rights_ko)
+
+#%% 
+
+left_wt_f = [90.533419331, 39.800027994, 67.600047996, 72.166719663, 46.500034001, 16.800021999, 54.966726669, 44.300071998, 
+              71.06672267, 49.533408328, 12.233349333, 63.833407335, 76.366750669]
+
+right_wt_f = [73.900075991, 43.533369333, 40.100025999, 71.000048002, 67.200050001, 12.766687668, 100.033412338, 70.400086005,
+              60.200061002, 43.166729665, 15.566680666, 38.700039999, 57.833405334]
+
+left_ko_f = [117.066774669, 103.36673167, 83.700071001, 17.300021001, 61.466711668, 132.633471345, 98.966743666, 47.300040998,
+              25.100017999, 57.16673067, 69.266727666, 94.533402334, 81.966748671, 76.500088999]
+
+right_ko_f = [105.033398334, 117.100074003,84.200070003,13.800020999,40.900027001, 74.200062,72.966723664,119.966756657,
+              20.533353334, 40.43338033, 108.166762668, 78.166717665, 94.733425338, 96.600090992]
+
+left_wt_m = [20.26669167, 17.800024, 9.866686665, 15.133352334, 1.633335333, 22.966684665, 7.566676666, 66.933398334, 
+              59.466724666, 93.866755673, 115.766789664, 4.666673666, 77.033407336, 51.566721667, 91.200083]
+
+right_wt_m = [14.333353335, 14.800019002, 6.866678665, 12.133347335, 0.800001, 11.600016, 7.466678668, 59.400056, 51.633376333,
+              54.033395331, 54.233398332, 5.533340333, 57.066713672, 62.600046001, 48.333385335]
+
+left_ko_m = [13.966681667, 39.73337233, 91.300080997, 106.400103, 25.86670967, 34.33338133, 20.766705666, 57.400060999,
+              39.566725666, 30.533374332, 100.366763672, 71.133396326, 93.800111997, 79.500077005]
+
+right_ko_m = [7.466674668, 49.133372334, 93.733420337, 68.200058001, 19.500036002, 22.633363332, 23.066700664, 34.866705666,
+              59.333392334, 11.566674667, 100.166763666, 68.100052995, 78.766730672, 93.200068002]    
+
+# kruskal(left_wt_f, right_wt_f, left_ko_f, right_ko_f, left_wt_m, right_wt_m, left_ko_m, right_ko_m)
+    
+# data = [left_wt_f, right_wt_f, left_ko_f, right_ko_f, left_wt_m, right_wt_m, left_ko_m, right_ko_m]
+
+# sp.posthoc_dunn(data, p_adjust = 'holm')
+
+# tot_wt_m = np.add(left_wt_m, right_wt_m)
+# tot_wt_f = np.add(left_wt_f, right_wt_f)
+# tot_ko_m = np.add(left_ko_m, right_ko_m)
+# tot_ko_f = np.add(left_ko_f, right_ko_f)
+
+
+# kruskal(tot_wt_m, tot_wt_f, tot_ko_m, tot_ko_f)
+# data = [tot_wt_m, tot_wt_f, tot_ko_m, tot_ko_f]
+
+# sp.posthoc_dunn(data, p_adjust = 'holm')
+
+#%% 
+
+times = np.hstack([left_wt_f, right_wt_f, left_ko_f, right_ko_f, left_wt_m, right_wt_m, left_ko_m, right_ko_m])
+
+s1 = np.array(['L' for x in range(len(left_wt_f))])
+s2 = np.array(['R' for x in range(len(right_wt_f))])
+s3 = np.array(['L' for x in range(len(left_ko_f))])
+s4 = np.array(['R' for x in range(len(right_ko_f))])
+s5 = np.array(['L' for x in range(len(left_wt_m))])
+s6 = np.array(['R' for x in range(len(right_wt_m))])
+s7 = np.array(['L' for x in range(len(left_ko_m))])
+s8 = np.array(['R' for x in range(len(right_ko_m))])
+side = np.hstack([s1, s2, s3, s4, s5, s6, s7, s8])
+
+g1 = np.array(['WT' for x in range(len(left_wt_f))])
+g2 = np.array(['WT' for x in range(len(right_wt_f))])
+g3 = np.array(['KO' for x in range(len(left_ko_f))])
+g4 = np.array(['KO' for x in range(len(right_ko_f))])
+g5 = np.array(['WT' for x in range(len(left_wt_m))])
+g6 = np.array(['WT' for x in range(len(right_wt_m))])
+g7 = np.array(['KO' for x in range(len(left_ko_m))])
+g8 = np.array(['KO' for x in range(len(right_ko_m))])
+genotype = np.hstack([g1, g2, g3, g4, g5, g6, g7, g8])
+
+mf1 = np.array(['F' for x in range(len(left_wt_f))])
+mf2 = np.array(['F' for x in range(len(right_wt_f))])
+mf3 = np.array(['F' for x in range(len(left_ko_f))])
+mf4 = np.array(['F' for x in range(len(right_ko_f))])
+mf5 = np.array(['M' for x in range(len(left_wt_m))])
+mf6 = np.array(['M' for x in range(len(right_wt_m))])
+mf7 = np.array(['M' for x in range(len(left_ko_m))])
+mf8 = np.array(['M' for x in range(len(right_ko_m))])
+sex = np.hstack([mf1, mf2, mf3, mf4, mf5, mf6, mf7, mf8])
+
+df = pd.DataFrame(data = [times, side, genotype, sex], index = ['times','side', 'genotype', 'sex']).T
+df['times']= pd.to_numeric(df['times'])
+
+# model = ols('times ~ C(side) * C(genotype) * C(sex)', data=df).fit()
+# anova_table = sm.stats.anova_lm(model, typ=2)
+
+# tukey_genotype = pairwise_tukeyhsd(endog=df['times'], groups=df['genotype'], alpha=0.05)
+# tukey_sex = pairwise_tukeyhsd(endog=df['times'], groups=df['sex'], alpha=0.05)
+
+groups_side = [df['times'][df['side'] == level] for level in df['side'].unique()]
+groups_genotype = [df['times'][df['genotype'] == level] for level in df['genotype'].unique()]
+groups_sex = [df['times'][df['sex'] == level] for level in df['sex'].unique()]
+
+kruskal_result_side = kruskal(*groups_side)
+kruskal_result_genotype = kruskal(*groups_genotype)
+kruskal_result_sex = kruskal(*groups_sex)
+
+dunn_side = sp.posthoc_dunn(df, val_col='times', group_col='side', p_adjust='holm')
+dunn_genotype = sp.posthoc_dunn(df, val_col='times', group_col='genotype', p_adjust='holm')
+dunn_sex = sp.posthoc_dunn(df, val_col='times', group_col='sex', p_adjust='holm')
+
+#%% 

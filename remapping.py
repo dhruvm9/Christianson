@@ -64,6 +64,14 @@ sparsity2_ko = []
 pvcorr_wt = []
 pvcorr_ko = []
 
+pvec1_wt = []
+pvec2_wt = []
+pvec1_ko = []
+pvec2_ko = []
+
+pvsess_wt = []
+pvsess_ko = []
+
 for s in datasets:
     print(s)
     name = s.split('-')[0]
@@ -189,20 +197,29 @@ for s in datasets:
         pf1, binsxy = nap.compute_2d_tuning_curves(group = pyr2, features = rot_pos[['x', 'z']], ep = oddep, nb_bins=24)  
         pf2, binsxy = nap.compute_2d_tuning_curves(group = pyr2, features = rot_pos[['x', 'z']], ep = evenep, nb_bins=24)  
                 
-        keep = []
+        # keep = []
         
-        for k in pyr2:
+        # for k in pyr2:
         
-            good = np.logical_and(np.isfinite(pf1[k].flatten()), np.isfinite(pf2[k].flatten()))
-            corr, p = scipy.stats.pearsonr(pf1[k].flatten()[good], pf2[k].flatten()[good]) 
+        #     good = np.logical_and(np.isfinite(pf1[k].flatten()), np.isfinite(pf2[k].flatten()))
+        #     corr, p = scipy.stats.pearsonr(pf1[k].flatten()[good], pf2[k].flatten()[good]) 
             # if corr > 0.14:
+            # if corr > 0.15:
+            # if corr > 0.19:
+            # if corr > 0.1:
             # if corr > 0.4:
             # if corr > 0.3:
             # if corr > 0.25:
-            if corr > 0.2:
-                keep.append(k)
+            # if corr > 0:
+            # if corr > 0.2:
+            # if corr > 0.05:
+            # if corr > 0.075:
+            # if corr > 0.08:
+            # if corr > 0.09:
+                # keep.append(k)
                 
-        pyr3 = pyr2[keep]
+        # pyr3 = pyr2[keep]
+        pyr3 = pyr2 
         
 #%% 
 
@@ -227,6 +244,7 @@ for s in datasets:
             SI_2 = nap.compute_2d_mutual_info(placefields2, rot_pos[['x', 'z']], ep = ep2)
             spatialinfo_env2 = nap.compute_2d_mutual_info(placefields2, rot_pos[['x', 'z']], ep = ep2)       
                 
+                       
             
             sp1 = [] 
             sp2 = []
@@ -249,7 +267,33 @@ for s in datasets:
                 masked_array = np.ma.masked_where(px2 == 0, placefields2[i]) #should work fine without it 
                 placefields2[i] = masked_array
                 
-            pvcorr = compute_PVcorrs(placefields1, placefields2, pyr3.index)
+            normpf1 = {}
+            for i in placefields1.keys():
+                normpf1[i] = placefields1[i] / np.max(placefields1[i])
+                
+            normpf2 = {}
+            for i in placefields2.keys():
+                normpf2[i] = placefields2[i] / np.max(placefields2[i])
+             
+            # plt.figure()
+            # plt.title(s + '_1')
+            # plt.imshow(compute_population_vectors(normpf1, pyr3.index))
+            # plt.colorbar()
+            
+            # plt.figure()
+            # plt.title(s + '_2')
+            # plt.imshow(compute_population_vectors(normpf2, pyr3.index))
+            # plt.colorbar()
+            
+                
+            pvcorr = compute_PVcorrs(normpf1, normpf2, pyr3.index)
+            
+            # pvcorr = compute_PVcorrs(placefields1, placefields2, pyr3.index)
+            
+           
+            # pvec1 = compute_population_vectors(placefields1, pyr3.index)
+            # pvec2 = compute_population_vectors(placefields2, pyr3.index)
+                        
             # print(pvcorr)
             
             if isWT == 1:
@@ -258,12 +302,18 @@ for s in datasets:
                 sparsity1_wt.extend(sp1)
                 sparsity2_wt.extend(sp2)
                 pvcorr_wt.append(pvcorr)
+                # pvec1_wt.append(pvec1)
+                # pvec2_wt.append(pvec2)
+                pvsess_wt.append(name)
             else: 
                 allspatialinfo_env1_ko.extend(spatialinfo_env1['SI'].tolist())
                 allspatialinfo_env2_ko.extend(spatialinfo_env2['SI'].tolist())
                 sparsity1_ko.extend(sp1)
                 sparsity2_ko.extend(sp2)
                 pvcorr_ko.append(pvcorr)
+                # pvec1_ko.append(pvec1)
+                # pvec2_ko.append(pvec2)
+                pvsess_ko.append(name)
         
     # sys.exit()
     
@@ -272,30 +322,30 @@ for s in datasets:
 
 #%% Plot remapping 
     
-            ref = pyr3.keys()
-            nrows = int(np.sqrt(len(ref)))
-            ncols = int(len(ref)/nrows)+1
+            # ref = pyr3.keys()
+            # nrows = int(np.sqrt(len(ref)))
+            # ncols = int(len(ref)/nrows)+1
         
-            plt.figure()
-            plt.suptitle(s + ' Wake1')
-            for i,n in enumerate(pyr3):
-                plt.subplot(nrows, ncols, i+1)
-                # plt.title(spikes._metadata['celltype'][i])
-                # plt.imshow(placefields1[n], extent=(binsxy1[0][0],binsxy1[0][-1],binsxy1[1][0],binsxy1[1][-1]), cmap = 'jet')        
-                plt.imshow(placefields1[n].T, extent=(binsxy1[0][0],binsxy1[0][-1],binsxy1[1][0],binsxy1[1][-1]), origin = 'lower', cmap = 'viridis')        
-                # plt.imshow(placefields1[n].T, cmap = 'viridis', aspect = 'auto', origin = 'lower')   
-                plt.colorbar()
+            # plt.figure()
+            # plt.suptitle(s + ' Wake1')
+            # for i,n in enumerate(pyr3):
+            #     plt.subplot(nrows, ncols, i+1)
+            #     # plt.title(spikes._metadata['celltype'][i])
+            #     # plt.imshow(placefields1[n], extent=(binsxy1[0][0],binsxy1[0][-1],binsxy1[1][0],binsxy1[1][-1]), cmap = 'jet')        
+            #     plt.imshow(placefields1[n].T, extent=(binsxy1[0][0],binsxy1[0][-1],binsxy1[1][0],binsxy1[1][-1]), origin = 'lower', cmap = 'viridis')        
+            #     # plt.imshow(placefields1[n].T, cmap = 'viridis', aspect = 'auto', origin = 'lower')   
+            #     plt.colorbar()
         
-            plt.figure()
-            plt.suptitle(s + ' Wake2')
-            for i,n in enumerate(pyr3):
-                plt.subplot(nrows, ncols, i+1)
-                # plt.title(spikes._metadata['celltype'][i])
-                # plt.imshow(placefields2[n], extent=(binsxy2[0][0],binsxy2[0][-1],binsxy2[1][0],binsxy2[1][-1]), cmap = 'jet')        
-                plt.imshow(placefields2[n].T, extent=(binsxy2[0][0],binsxy2[0][-1],binsxy2[1][0],binsxy2[1][-1]), origin = 'lower', cmap = 'viridis')        
-                # plt.imshow(placefields2[n].T, cmap = 'viridis', aspect = 'auto', origin = 'lower')   
+            # plt.figure()
+            # plt.suptitle(s + ' Wake2')
+            # for i,n in enumerate(pyr3):
+            #     plt.subplot(nrows, ncols, i+1)
+            #     # plt.title(spikes._metadata['celltype'][i])
+            #     # plt.imshow(placefields2[n], extent=(binsxy2[0][0],binsxy2[0][-1],binsxy2[1][0],binsxy2[1][-1]), cmap = 'jet')        
+            #     plt.imshow(placefields2[n].T, extent=(binsxy2[0][0],binsxy2[0][-1],binsxy2[1][0],binsxy2[1][-1]), origin = 'lower', cmap = 'viridis')        
+            #     # plt.imshow(placefields2[n].T, cmap = 'viridis', aspect = 'auto', origin = 'lower')   
                 
-                plt.colorbar()
+            #     plt.colorbar()
     
     
 # ###EXAMPLES 
@@ -803,6 +853,98 @@ ax.set_box_aspect(1)
 t_env1, p_e1 = mannwhitneyu(sparsity1_wt, sparsity1_ko)
 t_env2, p_e2 = mannwhitneyu(sparsity2_wt, sparsity2_ko)    
 
+#%% Population Vector (with norm)
+
+## PVs per animal 
+# occ_wt = {}
+# for i, num in enumerate(pvsess_wt):
+#     if num in occ_wt:
+#         occ_wt[num].append(i)
+#     else:
+#         occ_wt[num] = [i]
+        
+# occ_ko = {}
+# for i, num in enumerate(pvsess_ko):
+#     if num in occ_ko:
+#         occ_ko[num].append(i)
+#     else:
+#         occ_ko[num] = [i]
+
+
+# ### Get PV of animals together 
+
+#     ###WT
+# wt_pv1 = {}
+# for i in occ_wt.keys():
+#     wt_pv1[i] = [pvec1_wt[k] for k in occ_wt[i]]
+    
+# wt_pv2 = {}
+# for i in occ_wt.keys():
+#     wt_pv2[i] = [pvec2_wt[k] for k in occ_wt[i]]
+ 
+#     ###KO
+# ko_pv1 = {}
+# for i in occ_ko.keys():
+#     ko_pv1[i] = [pvec1_ko[k] for k in occ_ko[i]]
+    
+# ko_pv2 = {}
+# for i in occ_ko.keys():
+#     ko_pv2[i] = [pvec2_ko[k] for k in occ_ko[i]]
+ 
+    
+# ### Compute normalized PV     
+   
+#     ### WT 
+# for i in wt_pv1.keys():
+#     for j in range(len(wt_pv1[i])):
+#         wt_pv1[i][j] = wt_pv1[i][j] / np.max(wt_pv1[i])
+        
+# for i in wt_pv2.keys():
+#     for j in range(len(wt_pv2[i])):
+#         wt_pv2[i][j] = wt_pv2[i][j] / np.max(wt_pv2[i])
+        
+# norm_pv1_wt = []         
+# for i in wt_pv1.keys():
+#     for j in range(len(wt_pv1[i])):
+#         norm_pv1_wt.append(wt_pv1[i][j])
+# n1_wt = {index: value for index, value in enumerate(norm_pv1_wt)}
+        
+# norm_pv2_wt = []         
+# for i in wt_pv2.keys():
+#     for j in range(len(wt_pv2[i])):
+#         norm_pv2_wt.append(wt_pv2[i][j])
+# n2_wt = {index: value for index, value in enumerate(norm_pv2_wt)}
+
+#     ### KO 
+# for i in ko_pv1.keys():
+#     for j in range(len(ko_pv1[i])):
+#         ko_pv1[i][j] = ko_pv1[i][j] / np.max(ko_pv1[i])
+        
+# for i in ko_pv2.keys():
+#     for j in range(len(ko_pv2[i])):
+#         ko_pv2[i][j] = ko_pv2[i][j] / np.max(ko_pv2[i])
+        
+# norm_pv1_ko = []         
+# for i in ko_pv1.keys():
+#     for j in range(len(ko_pv1[i])):
+#         norm_pv1_ko.append(ko_pv1[i][j])
+# n1_ko = {index: value for index, value in enumerate(norm_pv1_ko)}
+        
+# norm_pv2_ko = []         
+# for i in ko_pv2.keys():
+#     for j in range(len(ko_pv2[i])):
+#         norm_pv2_ko.append(ko_pv2[i][j])
+# n2_ko = {index: value for index, value in enumerate(norm_pv2_ko)}
+
+# ### Correlate PVs
+
+# pvcorr_wt = [] 
+# for i in n1_wt.keys():
+#     pvcorr_wt.append(population_vector_correlation(n1_wt[i],n2_wt[i])[0])
+    
+# pvcorr_ko = [] 
+# for i in n1_ko.keys():
+#     pvcorr_ko.append(population_vector_correlation(n1_ko[i],n2_ko[i])[0])
 
 #%% Organize PV corr data 
 
@@ -851,3 +993,5 @@ z_pvcorr_wt, p_pvcorr_wt = wilcoxon(np.array(pvcorr_wt)-0)
 z_pvcorr_ko, p_pvcorr_ko = wilcoxon(np.array(pvcorr_ko)-0)
 
 
+
+                     
