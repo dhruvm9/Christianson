@@ -72,6 +72,15 @@ pvec2_ko = []
 pvsess_wt = []
 pvsess_ko = []
 
+sess_wt = []
+sess_ko = []
+
+oddevencorr_wt = []
+oddevencorr_ko = []
+
+npyr3_wt = []
+npyr3_ko = []
+
 for s in datasets:
     print(s)
     name = s.split('-')[0]
@@ -184,7 +193,7 @@ for s in datasets:
         # keep = []
         
         # for i in pyr2.index:
-        #     if SI_1['SI'][i] > 1.5 :
+        #     if SI_1['SI'][i] > 1.25 :
         #         keep.append(i)
                 
         # pyr3 = pyr2[keep]
@@ -195,14 +204,34 @@ for s in datasets:
         evenep = ep1[::2]
         
         pf1, binsxy = nap.compute_2d_tuning_curves(group = pyr2, features = rot_pos[['x', 'z']], ep = oddep, nb_bins=24)  
+        pxx1 = occupancy_prob(rot_pos, oddep, nb_bins=24, norm = True)
+        SI1 = nap.compute_2d_mutual_info(pf1, rot_pos[['x', 'z']], ep = oddep)
+        
         pf2, binsxy = nap.compute_2d_tuning_curves(group = pyr2, features = rot_pos[['x', 'z']], ep = evenep, nb_bins=24)  
-                
-        # keep = []
+        pxx2 = occupancy_prob(rot_pos, evenep, nb_bins=24, norm = True)  
+        SI2 = nap.compute_2d_mutual_info(pf2, rot_pos[['x', 'z']], ep = evenep)
         
-        # for k in pyr2:
+        keep = []
+        oddeven = []
         
-        #     good = np.logical_and(np.isfinite(pf1[k].flatten()), np.isfinite(pf2[k].flatten()))
-        #     corr, p = scipy.stats.pearsonr(pf1[k].flatten()[good], pf2[k].flatten()[good]) 
+        for i in pyr2.keys(): 
+            
+            pf1[i][np.isnan(pf1[i])] = 0
+            pf1[i] = scipy.ndimage.gaussian_filter(pf1[i], 1.5, mode = 'nearest')
+            masked_array = np.ma.masked_where(pxx1 == 0, pf1[i]) #should work fine without it 
+            pf1[i] = masked_array
+            
+            pf2[i][np.isnan(pf2[i])] = 0
+            pf2[i] = scipy.ndimage.gaussian_filter(pf2[i], 1.5, mode = 'nearest')
+            masked_array = np.ma.masked_where(pxx2 == 0, pf2[i]) #should work fine without it 
+            pf2[i] = masked_array
+        
+        for k in pyr2:
+        
+            good = np.logical_and(np.isfinite(pf1[k].flatten()), np.isfinite(pf2[k].flatten()))
+            corr, p = scipy.stats.pearsonr(pf1[k].flatten()[good], pf2[k].flatten()[good]) 
+            oddeven.append(corr)
+            
             # if corr > 0.14:
             # if corr > 0.15:
             # if corr > 0.19:
@@ -216,10 +245,34 @@ for s in datasets:
             # if corr > 0.075:
             # if corr > 0.08:
             # if corr > 0.09:
-                # keep.append(k)
+            # if corr > 0.65: 
+            if corr > 0.53: 
+                keep.append(k)
+            
                 
-        # pyr3 = pyr2[keep]
-        pyr3 = pyr2 
+        pyr3 = pyr2[keep]
+        # pyr3 = pyr2 
+        
+#%% 
+
+        # if s == 'B2625-240321':
+        # if len(pyr3) > 0:
+        #     if isWT == 0:
+            
+        # for i,n in enumerate(pyr3):
+        #     plt.figure()
+        #     good = np.logical_and(np.isfinite(pf1[n].flatten()), np.isfinite(pf2[n].flatten()))
+        #     corr, _ = scipy.stats.pearsonr(pf1[n].flatten()[good], pf2[n].flatten()[good]) 
+        #     plt.suptitle(s + '_cell' + str(n) + '_OddevenR = '  + str(round(corr, 2)))
+        #     plt.subplot(121)
+        #     plt.title(round(SI1['SI'][n],2))
+        #     plt.imshow(pf1[n], extent=(binsxy[1][0],binsxy[1][-1],binsxy[0][0],binsxy[0][-1]), cmap = 'jet')        
+        #     plt.colorbar()
+        #     plt.subplot(122)
+        #     plt.title(round(SI2['SI'][n],2))
+        #     plt.imshow(pf2[n], extent=(binsxy[1][0],binsxy[1][-1],binsxy[0][0],binsxy[0][-1]), cmap = 'jet')        
+        #     plt.colorbar()
+                    
         
 #%% 
 
@@ -295,6 +348,7 @@ for s in datasets:
             # pvec2 = compute_population_vectors(placefields2, pyr3.index)
                         
             # print(pvcorr)
+            # print(len(pyr2), len(pyr3))
             
             if isWT == 1:
                 allspatialinfo_env1_wt.extend(spatialinfo_env1['SI'].tolist())
@@ -302,18 +356,22 @@ for s in datasets:
                 sparsity1_wt.extend(sp1)
                 sparsity2_wt.extend(sp2)
                 pvcorr_wt.append(pvcorr)
+                oddevencorr_wt.extend(oddeven)
                 # pvec1_wt.append(pvec1)
                 # pvec2_wt.append(pvec2)
                 pvsess_wt.append(name)
+                npyr3_wt.append(len(pyr3))
             else: 
                 allspatialinfo_env1_ko.extend(spatialinfo_env1['SI'].tolist())
                 allspatialinfo_env2_ko.extend(spatialinfo_env2['SI'].tolist())
                 sparsity1_ko.extend(sp1)
                 sparsity2_ko.extend(sp2)
                 pvcorr_ko.append(pvcorr)
+                oddevencorr_ko.extend(oddeven)
                 # pvec1_ko.append(pvec1)
                 # pvec2_ko.append(pvec2)
                 pvsess_ko.append(name)
+                npyr3_ko.append(len(pyr3))
         
     # sys.exit()
     
@@ -365,6 +423,7 @@ for s in datasets:
 #%% Split both wake epochs into halves 
 
             center1 = rot_pos.restrict(nap.IntervalSet(epochs['wake'][0])).time_support.get_intervals_center()
+                      
             center2 = rot_pos.restrict(nap.IntervalSet(epochs['wake'][1])).time_support.get_intervals_center()
             
             halves1 = nap.IntervalSet(start = [rot_pos.restrict(nap.IntervalSet(epochs['wake'].loc[[0]])).time_support.start[0], center1.t[0]],
@@ -437,7 +496,7 @@ for s in datasets:
                 SI2_ko.extend(spatialinfo2.values)
                 SI3_ko.extend(spatialinfo3.values)
                 SI4_ko.extend(spatialinfo4.values)
-            
+        
         
    
         
@@ -451,8 +510,10 @@ for s in datasets:
                 
                 if isWT == 1:
                     env_stability_wt.append(corr)
+                    sess_wt.append(s)
                 else: 
                     env_stability_ko.append(corr)
+                    sess_ko.append(s)
                 
             #     ###Between 2 halves of first wake 
                 good2 = np.logical_and(np.isfinite(pf1[k].flatten()), np.isfinite(pf2[k].flatten()))
@@ -473,37 +534,38 @@ for s in datasets:
                     halfsession2_corr_ko.append(corr3)
         
 ### PLOT EXAMPLES ARENA 1 
-
-#     for i,n in enumerate(pyr3):
-#         plt.figure()
-#         good = np.logical_and(np.isfinite(pf1[n].flatten()), np.isfinite(pf2[n].flatten()))
-#         corr, _ = scipy.stats.pearsonr(pf1[n].flatten()[good], pf2[n].flatten()[good]) 
-#         plt.suptitle('R = '  + str(round(corr, 2)))
-#         plt.subplot(121)
-#         plt.title(round(spatialinfo1['SI'][n],2))
-#         plt.imshow(pf1[n], extent=(binsxy[1][0],binsxy[1][-1],binsxy[0][0],binsxy[0][-1]), cmap = 'jet')        
-#         plt.colorbar()
-#         plt.subplot(122)
-#         plt.title(round(spatialinfo2['SI'][n],2))
-#         plt.imshow(pf2[n], extent=(binsxy[1][0],binsxy[1][-1],binsxy[0][0],binsxy[0][-1]), cmap = 'jet')        
-#         plt.colorbar()
+    # if isWT == 0:
+    # for i,n in enumerate(pyr3):
+    #     plt.figure()
+    #     good = np.logical_and(np.isfinite(pf1[n].flatten()), np.isfinite(pf2[n].flatten()))
+    #     corr, _ = scipy.stats.pearsonr(pf1[n].flatten()[good], pf2[n].flatten()[good]) 
+    #     plt.suptitle(s + '_cell' + str(n) + '_HalfsessionR = '  + str(round(corr, 2)))
+    #     plt.subplot(121)
+    #     plt.title(round(spatialinfo1['SI'][n],2))
+    #     plt.imshow(pf1[n], extent=(binsxy[1][0],binsxy[1][-1],binsxy[0][0],binsxy[0][-1]), cmap = 'jet')        
+    #     plt.colorbar()
+    #     plt.subplot(122)
+    #     plt.title(round(spatialinfo2['SI'][n],2))
+    #     plt.imshow(pf2[n], extent=(binsxy[1][0],binsxy[1][-1],binsxy[0][0],binsxy[0][-1]), cmap = 'jet')        
+    #     plt.colorbar()
         
+        # sys.exit()
         
 ### PLOT EXAMPLES ARENA 2
     
-#     for i,n in enumerate(pyr3):
-#         plt.figure()
-#         good = np.logical_and(np.isfinite(pf3[n].flatten()), np.isfinite(pf4[n].flatten()))
-#         corr, _ = scipy.stats.pearsonr(pf3[n].flatten()[good], pf4[n].flatten()[good]) 
-#         plt.suptitle('R = '  + str(round(corr, 2)))
-#         plt.subplot(121)
-#         plt.title(round(spatialinfo3['SI'][n],2))
-#         plt.imshow(pf3[n], extent=(binsxy[1][0],binsxy[1][-1],binsxy[0][0],binsxy[0][-1]), cmap = 'jet')        
-#         plt.colorbar()
-#         plt.subplot(122)
-#         plt.title(round(spatialinfo4['SI'][n],2))
-#         plt.imshow(pf4[n], extent=(binsxy[1][0],binsxy[1][-1],binsxy[0][0],binsxy[0][-1]), cmap = 'jet')        
-#         plt.colorbar()
+    # for i,n in enumerate(pyr3):
+    #     plt.figure()
+    #     good = np.logical_and(np.isfinite(pf3[n].flatten()), np.isfinite(pf4[n].flatten()))
+    #     corr, _ = scipy.stats.pearsonr(pf3[n].flatten()[good], pf4[n].flatten()[good]) 
+    #     plt.suptitle('R = '  + str(round(corr, 2)))
+    #     plt.subplot(121)
+    #     plt.title(round(spatialinfo3['SI'][n],2))
+    #     plt.imshow(pf3[n], extent=(binsxy[1][0],binsxy[1][-1],binsxy[0][0],binsxy[0][-1]), cmap = 'jet')        
+    #     plt.colorbar()
+    #     plt.subplot(122)
+    #     plt.title(round(spatialinfo4['SI'][n],2))
+    #     plt.imshow(pf4[n], extent=(binsxy[1][0],binsxy[1][-1],binsxy[0][0],binsxy[0][-1]), cmap = 'jet')        
+    #     plt.colorbar()
         
         
         
@@ -520,7 +582,16 @@ sinfos = []
 sinfos.extend(env_stability_wt)
 sinfos.extend(env_stability_ko)
 
-allinfos = pd.DataFrame(data = [sinfos, genotype], index = ['corr', 'type']).T
+sinfos2 = []
+sinfos2.extend(sess_wt)
+sinfos2.extend(sess_ko)
+
+
+allinfos = pd.DataFrame(data = [sinfos, genotype, sinfos2], index = ['corr', 'type', 'sess']).T
+
+color_labels = allinfos['sess'].unique()
+rgb_values = sns.color_palette("viridis", len(color_labels))
+color_map = dict(zip(color_labels, rgb_values))
 
 ###Half-session corr: 1st env
 
@@ -569,7 +640,9 @@ for violin in ax.collections:
 sns.boxplot(x = allinfos['type'], y=allinfos['corr'].astype(float) , data = allinfos, saturation=1, showfliers=False,
             width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
 old_len_collections = len(ax.collections)
-sns.stripplot(x = allinfos['type'], y = allinfos['corr'].astype(float), data = allinfos, color = 'k', dodge=False, ax=ax)
+sns.stripplot(x = allinfos['type'], y = allinfos['corr'].astype(float), data = allinfos, 
+              hue = allinfos['sess'], palette=sns.color_palette('inferno_r', len(allinfos['sess'].unique())), 
+                                                                dodge=False, ax=ax, legend=False)
 # sns.swarmplot(x = durdf['genotype'], y = durdf['dur'].astype(float), data = durdf, color = 'k', dodge=False, ax=ax)
 for dots in ax.collections[old_len_collections:]:
     dots.set_offsets(dots.get_offsets())
@@ -595,7 +668,9 @@ for violin in ax.collections:
 sns.boxplot(x = allinfos2['type'], y=allinfos2['corr'].astype(float) , data = allinfos2, saturation=1, showfliers=False,
             width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
 old_len_collections = len(ax.collections)
-sns.stripplot(x = allinfos2['type'], y = allinfos2['corr'].astype(float), data = allinfos2, color = 'k', dodge=False, ax=ax)
+sns.stripplot(x = allinfos2['type'], y = allinfos2['corr'].astype(float), data = allinfos2, 
+              hue = allinfos['sess'], palette=sns.color_palette('inferno_r', len(allinfos['sess'].unique())), 
+                                                                  dodge=False, ax=ax, legend=False)
 # sns.swarmplot(x = durdf['genotype'], y = durdf['dur'].astype(float), data = durdf, color = 'k', dodge=False, ax=ax)
 for dots in ax.collections[old_len_collections:]:
     dots.set_offsets(dots.get_offsets())
@@ -620,7 +695,8 @@ for violin in ax.collections:
 sns.boxplot(x = allinfos3['type'], y=allinfos3['corr'].astype(float) , data = allinfos3, saturation=1, showfliers=False,
             width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
 old_len_collections = len(ax.collections)
-sns.stripplot(x = allinfos3['type'], y = allinfos3['corr'].astype(float), data = allinfos3, color = 'k', dodge=False, ax=ax)
+sns.stripplot(x = allinfos3['type'], y = allinfos3['corr'].astype(float), data = allinfos3, 
+              hue = allinfos['sess'], palette=sns.color_palette('inferno_r', len(allinfos['sess'].unique())), dodge=False, ax=ax)
 # sns.swarmplot(x = durdf['genotype'], y = durdf['dur'].astype(float), data = durdf, color = 'k', dodge=False, ax=ax)
 for dots in ax.collections[old_len_collections:]:
     dots.set_offsets(dots.get_offsets())
@@ -992,6 +1068,48 @@ ax.set_box_aspect(1)
 z_pvcorr_wt, p_pvcorr_wt = wilcoxon(np.array(pvcorr_wt)-0)
 z_pvcorr_ko, p_pvcorr_ko = wilcoxon(np.array(pvcorr_ko)-0)
 
+#%% 
 
+# bins = np.linspace(-0.4, 1, 30)
+# xcenters = np.mean(np.vstack([bins[:-1], bins[1:]]), axis = 0)
+# wtcounts, _ = np.histogram(oddevencorr_wt, bins)
+# kocounts, _ = np.histogram(oddevencorr_ko, bins)
+
+# wtprop = wtcounts/sum(wtcounts)
+# koprop = kocounts/sum(kocounts)
+
+# plt.figure()
+# plt.plot(xcenters, 1-np.cumsum(wtprop), color = 'royalblue', label  = 'WT')
+# plt.plot(xcenters, 1-np.cumsum(koprop), color = 'indianred', label  = 'KO')
+# plt.axvline(0.65, linestyle = '--', color = 'silver')
+# plt.axvline(0.53, linestyle = '--', color = 'silver')
+# plt.xlabel('odd-even correlation (R)')
+# plt.ylabel('% events')
+# plt.legend(loc = 'upper right')
+
+# plt.figure()
+# plt.stairs(wtprop, bins, label = 'WT', color = 'royalblue' , linewidth = 2)
+# plt.stairs(koprop, bins, label = 'KO', color = 'indianred' , linewidth = 2)
+# plt.xlabel('odd-even correlation (R)')
+# plt.ylabel('% events')
+# plt.legend(loc = 'upper right')
+
+#%% 
+
+# plt.figure()
+# plt.title('WT')
+# plt.scatter(halfsession1_corr_wt, oddevencorr_wt, color = 'k', zorder = 3) 
+# plt.gca().axline((min(min(halfsession1_corr_wt),min(oddevencorr_wt)),min(min(halfsession1_corr_wt),min(oddevencorr_wt)) ), slope=1, color = 'silver', linestyle = '--')
+# plt.xlabel('Half Session R')
+# plt.ylabel('Odd-Even R')
+# plt.axis('square')
+
+# plt.figure()
+# plt.title('KO')
+# plt.scatter(halfsession1_corr_ko, oddevencorr_ko, color = 'k', zorder = 3) 
+# plt.gca().axline((min(min(halfsession1_corr_ko),min(oddevencorr_ko)),min(min(halfsession1_corr_ko),min(oddevencorr_ko)) ), slope=1, color = 'silver', linestyle = '--')
+# plt.xlabel('Half Session R')
+# plt.ylabel('Odd-Even R')
+# plt.axis('square')
 
                      

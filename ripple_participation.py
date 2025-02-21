@@ -16,6 +16,7 @@ import os, sys
 import seaborn as sns
 import matplotlib.pyplot as plt 
 from scipy.stats import mannwhitneyu
+from functions_DM import *
 
 #%% 
 
@@ -36,6 +37,9 @@ part_all_fs_wt = []
 
 part_all_pyr_ko = []
 part_all_fs_ko = []
+
+npyr3_wt = []
+npyr3_ko = []
 
 for s in datasets:
     print(s)
@@ -70,6 +74,51 @@ for s in datasets:
     spikes = tsd.to_tsgroup()
     spikes.set_info(group = sp2['group'], location = sp2['location'], celltype = sp2['celltype'], tr2pk = sp2['tr2pk'])
     
+    data = ntm.load_session(path, 'neurosuite')
+    epochs = data.epochs
+    position = data.position
+    
+#%% Rotate position 
+
+    rot_pos = []
+        
+    xypos = np.array(position[['x', 'z']])
+    
+    if name == 'B2625' or name == 'B3800':
+        rad = 0.6
+    elif name == 'B2618' :
+        rad = 0.95
+    elif s == 'B2627-240528' or s == 'B2627-240530' or name == 'B3804' or name == 'B3807' or name == 'B3813':
+        rad = 0.05
+    elif name == 'B3811':
+        rad = 0.1
+    else: rad = 0    
+        
+    
+    for i in range(len(xypos)):
+        newx, newy = rotate_via_numpy(xypos[i], rad)
+        rot_pos.append((newx, newy))
+        
+    rot_pos = nap.TsdFrame(t = position.index.values, d = rot_pos, columns = ['x', 'z'])
+    
+    w1 = nap.IntervalSet(start = epochs['wake'][0]['start'], end = epochs['wake'][0]['end'])
+               
+    speedbinsize = np.diff(rot_pos.index.values)[0]
+    
+    time_bins = np.arange(rot_pos.index[0], rot_pos.index[-1] + speedbinsize, speedbinsize)
+    index = np.digitize(rot_pos.index.values, time_bins)
+    tmp = rot_pos.as_dataframe().groupby(index).mean()
+    tmp.index = time_bins[np.unique(index)-1]+(speedbinsize)/2
+    distance = np.sqrt(np.power(np.diff(tmp['x']), 2) + np.power(np.diff(tmp['z']), 2)) * 100 #in cm
+    speed = pd.Series(index = tmp.index.values[0:-1]+ speedbinsize/2, data = distance/speedbinsize) # in cm/s
+    speed2 = speed.rolling(window = 25, win_type='gaussian', center=True, min_periods=1).mean(std=10) #Smooth over 200ms 
+    speed2 = nap.Tsd(speed2)
+         
+    moving_ep = nap.IntervalSet(speed2.threshold(2).time_support) #Epochs in which speed is > 2 cm/s
+    
+    ep1 = moving_ep.intersect(epochs['wake'].loc[[0]])
+         
+    
 #%% Ripple participation by cell type and genotype
 
     ripdur = rip_ep['end'] - rip_ep['start']        
@@ -93,9 +142,7 @@ for s in datasets:
     if 'fs' in spikes._metadata['celltype'].values:
         fs = spikes_by_celltype['fs']
     else: fs = []        
-        
-    # print (fs)
-           
+               
     if len(pyr2) > 0: 
                
         for i in pyr2:
@@ -129,6 +176,7 @@ for s in datasets:
     if isWT == 1:
                   
         part_all_pyr_wt.extend(allpart_pyr)
+        npyr3_wt.append(len(pyr2))
         # sess_part_pyr_wt.append(np.mean(allpart_pyr))
         
         part_all_fs_wt.extend(allpart_fs)
@@ -138,6 +186,7 @@ for s in datasets:
     else: 
         
         part_all_pyr_ko.extend(allpart_pyr)
+        npyr3_ko.append(len(pyr2))
         # sess_part_pyr_ko.append(np.mean(allpart_pyr))
         
         part_all_fs_ko.extend(allpart_fs)
