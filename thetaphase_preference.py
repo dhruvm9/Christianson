@@ -17,6 +17,7 @@ import warnings
 import seaborn as sns
 from scipy.signal import hilbert, fftconvolve
 from pingouin import circ_r, circ_mean, circ_rayleigh
+import pycircstat as circ
 from scipy.stats import mannwhitneyu, circvar
 import matplotlib.colors as colors
 from matplotlib.backends.backend_pdf import PdfPages
@@ -1291,6 +1292,12 @@ var_pv_ko = circvar(np.array(means_pv_ko)[np.array(tokeep_pv_ko)])
 # # r = circ_r(np.array(means_pv_ko_wake)[np.array(tokeep_pv_ko_wake)])
 # theta = circ_mean(np.array(means_pv_ko_wake)[np.array(tokeep_pv_ko_wake)])
 # ax[1].annotate('', xy=(theta, r), xytext=(0, 0), arrowprops=dict(facecolor='k'))
+
+#%%
+ 
+# p_pyr, stat_pyr = circ.cmtest(np.array(means_pyr_wt_wake)[np.array(tokeep_pyr_wt_wake)], np.array(means_pyr_ko_wake)[np.array(tokeep_pyr_ko_wake)])
+# p_pv, stat_pv = circ.cmtest(np.array(means_pv_wt_wake)[np.array(tokeep_pv_wt_wake)], np.array(means_pv_ko_wake)[np.array(tokeep_pv_ko_wake)])
+
 
 #%% 
 

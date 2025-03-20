@@ -43,7 +43,7 @@ def occupancy_prob(position, ep, nb_bins=24, norm = False):
 
 #%% Load data
 
-data_directory = '/media/DataAdrienBig/PeyracheLabData/Dhruv/Christianson/Screening/B2629-240617'
+data_directory = '/media/DataAdrienBig/PeyracheLabData/Dhruv/Christianson/Screening/B4704-250306/B4704-250306'
 
 data = ntm.load_session(data_directory, 'neurosuite')
 spikes = data.spikes
