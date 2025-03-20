@@ -125,7 +125,7 @@ for s in datasets:
         
         xc_fs = nap.compute_eventcorrelogram(fs, rip, binsize = 0.005, windowsize = 0.2 , ep = nap.IntervalSet(sws_ep), norm = True)
         # xc_fs = nap.compute_eventcorrelogram(fs, nap.Ts(np.array(rip_trough)), binsize = 0.0005, windowsize = 0.1 , ep = nap.IntervalSet(sws_ep), norm = True)
-        
+        all_xc_pyr_wt.mean(axis=1)
         minp_fs = xc_fs.mean(axis=1)[0:0.105].idxmin()
         minr_fs = xc_fs.mean(axis=1)[0:0.105].min()
         maxp_fs = xc_fs.mean(axis=1)[minp_fs:].idxmax()

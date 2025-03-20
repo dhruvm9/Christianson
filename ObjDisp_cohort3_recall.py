@@ -20,7 +20,12 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import warnings 
 from pylab import *
-from scipy.stats import mannwhitneyu, wilcoxon
+from scipy.stats import mannwhitneyu, wilcoxon, kruskal
+import scikit_posthocs as sp
+import statsmodels.api as sm
+from statsmodels.formula.api import ols
+from statsmodels.stats.multicomp import pairwise_tukeyhsd
+
 
 #%% 
 
@@ -665,3 +670,55 @@ plt.gca().set_box_aspect(1)
 
 z_wt, p_wt = wilcoxon(np.array(infos_phase2['DI'][infos_phase2['genotype'] == 'WT'])-0)
 z_ko, p_ko = wilcoxon(np.array(infos_phase2['DI'][infos_phase2['genotype'] == 'KO'])-0)
+
+#%% 
+
+# plt.scatter(man_m, auto_m, color = 'orange', zorder = 3, label = 'Male') 
+# plt.scatter(man_f, auto_f, color = 'purple', zorder = 3, label = 'Female') 
+# plt.gca().axline(
+#     (min(min(man_m),min(auto_m),min(man_f),min(auto_f)),(min(min(man_m),min(auto_m),min(man_f), min(auto_f)))), 
+#      slope = 1, color = 'silver', linestyle = '--')
+# plt.xlabel('DI (manual)')
+# plt.ylabel('DI (automated)')
+# plt.axis('square')
+# plt.legend(loc = 'upper left')
+
+#%% 
+
+# DI_wt_f = [0.4857138743449835, 0.6306066533777056, 0.3333335165200056, -0.19093813622513545, 0.17018264807318878, 0.3571413263075806,
+#            0.2895998647291097, 0.7493185367286013, 0.8306189221459894, 0.46357615628311605, 0.3018866485940092, 0.40318917194118803,
+#            -1.0, 0.03966617171169174]
+
+# DI_ko_f = [0.023493434497851955, -0.18165141460196862, 0.756878698208257, 0.5736841510856754, 0.2000001143084898, -0.9656312009245304,
+#            0.23684224980850346, 0.49798864220203176, -0.19615915831560482, 0.6039603916380796, 0.397101382745879, 0.17492703828439232,
+#            0.45736440698986236, -0.027522858392479893]
+
+# DI_wt_m = [-0.8810808916250508,	-0.06097567007275186, 0.36338027442064613, 0.2000002177450981, 1.0, 0.07142777764487694,	1.0,
+#            1.0, 	0.6301076625186209, 0.3635428293325658, 	0.2148998028998942, 	0.10580737707116199, 1.0]
+
+# DI_ko_m = [-0.31147510369285697, -0.6020234245148113, 0.18162609743784447, -0.36521708072714026, 	0.23926367937687734,
+#            -0.45348840651829825, 0.5051544367736622, -0.34265704719693574, -1.0, 0.06117054815517352, 0.5345581512372484,
+# 	     -0.008498614869189744,	0.6376375488385441,	0.7516231802999758]
+
+# times = np.hstack([DI_wt_f, DI_ko_f, DI_wt_m, DI_ko_m])
+
+# g1 = np.array(['WT' for x in range(len(DI_wt_f))])
+# g2 = np.array(['KO' for x in range(len(DI_ko_f))])
+# g3 = np.array(['WT' for x in range(len(DI_wt_m))])
+# g4 = np.array(['KO' for x in range(len(DI_ko_m))])
+# genotype = np.hstack([g1, g2, g3, g4])
+
+# mf1 = np.array(['F' for x in range(len(DI_wt_f))])
+# mf2 = np.array(['F' for x in range(len(DI_ko_f))])
+# mf3 = np.array(['M' for x in range(len(DI_wt_m))])
+# mf4 = np.array(['M' for x in range(len(DI_ko_m))])
+# sex = np.hstack([mf1, mf2, mf3, mf4])
+
+# df = pd.DataFrame(data = [times, genotype, sex], index = ['DI', 'genotype', 'sex']).T
+# df['DI']= pd.to_numeric(df['DI'])
+
+# model = ols('times ~ C(genotype) * C(sex)', data=df).fit()
+# anova_table = sm.stats.anova_lm(model, typ=2)
+
+# tukey_genotype = pairwise_tukeyhsd(endog=df['DI'], groups=df['genotype'], alpha=0.05)
+# tukey_sex = pairwise_tukeyhsd(endog=df['DI'], groups=df['sex'], alpha=0.05)

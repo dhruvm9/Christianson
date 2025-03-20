@@ -15,7 +15,27 @@ import scipy.io
 import os, sys
 import seaborn as sns
 import matplotlib.pyplot as plt 
-from scipy.stats import mannwhitneyu
+from scipy.stats import mannwhitneyu, pearsonr, norm
+
+#%% 
+
+def fisher_z(r):
+    return 0.5 * np.log((1 + r) / (1 - r))
+
+def compare_correlations(r1, n1, r2, n2):
+    z1 = fisher_z(r1)
+    z2 = fisher_z(r2)
+    
+    # Standard error
+    se = np.sqrt(1/(n1 - 3) + 1/(n2 - 3))
+    
+    # Z-score for the difference
+    z = (z1 - z2) / se
+    
+    # Two-tailed p-value
+    p_value = 2 * (1 - norm.cdf(abs(z)))
+    
+    return z, p_value
 
 #%% 
 
@@ -186,3 +206,34 @@ plt.xlabel('SWR peak freq (Hz)')
 plt.ylabel('Rate at maxima of ripple Xcorr')
 plt.legend(loc = 'upper right')
 plt.gca().set_box_aspect(1)
+
+#%%
+
+r_pyr_wt, p_pyr_wt = pearsonr(peakfreq_wt, lor_pyr_wt)
+r_pyr_ko, p_pyr_ko = pearsonr(peakfreq_ko, lor_pyr_ko)
+
+r_fs_wt, p_fs_wt = pearsonr(peakfreq_wt, lor_fs_wt)
+r_fs_ko, p_fs_ko = pearsonr(peakfreq_ko, lor_fs_ko)
+
+a = []
+a.extend(peakfreq_wt)
+a.extend(peakfreq_ko)
+
+b = []
+b.extend(lor_pyr_wt)
+b.extend(lor_pyr_ko)
+
+c = []
+c.extend(lor_fs_wt)
+c.extend(lor_fs_ko)
+
+r_pyr_pooled, p_pyr_pooled = pearsonr(a,b)
+r_fs_pooled, p_fs_pooled = pearsonr(a,c)
+
+z_pyr_12, p_pyr_12 = compare_correlations(r_pyr_wt, len(lor_pyr_wt), r_pyr_ko, len(lor_pyr_ko))
+z_pyr_13, p_pyr_13 = compare_correlations(r_pyr_wt, len(lor_pyr_wt), r_pyr_pooled, len(c))
+z_pyr_23, p_pyr_23 = compare_correlations(r_pyr_ko, len(lor_pyr_ko), r_pyr_pooled, len(c))
+
+z_fs_12, p_fs_12 = compare_correlations(r_fs_wt, len(lor_fs_wt), r_fs_ko, len(lor_fs_ko))
+z_fs_13, p_fs_13 = compare_correlations(r_fs_wt, len(lor_fs_wt), r_fs_pooled, len(c))
+z_fs_23, p_fs_23 = compare_correlations(r_fs_ko, len(lor_fs_ko), r_fs_pooled, len(c))

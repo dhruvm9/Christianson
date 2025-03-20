@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Mon Dec  4 11:32:27 2023
+Created on Thu Mar 13 15:58:56 2025
 
 @author: dhruv
 """
@@ -13,6 +13,8 @@ import matplotlib.pyplot as plt
 import nwbmatic as ntm
 import pynapple as nap
 import pickle
+from scipy.stats import mannwhitneyu, pearsonr, norm, zscore
+import scipy
 
 #%% 
 
@@ -21,10 +23,22 @@ data_directory = '/media/dhruv/Expansion/Processed'
 datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
 ripplechannels = np.genfromtxt(os.path.join(data_directory,'ripplechannel.list'), delimiter = '\n', dtype = str, comments = '#')
 
-fs = 1250
+fsamp = 1250
 
 sessions_WT = pd.DataFrame()
 sessions_KO = pd.DataFrame()
+
+minwt = []
+maxwt = []
+minko = []
+maxko = []
+
+riprates_wt = []
+riprates_ko = []
+
+peakfreq_wt = []
+peakfreq_ko = []
+
 
 for r,s in enumerate(datasets):
     print(s)
@@ -39,7 +53,7 @@ for r,s in enumerate(datasets):
         isWT = 0
     else: isWT = 1 
     
-    lfp = nap.load_eeg(path + '/' + s + '.eeg', channel = int(ripplechannels[r]), n_channels = 32, frequency = fs)
+    lfp = nap.load_eeg(path + '/' + s + '.eeg', channel = int(ripplechannels[r]), n_channels = 32, frequency = fsamp)
     
     file = os.path.join(path, s +'.sws.evt')
     sws_ep = data.read_neuroscope_intervals(name = 'SWS', path2file = file)
@@ -85,23 +99,82 @@ for r,s in enumerate(datasets):
         
     else: sessions_KO = pd.concat([sessions_KO, avgripple.mean(axis=1)], axis = 1)
     
+#%% Max and min post-ripple 
+
+    minpr = avgripple.mean(axis=1)[0:].min()
+    maxpr = avgripple.mean(axis=1)[0:].max()
+    
+    lfp_rip = lfp.restrict(nap.IntervalSet(rip_ep))
+    lfp_z = zscore(lfp_rip)
+          
+    freqs, P_xx = scipy.signal.welch(lfp_z, fs = fsamp)
+    
+    ix2 = np.where((freqs>=100) & (freqs <= 200))
+    peakfreq = freqs[ix2][np.argmax(P_xx[ix2])]
+    
+       
+    riprate = len(rip_ep)/sws_ep.tot_length('s')
+    
+    if isWT == 1:
+        minwt.append(minpr)
+        maxwt.append(maxpr)
+        peakfreq_wt.append(peakfreq) 
+        riprates_wt.append(riprate)
+        
+    else: 
+        minko.append(minpr)
+        maxko.append(maxpr)
+        peakfreq_ko.append(peakfreq) 
+        riprates_ko.append(riprate)
+        
+    
 #%% Plotting 
 
+# plt.figure()
+# # plt.suptitle('Average ripple across sessions')
+# plt.subplot(121)
+# plt.title('WT')
+# plt.plot(sessions_WT, color = 'silver')
+# plt.plot(sessions_WT.mean(axis = 1), color = 'royalblue', linewidth = 2)
+# plt.xlabel('Time from SWR (s)')
+# plt.ylim([-1700, 3500])
+# plt.gca().set_box_aspect(1)
+# # plt.yticks([])
+# plt.subplot(122)
+# plt.title('KO')
+# plt.plot(sessions_KO, color = 'silver')
+# plt.plot(sessions_KO.mean(axis = 1), color = 'indianred', linewidth = 2)
+# plt.xlabel('Time from SWR (s)')
+# plt.ylim([-1700, 3500])
+# # plt.yticks([])
+# plt.gca().set_box_aspect(1)
+
+#%% 
+
+colnames_WT = np.arange(0, len(sessions_WT.columns))
+colnames_KO = np.arange(0, len(sessions_KO.columns))
+
+sessions_WT.columns = colnames_WT
+sessions_KO.columns = colnames_KO
+
+colors_wt = plt.cm.PuBu((np.array(peakfreq_wt) - np.min(peakfreq_wt)) / (np.max(peakfreq_wt) - np.min(peakfreq_wt)))
+colors_ko = plt.cm.OrRd((np.array(peakfreq_ko) - np.min(peakfreq_ko)) / (np.max(peakfreq_ko) - np.min(peakfreq_ko)))
+
 plt.figure()
-# plt.suptitle('Average ripple across sessions')
+plt.suptitle('Avg LFP around ripple')
 plt.subplot(121)
 plt.title('WT')
-plt.plot(sessions_WT, color = 'silver')
-plt.plot(sessions_WT.mean(axis = 1), color = 'royalblue', linewidth = 2)
-plt.xlabel('Time from SWR (s)')
-plt.ylim([-1700, 3500])
-plt.gca().set_box_aspect(1)
-# plt.yticks([])
+for i in sessions_WT.columns:
+    plt.plot(sessions_WT[i], color=colors_wt[sessions_WT.columns[i]])
+    plt.xlabel('Time from SWR (s)')
+    plt.ylim([-1700, 3500])
+    plt.gca().set_box_aspect(1)
+    # plt.legend(loc = 'upper right')
 plt.subplot(122)
 plt.title('KO')
-plt.plot(sessions_KO, color = 'silver')
-plt.plot(sessions_KO.mean(axis = 1), color = 'indianred', linewidth = 2)
-plt.xlabel('Time from SWR (s)')
-plt.ylim([-1700, 3500])
-# plt.yticks([])
-plt.gca().set_box_aspect(1)
+for i in sessions_KO.columns:
+    plt.plot(sessions_KO[i], color=colors_ko[sessions_KO.columns[i]])
+    plt.xlabel('Time from SWR (s)')
+    plt.ylim([-1700, 3500])
+    plt.gca().set_box_aspect(1)
+    # plt.legend(loc = 'upper right')

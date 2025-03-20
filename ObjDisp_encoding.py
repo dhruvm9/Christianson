@@ -31,8 +31,8 @@ from statsmodels.stats.multicomp import pairwise_tukeyhsd
 warnings.filterwarnings("ignore")
 
 ##Add path to data folder
-data_directory = '/media/DataDhruv/Recordings/Christianson/encoding_cohort3'
-# data_directory = '/media/DataDhruv/Recordings/Christianson/encodingF_cohort4'
+# data_directory = '/media/DataDhruv/Recordings/Christianson/encoding_cohort3'
+data_directory = '/media/DataDhruv/Recordings/Christianson/encodingF_cohort4'
 
 ##File with list of all sessions
 datasets = np.genfromtxt(os.path.normpath(os.path.join(data_directory,'dataset.list')), delimiter = '\n', dtype = str, comments = '#')
@@ -180,7 +180,7 @@ for s in datasets:
     
     else: 
         
-        splcases = ['647', '650', '1102', '1114', '1121', '1122', '2698', '1097', '1103', '1112', '1113', '1115']
+        splcases = ['647', '650', '1102', '1114', '1121', '1122', '2698', '1097', '1103', '1112', '1113', '1115', '2710']
         
         if mousename not in splcases:
         
@@ -240,6 +240,13 @@ for s in datasets:
             rectR_inner = patches.Rectangle((x_objR - 35, y_objR - 26), 75, 125, linewidth=1, edgecolor='g', facecolor='none')
             rectR = patches.Rectangle((x_objR - 56.5, y_objR - 47.5), 118, 168, linewidth=1, edgecolor='b', facecolor='none')
         
+        elif mousename == '2710': 
+            # print('yes')
+            rectL_inner = patches.Rectangle((x_objL - 32, y_objL - 22), 77, 120, linewidth=1, edgecolor='g', facecolor='none')
+            rectL = patches.Rectangle((x_objL - 53.5, y_objL - 43.5), 120, 163, linewidth=1, edgecolor='b', facecolor='none')
+            
+            rectR_inner = patches.Rectangle((x_objR - 35, y_objR - 25), 75, 125, linewidth=1, edgecolor='g', facecolor='none')
+            rectR = patches.Rectangle((x_objR - 56.5, y_objR - 46.5), 118, 168, linewidth=1, edgecolor='b', facecolor='none')
        
         else: #Animal 1112 
             
@@ -557,10 +564,10 @@ z, p = wilcoxon(all_lefts_ko, all_rights_ko)
 #%% 
 
 left_wt_f = [90.533419331, 39.800027994, 67.600047996, 72.166719663, 46.500034001, 16.800021999, 54.966726669, 44.300071998, 
-              71.06672267, 49.533408328, 12.233349333, 63.833407335, 76.366750669]
+              71.06672267, 49.533408328, 12.233349333, 63.833407335,	62.100050999, 76.366750669]
 
 right_wt_f = [73.900075991, 43.533369333, 40.100025999, 71.000048002, 67.200050001, 12.766687668, 100.033412338, 70.400086005,
-              60.200061002, 43.166729665, 15.566680666, 38.700039999, 57.833405334]
+              60.200061002, 43.166729665, 15.566680666, 38.700039999, 38.866705666, 57.833405334]
 
 left_ko_f = [117.066774669, 103.36673167, 83.700071001, 17.300021001, 61.466711668, 132.633471345, 98.966743666, 47.300040998,
               25.100017999, 57.16673067, 69.266727666, 94.533402334, 81.966748671, 76.500088999]

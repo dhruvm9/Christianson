@@ -15,19 +15,19 @@ import os, sys
 import matplotlib.pyplot as plt 
 import seaborn as sns
 import warnings
-from scipy.stats import mannwhitneyu, wilcoxon
+from scipy.stats import mannwhitneyu, wilcoxon, ks_2samp
 from functions_DM import *
     
 #%% 
 
 warnings.filterwarnings("ignore")
 
-data_directory = '/media/dhruv/Expansion/Processed'
-# data_directory = '/media/dhruv/Expansion/Processed/CA3'
+# data_directory = '/media/dhruv/Expansion/Processed'
+data_directory = '/media/dhruv/Expansion/Processed/CA3'
 # data_directory = '/media/adrien/Expansion/Processed'
-datasets = np.genfromtxt(os.path.join(data_directory,'remapping_DM.list'), delimiter = '\n', dtype = str, comments = '#')
+# datasets = np.genfromtxt(os.path.join(data_directory,'remapping_DM.list'), delimiter = '\n', dtype = str, comments = '#')
 # datasets = np.genfromtxt(os.path.join(data_directory,'remapping_2sq.list'), delimiter = '\n', dtype = str, comments = '#')
-# datasets = np.genfromtxt(os.path.join(data_directory,'remapping_CA3.list'), delimiter = '\n', dtype = str, comments = '#')
+datasets = np.genfromtxt(os.path.join(data_directory,'remapping_CA3.list'), delimiter = '\n', dtype = str, comments = '#')
 
 env_stability_wt = []
 env_stability_ko = []
@@ -232,21 +232,9 @@ for s in datasets:
             corr, p = scipy.stats.pearsonr(pf1[k].flatten()[good], pf2[k].flatten()[good]) 
             oddeven.append(corr)
             
-            # if corr > 0.14:
-            # if corr > 0.15:
-            # if corr > 0.19:
-            # if corr > 0.1:
-            # if corr > 0.4:
-            # if corr > 0.3:
-            # if corr > 0.25:
-            # if corr > 0:
-            # if corr > 0.2:
-            # if corr > 0.05:
-            # if corr > 0.075:
-            # if corr > 0.08:
-            # if corr > 0.09:
-            # if corr > 0.65: 
-            if corr > 0.53: 
+            
+            # if corr > 0.53: ###CA1
+            if corr > 0.54: ###CA3
                 keep.append(k)
             
                 
@@ -320,14 +308,45 @@ for s in datasets:
                 masked_array = np.ma.masked_where(px2 == 0, placefields2[i]) #should work fine without it 
                 placefields2[i] = masked_array
                 
-            normpf1 = {}
-            for i in placefields1.keys():
-                normpf1[i] = placefields1[i] / np.max(placefields1[i])
+            if isWT == 1:
+                allspatialinfo_env1_wt.extend(spatialinfo_env1['SI'].tolist())
+                allspatialinfo_env2_wt.extend(spatialinfo_env2['SI'].tolist())
+                sparsity1_wt.extend(sp1)
+                sparsity2_wt.extend(sp2)
+                oddevencorr_wt.extend(oddeven)
+                # pvec1_wt.append(pvec1)
+                # pvec2_wt.append(pvec2)
+                npyr3_wt.append(len(pyr3))
+            else: 
+                allspatialinfo_env1_ko.extend(spatialinfo_env1['SI'].tolist())
+                allspatialinfo_env2_ko.extend(spatialinfo_env2['SI'].tolist())
+                sparsity1_ko.extend(sp1)
+                sparsity2_ko.extend(sp2)
+                oddevencorr_ko.extend(oddeven)
+                # pvec1_ko.append(pvec1)
+                # pvec2_ko.append(pvec2)
+                pvsess_ko.append(name)
+                npyr3_ko.append(len(pyr3))
+            
+            if len(pyr3) >= 5:
+                normpf1 = {}
+                for i in placefields1.keys():
+                    normpf1[i] = placefields1[i] / np.max(placefields1[i])
+                    
+                normpf2 = {}
+                for i in placefields2.keys():
+                    normpf2[i] = placefields2[i] / np.max(placefields2[i])
+                    
+                pvcorr = compute_PVcorrs(normpf1, normpf2, pyr3.index)
                 
-            normpf2 = {}
-            for i in placefields2.keys():
-                normpf2[i] = placefields2[i] / np.max(placefields2[i])
-             
+                if isWT == 1:
+                    pvcorr_wt.append(pvcorr)
+                    pvsess_wt.append(name)
+                else: 
+                    pvcorr_ko.append(pvcorr)
+                    pvsess_ko.append(name)
+                   
+                 
             # plt.figure()
             # plt.title(s + '_1')
             # plt.imshow(compute_population_vectors(normpf1, pyr3.index))
@@ -339,7 +358,7 @@ for s in datasets:
             # plt.colorbar()
             
                 
-            pvcorr = compute_PVcorrs(normpf1, normpf2, pyr3.index)
+                
             
             # pvcorr = compute_PVcorrs(placefields1, placefields2, pyr3.index)
             
@@ -350,28 +369,7 @@ for s in datasets:
             # print(pvcorr)
             # print(len(pyr2), len(pyr3))
             
-            if isWT == 1:
-                allspatialinfo_env1_wt.extend(spatialinfo_env1['SI'].tolist())
-                allspatialinfo_env2_wt.extend(spatialinfo_env2['SI'].tolist())
-                sparsity1_wt.extend(sp1)
-                sparsity2_wt.extend(sp2)
-                pvcorr_wt.append(pvcorr)
-                oddevencorr_wt.extend(oddeven)
-                # pvec1_wt.append(pvec1)
-                # pvec2_wt.append(pvec2)
-                pvsess_wt.append(name)
-                npyr3_wt.append(len(pyr3))
-            else: 
-                allspatialinfo_env1_ko.extend(spatialinfo_env1['SI'].tolist())
-                allspatialinfo_env2_ko.extend(spatialinfo_env2['SI'].tolist())
-                sparsity1_ko.extend(sp1)
-                sparsity2_ko.extend(sp2)
-                pvcorr_ko.append(pvcorr)
-                oddevencorr_ko.extend(oddeven)
-                # pvec1_ko.append(pvec1)
-                # pvec2_ko.append(pvec2)
-                pvsess_ko.append(name)
-                npyr3_ko.append(len(pyr3))
+            
         
     # sys.exit()
     
@@ -621,89 +619,112 @@ allinfos3 = pd.DataFrame(data = [sinfos3, genotype3], index = ['corr', 'type']).
 
 #%% 
 
-plt.figure()
-plt.suptitle('Remapping')
+# plt.figure()
+# plt.suptitle('Remapping')
 
-plt.subplot(131)
-plt.title('A v/s B')
-sns.set_style('white')
-palette = ['royalblue', 'indianred']
-ax = sns.violinplot( x = allinfos['type'], y=allinfos['corr'].astype(float) , data = allinfos, dodge=False,
-                    palette = palette,cut = 2,
-                    scale="width", inner=None)
-ax.tick_params(bottom=True, left=True)
-xlim = ax.get_xlim()
-ylim = ax.get_ylim()
-for violin in ax.collections:
-    x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
-    violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
-sns.boxplot(x = allinfos['type'], y=allinfos['corr'].astype(float) , data = allinfos, saturation=1, showfliers=False,
-            width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
-old_len_collections = len(ax.collections)
-sns.stripplot(x = allinfos['type'], y = allinfos['corr'].astype(float), data = allinfos, 
-              hue = allinfos['sess'], palette=sns.color_palette('inferno_r', len(allinfos['sess'].unique())), 
-                                                                dodge=False, ax=ax, legend=False)
-# sns.swarmplot(x = durdf['genotype'], y = durdf['dur'].astype(float), data = durdf, color = 'k', dodge=False, ax=ax)
-for dots in ax.collections[old_len_collections:]:
-    dots.set_offsets(dots.get_offsets())
-ax.set_xlim(xlim)
-ax.set_ylim(ylim)
-plt.ylabel('Correlation (R)')
-plt.axhline(0, linestyle = '--', color = 'silver')
-ax.set_box_aspect(1)
+# # plt.subplot(131)
+# plt.title('A v/s B')
+# sns.set_style('white')
+# palette = ['royalblue', 'indianred']
+# ax = sns.violinplot( x = allinfos['type'], y=allinfos['corr'].astype(float) , data = allinfos, dodge=False,
+#                     palette = palette,cut = 2,
+#                     scale="width", inner=None)
+# ax.tick_params(bottom=True, left=True)
+# xlim = ax.get_xlim()
+# ylim = ax.get_ylim()
+# for violin in ax.collections:
+#     x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
+#     violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
+# sns.boxplot(x = allinfos['type'], y=allinfos['corr'].astype(float) , data = allinfos, saturation=1, showfliers=False,
+#             width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
+# old_len_collections = len(ax.collections)
+# sns.stripplot(x = allinfos['type'], y = allinfos['corr'].astype(float), data = allinfos, 
+#               hue = allinfos['sess'], palette=sns.color_palette('inferno_r', len(allinfos['sess'].unique())), 
+#                                                                 dodge=False, ax=ax, legend=False)
+# # sns.swarmplot(x = durdf['genotype'], y = durdf['dur'].astype(float), data = durdf, color = 'k', dodge=False, ax=ax)
+# for dots in ax.collections[old_len_collections:]:
+#     dots.set_offsets(dots.get_offsets())
+# ax.set_xlim(xlim)
+# ax.set_ylim(ylim)
+# plt.ylabel('Correlation (R)')
+# plt.axhline(0, linestyle = '--', color = 'silver')
+# ax.set_box_aspect(1)
 
-plt.subplot(132)
-plt.title('A1 v/s A2')
-sns.set_style('white')
-palette = ['royalblue', 'indianred']
-ax = sns.violinplot( x = allinfos2['type'], y=allinfos2['corr'].astype(float) , data = allinfos2, dodge=False,
-                    palette = palette,cut = 2,
-                    scale="width", inner=None)
-ax.tick_params(bottom=True, left=True)
-xlim = ax.get_xlim()
-ylim = ax.get_ylim()
-for violin in ax.collections:
-    x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
-    violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
-sns.boxplot(x = allinfos2['type'], y=allinfos2['corr'].astype(float) , data = allinfos2, saturation=1, showfliers=False,
-            width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
-old_len_collections = len(ax.collections)
-sns.stripplot(x = allinfos2['type'], y = allinfos2['corr'].astype(float), data = allinfos2, 
-              hue = allinfos['sess'], palette=sns.color_palette('inferno_r', len(allinfos['sess'].unique())), 
-                                                                  dodge=False, ax=ax, legend=False)
-# sns.swarmplot(x = durdf['genotype'], y = durdf['dur'].astype(float), data = durdf, color = 'k', dodge=False, ax=ax)
-for dots in ax.collections[old_len_collections:]:
-    dots.set_offsets(dots.get_offsets())
-ax.set_xlim(xlim)
-ax.set_ylim(ylim)
-plt.ylabel('Correlation (R)')
-ax.set_box_aspect(1)
+#%% 
+# bins = np.linspace(-0.75, 0.8, 100) ##CA1 
+bins = np.linspace(-0.35, 1, 100) ##CA3
 
-plt.subplot(133)
-plt.title('B1 v/s B2')
-sns.set_style('white')
-palette = ['royalblue', 'indianred']
-ax = sns.violinplot( x = allinfos3['type'], y=allinfos3['corr'].astype(float) , data = allinfos3, dodge=False,
-                    palette = palette,cut = 2,
-                    scale="width", inner=None)
-ax.tick_params(bottom=True, left=True)
-xlim = ax.get_xlim()
-ylim = ax.get_ylim()
-for violin in ax.collections:
-    x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
-    violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
-sns.boxplot(x = allinfos3['type'], y=allinfos3['corr'].astype(float) , data = allinfos3, saturation=1, showfliers=False,
-            width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
-old_len_collections = len(ax.collections)
-sns.stripplot(x = allinfos3['type'], y = allinfos3['corr'].astype(float), data = allinfos3, 
-              hue = allinfos['sess'], palette=sns.color_palette('inferno_r', len(allinfos['sess'].unique())), dodge=False, ax=ax)
-# sns.swarmplot(x = durdf['genotype'], y = durdf['dur'].astype(float), data = durdf, color = 'k', dodge=False, ax=ax)
-for dots in ax.collections[old_len_collections:]:
-    dots.set_offsets(dots.get_offsets())
-ax.set_xlim(xlim)
-ax.set_ylim(ylim)
-plt.ylabel('Correlation (R)')
-ax.set_box_aspect(1)
+xcenters = np.mean(np.vstack([bins[:-1], bins[1:]]), axis = 0)
+wtcounts, _ = np.histogram(env_stability_wt, bins)
+kocounts, _ = np.histogram(env_stability_ko, bins)
+
+wtprop = wtcounts/sum(wtcounts)
+koprop = kocounts/sum(kocounts)
+
+# plt.figure()
+# plt.title('Remapping Correlation')
+# plt.plot(xcenters, np.cumsum(wtprop), color = 'royalblue', label  = 'WT')
+# plt.plot(xcenters, np.cumsum(koprop), color = 'indianred', label  = 'KO')
+# plt.axvline(0, linestyle = '--', color = 'silver')
+# plt.xlabel('Correlation (R)')
+# plt.ylabel('% cells')
+# plt.legend(loc = 'upper left')
+# plt.gca().set_box_aspect(1)
+
+#%% 
+
+# plt.subplot(132)
+# plt.title('A1 v/s A2')
+# sns.set_style('white')
+# palette = ['royalblue', 'indianred']
+# ax = sns.violinplot( x = allinfos2['type'], y=allinfos2['corr'].astype(float) , data = allinfos2, dodge=False,
+#                     palette = palette,cut = 2,
+#                     scale="width", inner=None)
+# ax.tick_params(bottom=True, left=True)
+# xlim = ax.get_xlim()
+# ylim = ax.get_ylim()
+# for violin in ax.collections:
+#     x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
+#     violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
+# sns.boxplot(x = allinfos2['type'], y=allinfos2['corr'].astype(float) , data = allinfos2, saturation=1, showfliers=False,
+#             width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
+# old_len_collections = len(ax.collections)
+# sns.stripplot(x = allinfos2['type'], y = allinfos2['corr'].astype(float), data = allinfos2, 
+#               hue = allinfos['sess'], palette=sns.color_palette('inferno_r', len(allinfos['sess'].unique())), 
+#                                                                   dodge=False, ax=ax, legend=False)
+# # sns.swarmplot(x = durdf['genotype'], y = durdf['dur'].astype(float), data = durdf, color = 'k', dodge=False, ax=ax)
+# for dots in ax.collections[old_len_collections:]:
+#     dots.set_offsets(dots.get_offsets())
+# ax.set_xlim(xlim)
+# ax.set_ylim(ylim)
+# plt.ylabel('Correlation (R)')
+# ax.set_box_aspect(1)
+
+# plt.subplot(133)
+# plt.title('B1 v/s B2')
+# sns.set_style('white')
+# palette = ['royalblue', 'indianred']
+# ax = sns.violinplot( x = allinfos3['type'], y=allinfos3['corr'].astype(float) , data = allinfos3, dodge=False,
+#                     palette = palette,cut = 2,
+#                     scale="width", inner=None)
+# ax.tick_params(bottom=True, left=True)
+# xlim = ax.get_xlim()
+# ylim = ax.get_ylim()
+# for violin in ax.collections:
+#     x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
+#     violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
+# sns.boxplot(x = allinfos3['type'], y=allinfos3['corr'].astype(float) , data = allinfos3, saturation=1, showfliers=False,
+#             width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
+# old_len_collections = len(ax.collections)
+# sns.stripplot(x = allinfos3['type'], y = allinfos3['corr'].astype(float), data = allinfos3, 
+#               hue = allinfos['sess'], palette=sns.color_palette('inferno_r', len(allinfos['sess'].unique())), dodge=False, ax=ax)
+# # sns.swarmplot(x = durdf['genotype'], y = durdf['dur'].astype(float), data = durdf, color = 'k', dodge=False, ax=ax)
+# for dots in ax.collections[old_len_collections:]:
+#     dots.set_offsets(dots.get_offsets())
+# ax.set_xlim(xlim)
+# ax.set_ylim(ylim)
+# plt.ylabel('Correlation (R)')
+# ax.set_box_aspect(1)
 
 
 #%% Stats for remapping 
@@ -718,37 +739,39 @@ t3, p3 = mannwhitneyu(halfsession2_corr_wt, halfsession2_corr_ko)
         
 #%% Plot Example cells 
 
-# examples = [4,7,8]
+# examples = [3, 6]
 
 # for n in examples:
 #     plt.figure()
-#     peakfreq = max(placefields1[n].max(), placefields2[n].max()) 
-#     pf1 = placefields1[n] / peakfreq
-#     pf2 = placefields2[n] / peakfreq
+#     # peakfreq = max(placefields1[n].max(), placefields2[n].max()) 
+#     pf1 = placefields1[n] / placefields1[n].max()
+#     pf2 = placefields2[n] / placefields2[n].max()
     
     
 #     plt.subplot(1,2,1)
+#     plt.title('FR=' + str(round(placefields1[n].max(),2)) + '_SI=' + str(round(spatialinfo_env1.loc[n],2)))
 #     plt.imshow(pf1.T, cmap = 'viridis', aspect = 'auto', origin = 'lower', vmin = 0, vmax = 1)   
 #     plt.tight_layout()
 #     plt.gca().set_box_aspect(1)
 #     plt.subplot(1,2,2)
+#     plt.title('FR=' + str(round(placefields2[n].max(),2)) + '_SI=' + str(round(spatialinfo_env2.loc[n],2)))
 #     plt.imshow(pf2.T, cmap = 'viridis', aspect = 'auto', origin = 'lower', vmin = 0, vmax = 1)   
 #     # plt.colorbar()
 #     plt.gca().set_box_aspect(1)
 #     plt.tight_layout()
     
     
-# plt.figure()
-# plt.subplot(121)
-# plt.plot(rot_pos['x'].restrict(ep1), rot_pos['z'].restrict(ep1), color = 'grey')
-# spk_pos1 = pyr2[examples[0]].value_from(rot_pos.restrict(ep1))
-# plt.plot(spk_pos1['x'], spk_pos1['z'], 'o', color = 'r', markersize = 5, alpha = 0.5)
-# plt.gca().set_box_aspect(1)
-# plt.subplot(122)
-# plt.plot(rot_pos['x'].restrict(ep2), rot_pos['z'].restrict(ep2), color = 'grey')
-# spk_pos2 = pyr2[examples[0]].value_from(rot_pos.restrict(ep2))
-# plt.plot(spk_pos2['x'], spk_pos2['z'], 'o', color = 'r', markersize = 5, alpha = 0.5)
-# plt.gca().set_box_aspect(1)    
+#     plt.figure()
+#     plt.subplot(121)
+#     plt.plot(rot_pos['x'].restrict(ep1), rot_pos['z'].restrict(ep1), color = 'grey')
+#     spk_pos1 = pyr2[n].value_from(rot_pos.restrict(ep1))
+#     plt.plot(spk_pos1['x'], spk_pos1['z'], 'o', color = 'r', markersize = 5, alpha = 0.5)
+#     plt.gca().set_box_aspect(1)
+#     plt.subplot(122)
+#     plt.plot(rot_pos['x'].restrict(ep2), rot_pos['z'].restrict(ep2), color = 'grey')
+#     spk_pos2 = pyr2[n].value_from(rot_pos.restrict(ep2))
+#     plt.plot(spk_pos2['x'], spk_pos2['z'], 'o', color = 'r', markersize = 5, alpha = 0.5)
+#     plt.gca().set_box_aspect(1)    
     
 
 # plt.figure()
@@ -787,57 +810,57 @@ allinfos2 = pd.DataFrame(data = [sinfos2, genotype], index = ['SI', 'genotype'])
 
 #%% Plotting SI
 
-plt.figure()
-plt.suptitle('Spatial Information')
-plt.subplot(121)
-plt.title('Arena A')
-sns.set_style('white')
-palette = ['royalblue', 'indianred'] 
-ax = sns.violinplot( x = allinfos1['genotype'], y=allinfos1['SI'].astype(float) , data = allinfos1, dodge=False,
-                    palette = palette,cut = 2,
-                    scale="width", inner=None)
-ax.tick_params(bottom=True, left=True)
-xlim = ax.get_xlim()
-ylim = ax.get_ylim()
-for violin in ax.collections:
-    x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
-    violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
-sns.boxplot(x = allinfos1['genotype'], y=allinfos1['SI'].astype(float) , data = allinfos1, saturation=1, showfliers=False,
-            width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
-old_len_collections = len(ax.collections)
-sns.stripplot(x = allinfos1['genotype'], y = allinfos1['SI'].astype(float), data = allinfos1, color = 'k', dodge=False, ax=ax, alpha = 0.2)
-# sns.swarmplot(x = wakedf['type'], y = wakedf['rate'].astype(float), data = wakedf, color = 'k', dodge=False, ax=ax)
-for dots in ax.collections[old_len_collections:]:
-    dots.set_offsets(dots.get_offsets())
-ax.set_xlim(xlim)
-ax.set_ylim(ylim)
-plt.ylabel('Spatial Information (bits per spike)')
-ax.set_box_aspect(1)
+# plt.figure()
+# plt.suptitle('Spatial Information')
+# # plt.subplot(121)
+# plt.title('Arena A')
+# sns.set_style('white')
+# palette = ['royalblue', 'indianred'] 
+# ax = sns.violinplot( x = allinfos1['genotype'], y=allinfos1['SI'].astype(float) , data = allinfos1, dodge=False,
+#                     palette = palette,cut = 2,
+#                     scale="width", inner=None)
+# ax.tick_params(bottom=True, left=True)
+# xlim = ax.get_xlim()
+# ylim = ax.get_ylim()
+# for violin in ax.collections:
+#     x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
+#     violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
+# sns.boxplot(x = allinfos1['genotype'], y=allinfos1['SI'].astype(float) , data = allinfos1, saturation=1, showfliers=False,
+#             width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
+# old_len_collections = len(ax.collections)
+# sns.stripplot(x = allinfos1['genotype'], y = allinfos1['SI'].astype(float), data = allinfos1, color = 'k', dodge=False, ax=ax, alpha = 0.2)
+# # sns.swarmplot(x = wakedf['type'], y = wakedf['rate'].astype(float), data = wakedf, color = 'k', dodge=False, ax=ax)
+# for dots in ax.collections[old_len_collections:]:
+#     dots.set_offsets(dots.get_offsets())
+# ax.set_xlim(xlim)
+# ax.set_ylim(ylim)
+# plt.ylabel('Spatial Information (bits per spike)')
+# ax.set_box_aspect(1)
 
-plt.subplot(122)
-plt.title('Arena B')
-sns.set_style('white')
-palette = ['royalblue', 'indianred'] 
-ax = sns.violinplot( x = allinfos2['genotype'], y=allinfos2['SI'].astype(float) , data = allinfos2, dodge=False,
-                    palette = palette,cut = 2,
-                    scale="width", inner=None)
-ax.tick_params(bottom=True, left=True)
-xlim = ax.get_xlim()
-ylim = ax.get_ylim()
-for violin in ax.collections:
-    x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
-    violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
-sns.boxplot(x = allinfos2['genotype'], y=allinfos2['SI'].astype(float) , data = allinfos2, saturation=1, showfliers=False,
-            width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
-old_len_collections = len(ax.collections)
-sns.stripplot(x = allinfos2['genotype'], y = allinfos2['SI'].astype(float), data = allinfos2, color = 'k', dodge=False, ax=ax, alpha = 0.2)
-# sns.swarmplot(x = wakedf['type'], y = wakedf['rate'].astype(float), data = wakedf, color = 'k', dodge=False, ax=ax)
-for dots in ax.collections[old_len_collections:]:
-    dots.set_offsets(dots.get_offsets())
-ax.set_xlim(xlim)
-ax.set_ylim(ylim)
-plt.ylabel('Spatial Information (bits per spike)')
-ax.set_box_aspect(1)
+# plt.subplot(122)
+# plt.title('Arena B')
+# sns.set_style('white')
+# palette = ['royalblue', 'indianred'] 
+# ax = sns.violinplot( x = allinfos2['genotype'], y=allinfos2['SI'].astype(float) , data = allinfos2, dodge=False,
+#                     palette = palette,cut = 2,
+#                     scale="width", inner=None)
+# ax.tick_params(bottom=True, left=True)
+# xlim = ax.get_xlim()
+# ylim = ax.get_ylim()
+# for violin in ax.collections:
+#     x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
+#     violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
+# sns.boxplot(x = allinfos2['genotype'], y=allinfos2['SI'].astype(float) , data = allinfos2, saturation=1, showfliers=False,
+#             width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
+# old_len_collections = len(ax.collections)
+# sns.stripplot(x = allinfos2['genotype'], y = allinfos2['SI'].astype(float), data = allinfos2, color = 'k', dodge=False, ax=ax, alpha = 0.2)
+# # sns.swarmplot(x = wakedf['type'], y = wakedf['rate'].astype(float), data = wakedf, color = 'k', dodge=False, ax=ax)
+# for dots in ax.collections[old_len_collections:]:
+#     dots.set_offsets(dots.get_offsets())
+# ax.set_xlim(xlim)
+# ax.set_ylim(ylim)
+# plt.ylabel('Spatial Information (bits per spike)')
+# ax.set_box_aspect(1)
 
 
 #%% Stats
@@ -872,57 +895,57 @@ allinfos4 = pd.DataFrame(data = [sinfos2, genotype], index = ['Sparsity', 'genot
 
 #%% Plotting Sparsity
 
-plt.figure()
-plt.suptitle('Sparsity')
-plt.subplot(121)
-plt.title('Square arena')
-sns.set_style('white')
-palette = ['royalblue', 'indianred'] 
-ax = sns.violinplot( x = allinfos3['genotype'], y=allinfos3['Sparsity'].astype(float) , data = allinfos3, dodge=False,
-                    palette = palette,cut = 2,
-                    scale="width", inner=None)
-ax.tick_params(bottom=True, left=True)
-xlim = ax.get_xlim()
-ylim = ax.get_ylim()
-for violin in ax.collections:
-    x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
-    violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
-sns.boxplot(x = allinfos3['genotype'], y=allinfos3['Sparsity'].astype(float) , data = allinfos3, saturation=1, showfliers=False,
-            width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
-old_len_collections = len(ax.collections)
-sns.stripplot(x = allinfos3['genotype'], y = allinfos3['Sparsity'].astype(float), data = allinfos3, color = 'k', dodge=False, ax=ax, alpha = 0.2)
-# sns.swarmplot(x = wakedf['type'], y = wakedf['rate'].astype(float), data = wakedf, color = 'k', dodge=False, ax=ax)
-for dots in ax.collections[old_len_collections:]:
-    dots.set_offsets(dots.get_offsets())
-ax.set_xlim(xlim)
-ax.set_ylim(ylim)
-plt.ylabel('Place field sparsity')
-ax.set_box_aspect(1)
+# plt.figure()
+# plt.suptitle('Sparsity')
+# # plt.subplot(121)
+# plt.title('Square arena')
+# sns.set_style('white')
+# palette = ['royalblue', 'indianred'] 
+# ax = sns.violinplot( x = allinfos3['genotype'], y=allinfos3['Sparsity'].astype(float) , data = allinfos3, dodge=False,
+#                     palette = palette,cut = 2,
+#                     scale="width", inner=None)
+# ax.tick_params(bottom=True, left=True)
+# xlim = ax.get_xlim()
+# ylim = ax.get_ylim()
+# for violin in ax.collections:
+#     x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
+#     violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
+# sns.boxplot(x = allinfos3['genotype'], y=allinfos3['Sparsity'].astype(float) , data = allinfos3, saturation=1, showfliers=False,
+#             width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
+# old_len_collections = len(ax.collections)
+# sns.stripplot(x = allinfos3['genotype'], y = allinfos3['Sparsity'].astype(float), data = allinfos3, color = 'k', dodge=False, ax=ax, alpha = 0.2)
+# # sns.swarmplot(x = wakedf['type'], y = wakedf['rate'].astype(float), data = wakedf, color = 'k', dodge=False, ax=ax)
+# for dots in ax.collections[old_len_collections:]:
+#     dots.set_offsets(dots.get_offsets())
+# ax.set_xlim(xlim)
+# ax.set_ylim(ylim)
+# plt.ylabel('Place field sparsity')
+# ax.set_box_aspect(1)
 
-plt.subplot(122)
-plt.title('Circular arena')
-sns.set_style('white')
-palette = ['royalblue', 'indianred'] 
-ax = sns.violinplot( x = allinfos4['genotype'], y=allinfos4['Sparsity'].astype(float) , data = allinfos4, dodge=False,
-                    palette = palette,cut = 2,
-                    scale="width", inner=None)
-ax.tick_params(bottom=True, left=True)
-xlim = ax.get_xlim()
-ylim = ax.get_ylim()
-for violin in ax.collections:
-    x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
-    violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
-sns.boxplot(x = allinfos4['genotype'], y=allinfos4['Sparsity'].astype(float) , data = allinfos4, saturation=1, showfliers=False,
-            width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
-old_len_collections = len(ax.collections)
-sns.stripplot(x = allinfos4['genotype'], y = allinfos4['Sparsity'].astype(float), data = allinfos4, color = 'k', dodge=False, ax=ax, alpha = 0.2)
-# sns.swarmplot(x = wakedf['type'], y = wakedf['rate'].astype(float), data = wakedf, color = 'k', dodge=False, ax=ax)
-for dots in ax.collections[old_len_collections:]:
-    dots.set_offsets(dots.get_offsets())
-ax.set_xlim(xlim)
-ax.set_ylim(ylim)
-plt.ylabel('Place field sparsity')
-ax.set_box_aspect(1)
+# plt.subplot(122)
+# plt.title('Circular arena')
+# sns.set_style('white')
+# palette = ['royalblue', 'indianred'] 
+# ax = sns.violinplot( x = allinfos4['genotype'], y=allinfos4['Sparsity'].astype(float) , data = allinfos4, dodge=False,
+#                     palette = palette,cut = 2,
+#                     scale="width", inner=None)
+# ax.tick_params(bottom=True, left=True)
+# xlim = ax.get_xlim()
+# ylim = ax.get_ylim()
+# for violin in ax.collections:
+#     x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
+#     violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
+# sns.boxplot(x = allinfos4['genotype'], y=allinfos4['Sparsity'].astype(float) , data = allinfos4, saturation=1, showfliers=False,
+#             width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
+# old_len_collections = len(ax.collections)
+# sns.stripplot(x = allinfos4['genotype'], y = allinfos4['Sparsity'].astype(float), data = allinfos4, color = 'k', dodge=False, ax=ax, alpha = 0.2)
+# # sns.swarmplot(x = wakedf['type'], y = wakedf['rate'].astype(float), data = wakedf, color = 'k', dodge=False, ax=ax)
+# for dots in ax.collections[old_len_collections:]:
+#     dots.set_offsets(dots.get_offsets())
+# ax.set_xlim(xlim)
+# ax.set_ylim(ylim)
+# plt.ylabel('Place field sparsity')
+# ax.set_box_aspect(1)
 
 #%% Stats for sparsity
 
@@ -1037,31 +1060,54 @@ allinfos3 = pd.DataFrame(data = [sinfos1, genotype], index = ['PVCorr', 'genotyp
 
 #%% Plotting PV corr
 
+# plt.figure()
+# plt.title('Population vector correlation')
+# sns.set_style('white')
+# palette = ['royalblue', 'indianred'] 
+# ax = sns.violinplot( x = allinfos3['genotype'], y=allinfos3['PVCorr'].astype(float) , data = allinfos3, dodge=False,
+#                     palette = palette,cut = 2,
+#                     scale="width", inner=None)
+# ax.tick_params(bottom=True, left=True)
+# xlim = ax.get_xlim()
+# ylim = ax.get_ylim()
+# for violin in ax.collections:
+#     x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
+#     violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
+# sns.boxplot(x = allinfos3['genotype'], y=allinfos3['PVCorr'].astype(float) , data = allinfos3, saturation=1, showfliers=False,
+#             width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
+# old_len_collections = len(ax.collections)
+# sns.stripplot(x = allinfos3['genotype'], y = allinfos3['PVCorr'].astype(float), data = allinfos3, color = 'k', dodge=False, ax=ax, alpha = 0.2)
+# # sns.swarmplot(x = wakedf['type'], y = wakedf['rate'].astype(float), data = wakedf, color = 'k', dodge=False, ax=ax)
+# for dots in ax.collections[old_len_collections:]:
+#     dots.set_offsets(dots.get_offsets())
+# ax.set_xlim(xlim)
+# ax.set_ylim(ylim)
+# plt.ylabel('Correlation (R)')
+# plt.axhline(0, linestyle = '--', color = 'silver')
+# ax.set_box_aspect(1)
+
+#%% 
+
+# bins = np.linspace(-0.05, 0.2, 100) ###CA1
+bins = np.linspace(-0.2, 0.3, 100) ###CA3
+
+
+xcenters = np.mean(np.vstack([bins[:-1], bins[1:]]), axis = 0)
+wtcounts, _ = np.histogram(pvcorr_wt, bins)
+kocounts, _ = np.histogram(pvcorr_ko, bins)
+
+wtprop = wtcounts/sum(wtcounts)
+koprop = kocounts/sum(kocounts)
+
 plt.figure()
-plt.title('Population vector correlation')
-sns.set_style('white')
-palette = ['royalblue', 'indianred'] 
-ax = sns.violinplot( x = allinfos3['genotype'], y=allinfos3['PVCorr'].astype(float) , data = allinfos3, dodge=False,
-                    palette = palette,cut = 2,
-                    scale="width", inner=None)
-ax.tick_params(bottom=True, left=True)
-xlim = ax.get_xlim()
-ylim = ax.get_ylim()
-for violin in ax.collections:
-    x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
-    violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
-sns.boxplot(x = allinfos3['genotype'], y=allinfos3['PVCorr'].astype(float) , data = allinfos3, saturation=1, showfliers=False,
-            width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
-old_len_collections = len(ax.collections)
-sns.stripplot(x = allinfos3['genotype'], y = allinfos3['PVCorr'].astype(float), data = allinfos3, color = 'k', dodge=False, ax=ax, alpha = 0.2)
-# sns.swarmplot(x = wakedf['type'], y = wakedf['rate'].astype(float), data = wakedf, color = 'k', dodge=False, ax=ax)
-for dots in ax.collections[old_len_collections:]:
-    dots.set_offsets(dots.get_offsets())
-ax.set_xlim(xlim)
-ax.set_ylim(ylim)
-plt.ylabel('Correlation (R)')
-plt.axhline(0, linestyle = '--', color = 'silver')
-ax.set_box_aspect(1)
+plt.title('Population Vector Correlation')
+plt.plot(xcenters, np.cumsum(wtprop), color = 'royalblue', label  = 'WT')
+plt.plot(xcenters, np.cumsum(koprop), color = 'indianred', label  = 'KO')
+plt.axvline(0, linestyle = '--', color = 'silver')
+plt.xlabel('Correlation (R)')
+plt.ylabel('% sessions')
+plt.legend(loc = 'upper left')
+plt.gca().set_box_aspect(1)
 
 #%% Stats for PV corr
 
@@ -1070,22 +1116,31 @@ z_pvcorr_ko, p_pvcorr_ko = wilcoxon(np.array(pvcorr_ko)-0)
 
 #%% 
 
-# bins = np.linspace(-0.4, 1, 30)
-# xcenters = np.mean(np.vstack([bins[:-1], bins[1:]]), axis = 0)
-# wtcounts, _ = np.histogram(oddevencorr_wt, bins)
-# kocounts, _ = np.histogram(oddevencorr_ko, bins)
+# bins = np.linspace(-0.4, 1, 30) ###CA1 
+bins = np.linspace(-0.2, 1, 30) ###CA3
 
-# wtprop = wtcounts/sum(wtcounts)
-# koprop = kocounts/sum(kocounts)
+xcenters = np.mean(np.vstack([bins[:-1], bins[1:]]), axis = 0)
+wtcounts, _ = np.histogram(oddevencorr_wt, bins)
+kocounts, _ = np.histogram(oddevencorr_ko, bins)
 
-# plt.figure()
+wtprop = wtcounts/sum(wtcounts)
+koprop = kocounts/sum(kocounts)
+
+plt.figure()
 # plt.plot(xcenters, 1-np.cumsum(wtprop), color = 'royalblue', label  = 'WT')
 # plt.plot(xcenters, 1-np.cumsum(koprop), color = 'indianred', label  = 'KO')
-# plt.axvline(0.65, linestyle = '--', color = 'silver')
-# plt.axvline(0.53, linestyle = '--', color = 'silver')
-# plt.xlabel('odd-even correlation (R)')
-# plt.ylabel('% events')
-# plt.legend(loc = 'upper right')
+plt.plot(xcenters, np.cumsum(wtprop), color = 'royalblue', label  = 'WT')
+plt.plot(xcenters, np.cumsum(koprop), color = 'indianred', label  = 'KO')
+
+
+# plt.axvline(0.53, linestyle = '--', color = 'silver') ### CA1
+plt.axvline(0.54, linestyle = '--', color = 'silver') ### CA3
+
+plt.xlabel('odd-even correlation (R)')
+plt.ylabel('% cells')
+plt.legend(loc = 'upper left')
+plt.gca().set_box_aspect(1)
+
 
 # plt.figure()
 # plt.stairs(wtprop, bins, label = 'WT', color = 'royalblue' , linewidth = 2)

@@ -90,7 +90,7 @@ for s in datasets:
         
         if 'fs' in spikes.getby_category('celltype').keys():
             print('found!')
-            # print(len(spikes))
+            print(len(spikes))
             fscells = spikes.getby_category('celltype')['fs']
             
             pyrcells = spikes.getby_category('celltype')['pyr']

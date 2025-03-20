@@ -236,11 +236,19 @@ for s in datasets:
         
 #%%        
 
+# bins = np.linspace(-0.4, 1, 30) ### CA1 
+bins = np.linspace(-0.2, 0.7, 30) ### CA3
+xcenters = np.mean(np.vstack([bins[:-1], bins[1:]]), axis = 0)
+counts, _ = np.histogram(shuffs, bins)
+prop = counts/sum(counts)
+
 plt.figure()
-plt.hist(shuffs, color = 'k')
+plt.title('Shuffle Distribution')
+plt.stairs(prop, bins, color = 'k' , linewidth = 2)
 plt.axvline(np.percentile(shuffs,95), color = 'silver', linestyle = '--')
 plt.xlabel('Odd-Even Correlation (R)')
-plt.ylabel('Count')
+plt.ylabel('% cells')
+plt.gca().set_box_aspect(1)
 
         
 
