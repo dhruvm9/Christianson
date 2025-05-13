@@ -19,10 +19,13 @@ from scipy.stats import mannwhitneyu
 
 #%% 
 
-data_directory = '/media/dhruv/Expansion/Processed'
+# data_directory = '/media/dhruv/Expansion/Processed'
 # data_directory = '/media/dhruv/Expansion/Processed/CA3'
-datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
-ripplechannels = np.genfromtxt(os.path.join(data_directory,'ripplechannel.list'), delimiter = '\n', dtype = str, comments = '#')
+data_directory = '/media/dhruv/Expansion/Processed/LinearTrack'
+# datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
+datasets = np.genfromtxt(os.path.join(data_directory,'dataset_LTreplay.list'), delimiter = '\n', dtype = str, comments = '#')
+# ripplechannels = np.genfromtxt(os.path.join(data_directory,'ripplechannel.list'), delimiter = '\n', dtype = str, comments = '#')
+ripplechannels = np.genfromtxt(os.path.join(data_directory,'ripplechannel_LTreplay.list'), delimiter = '\n', dtype = str, comments = '#')
 
 fs = 1250
 
@@ -31,6 +34,8 @@ PSD_rip_ko = pd.DataFrame()
 
 peakfreq_wt = []
 peakfreq_ko = []
+
+KOmice = ['B2613', 'B2618', 'B2627', 'B2628', 'B3805', 'B3813', 'B4701', 'B4704', 'B4709']
 
 for r,s in enumerate(datasets):
     print(s)
@@ -41,7 +46,7 @@ for r,s in enumerate(datasets):
     data.load_neurosuite_xml(path)
     epochs = data.epochs
     
-    if name == 'B2613' or name == 'B2618' or name == 'B2627' or name == 'B2628' or name == 'B3805' or name == 'B3813':
+    if name in KOmice:
         isWT = 0
     else: isWT = 1 
     
@@ -105,12 +110,14 @@ ix = np.where((freqs >= 10) & (freqs <= 200))
 plt.figure()
 # plt.title('During SWRs')
 plt.semilogx(freqs[ix], 10*np.log10(PSD_rip_wt.iloc[ix].mean(axis=1)), 'o-', label = 'WT', color = 'royalblue')
+# plt.semilogx(freqs[ix], 10*np.log10(PSD_rip_wt.iloc[ix]), 'o-', label = 'WT', color = 'royalblue')
 # err = 10*np.log10(PSD_rip_wt.iloc[ix].sem(axis=1))
 # plt.fill_between(freqs[ix],
 #                   10*np.log10(PSD_rip_wt.iloc[ix].mean(axis=1))-err, 
 #                   10*np.log10(PSD_rip_wt.iloc[ix].mean(axis=1))+err, color = 'royalblue', alpha = 0.2)
 
 plt.semilogx(freqs[ix], 10*np.log10(PSD_rip_ko.iloc[ix].mean(axis=1)), 'o-', label = 'KO', color = 'indianred')
+# plt.semilogx(freqs[ix], 10*np.log10(PSD_rip_ko.iloc[ix]), 'o-', label = 'KO', color = 'indianred')
 # err = 10*np.log10(PSD_rip_ko.iloc[ix].sem(axis=1))
 # plt.fill_between(freqs[ix],
 #                   10*np.log10(PSD_rip_ko.iloc[ix].mean(axis=1))-err, 
@@ -119,7 +126,7 @@ plt.xlabel('Freq (Hz)')
 plt.xticks([10, 100, 200])
 plt.ylabel('Power (dB/Hz)')
 plt.yticks([-20, -30])
-plt.legend(loc = 'upper right')
+# plt.legend(loc = 'upper right')
 plt.grid(True)
 plt.gca().set_box_aspect(1)
 

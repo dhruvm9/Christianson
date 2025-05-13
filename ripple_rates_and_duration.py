@@ -13,12 +13,16 @@ import pynapple as nap
 import os, sys
 import seaborn as sns
 import matplotlib.pyplot as plt 
+import warnings
 from scipy.stats import mannwhitneyu
 
 #%% 
 
-data_directory = '/media/dhruv/Expansion/Processed'
+warnings.filterwarnings("ignore")
+
+# data_directory = '/media/dhruv/Expansion/Processed'
 # data_directory = '/media/dhruv/Expansion/Processed/CA3'
+data_directory = '/media/dhruv/Expansion/Processed/LinearTrack'
 datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
 
 allripdurs_wt = []
@@ -27,12 +31,14 @@ allripdurs_ko = []
 allriprates_wt = []
 allriprates_ko = []
 
+KOmice = ['B2613', 'B2618', 'B2627', 'B2628', 'B3805', 'B3813', 'B4701', 'B4704', 'B4709']
+
 for s in datasets:
     print(s)
     name = s.split('-')[0]
     path = os.path.join(data_directory, s)
     
-    if name == 'B2613' or name == 'B2618' or name == 'B2627' or name == 'B2628' or name == 'B3805' or name == 'B3813':
+    if name in KOmice:
         isWT = 0
     else: isWT = 1 
     
@@ -41,10 +47,7 @@ for s in datasets:
         
     file = os.path.join(path, s +'.sws.evt')
     sws_ep = data.read_neuroscope_intervals(name = 'SWS', path2file = file)
-    
-    file = os.path.join(path, s +'.rem.evt')
-    rem_ep = data.read_neuroscope_intervals(name = 'REM', path2file = file)
-    
+        
     file = os.path.join(path, s +'.evt.py.rip')
     rip_ep = data.read_neuroscope_intervals(name = 'rip', path2file = file)
     
@@ -70,10 +73,12 @@ for s in datasets:
     if isWT == 1: 
        allripdurs_wt.append(np.mean(ripdur)*1e3)
        allriprates_wt.append(riprate)
+       print('WT')
        # allriprates_wt.append(1 / np.mean(IRI))
     else: 
         allripdurs_ko.append(np.mean(ripdur)*1e3)
         allriprates_ko.append(riprate) 
+        print('KO')
         # allriprates_ko.append(1 / np.mean(IRI))
          
     

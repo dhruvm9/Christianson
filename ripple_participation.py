@@ -20,7 +20,8 @@ from functions_DM import *
 
 #%% 
 
-data_directory = '/media/dhruv/Expansion/Processed'
+# data_directory = '/media/dhruv/Expansion/Processed'
+data_directory = '/media/dhruv/Expansion/Processed/LinearTrack'
 datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
 ripplechannels = np.genfromtxt(os.path.join(data_directory,'ripplechannel.list'), delimiter = '\n', dtype = str, comments = '#')
 
@@ -41,10 +42,11 @@ part_all_fs_ko = []
 npyr3_wt = []
 npyr3_ko = []
 
+KOmice = ['B2613', 'B2618', 'B2627', 'B2628', 'B3805', 'B3813', 'B4701', 'B4704', 'B4709']
+
 for s in datasets:
     print(s)
-    
-            
+                
     name = s.split('-')[0]
     path = os.path.join(data_directory, s)
     
@@ -52,27 +54,25 @@ for s in datasets:
     data.load_neurosuite_xml(path)
     epochs = data.epochs
     
-    if name == 'B2613' or name == 'B2618' or name == 'B2627' or name == 'B2628' or name == 'B3805' or name == 'B3813':
+    if name in KOmice:
         isWT = 0
     else: isWT = 1 
           
     file = os.path.join(path, s +'.sws.evt')
     sws_ep = data.read_neuroscope_intervals(name = 'SWS', path2file = file)
-    
-    file = os.path.join(path, s +'.rem.evt')
-    rem_ep = data.read_neuroscope_intervals(name = 'REM', path2file = file)
-    
+        
     file = os.path.join(path, s +'.evt.py.rip')
     rip_ep = data.read_neuroscope_intervals(name = 'rip', path2file = file)
     
 #%% Load classified spikes 
 
     # sp2 = np.load(os.path.join(path, 'spikedata.npz'), allow_pickle = True)
-    sp2 = np.load(os.path.join(path, 'spikedata_0.55.npz'), allow_pickle = True)
-    time_support = nap.IntervalSet(sp2['start'], sp2['end'])
-    tsd = nap.Tsd(t=sp2['t'], d=sp2['index'], time_support = time_support)
-    spikes = tsd.to_tsgroup()
-    spikes.set_info(group = sp2['group'], location = sp2['location'], celltype = sp2['celltype'], tr2pk = sp2['tr2pk'])
+    # sp2 = np.load(os.path.join(path, 'spikedata_0.55.npz'), allow_pickle = True)
+    # time_support = nap.IntervalSet(sp2['start'], sp2['end'])
+    # tsd = nap.Tsd(t=sp2['t'], d=sp2['index'], time_support = time_support)
+    # spikes = tsd.to_tsgroup()
+    # spikes.set_info(group = sp2['group'], location = sp2['location'], celltype = sp2['celltype'], tr2pk = sp2['tr2pk'])
+    spikes = nap.load_file(os.path.join(path, 'spikedata_0.55.npz'))
     
     data = ntm.load_session(path, 'neurosuite')
     epochs = data.epochs
@@ -80,43 +80,43 @@ for s in datasets:
     
 #%% Rotate position 
 
-    rot_pos = []
+#     rot_pos = []
         
-    xypos = np.array(position[['x', 'z']])
+#     xypos = np.array(position[['x', 'z']])
     
-    if name == 'B2625' or name == 'B3800':
-        rad = 0.6
-    elif name == 'B2618' :
-        rad = 0.95
-    elif s == 'B2627-240528' or s == 'B2627-240530' or name == 'B3804' or name == 'B3807' or name == 'B3813':
-        rad = 0.05
-    elif name == 'B3811':
-        rad = 0.1
-    else: rad = 0    
+#     if name == 'B2625' or name == 'B3800':
+#         rad = 0.6
+#     elif name == 'B2618' :
+#         rad = 0.95
+#     elif s == 'B2627-240528' or s == 'B2627-240530' or name == 'B3804' or name == 'B3807' or name == 'B3813':
+#         rad = 0.05
+#     elif name == 'B3811':
+#         rad = 0.1
+#     else: rad = 0    
         
     
-    for i in range(len(xypos)):
-        newx, newy = rotate_via_numpy(xypos[i], rad)
-        rot_pos.append((newx, newy))
+#     for i in range(len(xypos)):
+#         newx, newy = rotate_via_numpy(xypos[i], rad)
+#         rot_pos.append((newx, newy))
         
-    rot_pos = nap.TsdFrame(t = position.index.values, d = rot_pos, columns = ['x', 'z'])
+#     rot_pos = nap.TsdFrame(t = position.index.values, d = rot_pos, columns = ['x', 'z'])
     
-    w1 = nap.IntervalSet(start = epochs['wake'][0]['start'], end = epochs['wake'][0]['end'])
+#     w1 = nap.IntervalSet(start = epochs['wake'][0]['start'], end = epochs['wake'][0]['end'])
                
-    speedbinsize = np.diff(rot_pos.index.values)[0]
+#     speedbinsize = np.diff(rot_pos.index.values)[0]
     
-    time_bins = np.arange(rot_pos.index[0], rot_pos.index[-1] + speedbinsize, speedbinsize)
-    index = np.digitize(rot_pos.index.values, time_bins)
-    tmp = rot_pos.as_dataframe().groupby(index).mean()
-    tmp.index = time_bins[np.unique(index)-1]+(speedbinsize)/2
-    distance = np.sqrt(np.power(np.diff(tmp['x']), 2) + np.power(np.diff(tmp['z']), 2)) * 100 #in cm
-    speed = pd.Series(index = tmp.index.values[0:-1]+ speedbinsize/2, data = distance/speedbinsize) # in cm/s
-    speed2 = speed.rolling(window = 25, win_type='gaussian', center=True, min_periods=1).mean(std=10) #Smooth over 200ms 
-    speed2 = nap.Tsd(speed2)
+#     time_bins = np.arange(rot_pos.index[0], rot_pos.index[-1] + speedbinsize, speedbinsize)
+#     index = np.digitize(rot_pos.index.values, time_bins)
+#     tmp = rot_pos.as_dataframe().groupby(index).mean()
+#     tmp.index = time_bins[np.unique(index)-1]+(speedbinsize)/2
+#     distance = np.sqrt(np.power(np.diff(tmp['x']), 2) + np.power(np.diff(tmp['z']), 2)) * 100 #in cm
+#     speed = pd.Series(index = tmp.index.values[0:-1]+ speedbinsize/2, data = distance/speedbinsize) # in cm/s
+#     speed2 = speed.rolling(window = 25, win_type='gaussian', center=True, min_periods=1).mean(std=10) #Smooth over 200ms 
+#     speed2 = nap.Tsd(speed2)
          
-    moving_ep = nap.IntervalSet(speed2.threshold(2).time_support) #Epochs in which speed is > 2 cm/s
+#     moving_ep = nap.IntervalSet(speed2.threshold(2).time_support) #Epochs in which speed is > 2 cm/s
     
-    ep1 = moving_ep.intersect(epochs['wake'].loc[[0]])
+#     ep1 = moving_ep.intersect(epochs['wake'].loc[[0]])
          
     
 #%% Ripple participation by cell type and genotype
@@ -286,7 +286,7 @@ ax.set_box_aspect(1)
 
 # s3.to_csv(data_directory + '/Ripple_participation_session_avg.csv')
 # s4.to_csv(data_directory + '/Ripple_participation_single_units.csv')
-s4.to_csv(data_directory + '/Ripple_participation_single_units_0.55.csv')
+# s4.to_csv(data_directory + '/Ripple_participation_single_units_0.55.csv')
 
 #%% 
             

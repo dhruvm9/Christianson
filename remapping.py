@@ -22,12 +22,12 @@ from functions_DM import *
 
 warnings.filterwarnings("ignore")
 
-# data_directory = '/media/dhruv/Expansion/Processed'
-data_directory = '/media/dhruv/Expansion/Processed/CA3'
+data_directory = '/media/dhruv/Expansion/Processed'
+# data_directory = '/media/dhruv/Expansion/Processed/CA3'
 # data_directory = '/media/adrien/Expansion/Processed'
-# datasets = np.genfromtxt(os.path.join(data_directory,'remapping_DM.list'), delimiter = '\n', dtype = str, comments = '#')
+datasets = np.genfromtxt(os.path.join(data_directory,'remapping_DM.list'), delimiter = '\n', dtype = str, comments = '#')
 # datasets = np.genfromtxt(os.path.join(data_directory,'remapping_2sq.list'), delimiter = '\n', dtype = str, comments = '#')
-datasets = np.genfromtxt(os.path.join(data_directory,'remapping_CA3.list'), delimiter = '\n', dtype = str, comments = '#')
+# datasets = np.genfromtxt(os.path.join(data_directory,'remapping_CA3.list'), delimiter = '\n', dtype = str, comments = '#')
 
 env_stability_wt = []
 env_stability_ko = []
@@ -78,8 +78,15 @@ sess_ko = []
 oddevencorr_wt = []
 oddevencorr_ko = []
 
+npyr2_wt = []
+npyr2_ko = []
+
 npyr3_wt = []
 npyr3_ko = []
+
+allcells = []
+pyrcells = []
+fscells = []
 
 for s in datasets:
     print(s)
@@ -96,6 +103,8 @@ for s in datasets:
     tsd = nap.Tsd(t=sp2['t'], d=sp2['index'], time_support = time_support)
     spikes = tsd.to_tsgroup()
     spikes.set_info(group = sp2['group'], location = sp2['location'], celltype = sp2['celltype'], tr2pk = sp2['tr2pk'])
+    
+    allcells.append(len(spikes))
     
     data = ntm.load_session(path, 'neurosuite')
     epochs = data.epochs
@@ -147,7 +156,12 @@ for s in datasets:
     
     if 'pyr' in spikes._metadata['celltype'].values:
         pyr = spikes_by_celltype['pyr']
-    
+        pyrcells.append(len(pyr))
+        
+    if 'fs' in spikes._metadata['celltype'].values:
+        fs = spikes_by_celltype['fs']
+        fscells.append(len(fs))
+        
     keep = []
     
     for i in pyr.index:
@@ -159,6 +173,10 @@ for s in datasets:
 #%% Compute speed during wake 
 
     if len(pyr2) > 2:
+        
+        if isWT == 1:
+            npyr2_wt.append(len(pyr2))
+        else: npyr2_ko.append(len(pyr2))
         
         speedbinsize = np.diff(rot_pos.index.values)[0]
         
@@ -233,8 +251,8 @@ for s in datasets:
             oddeven.append(corr)
             
             
-            # if corr > 0.53: ###CA1
-            if corr > 0.54: ###CA3
+            if corr > 0.53: ###CA1
+            # if corr > 0.54: ###CA3
                 keep.append(k)
             
                 
@@ -651,8 +669,8 @@ allinfos3 = pd.DataFrame(data = [sinfos3, genotype3], index = ['corr', 'type']).
 # ax.set_box_aspect(1)
 
 #%% 
-# bins = np.linspace(-0.75, 0.8, 100) ##CA1 
-bins = np.linspace(-0.35, 1, 100) ##CA3
+bins = np.linspace(-0.75, 0.8, 100) ##CA1 
+# bins = np.linspace(-0.35, 1, 100) ##CA3
 
 xcenters = np.mean(np.vstack([bins[:-1], bins[1:]]), axis = 0)
 wtcounts, _ = np.histogram(env_stability_wt, bins)
@@ -661,15 +679,15 @@ kocounts, _ = np.histogram(env_stability_ko, bins)
 wtprop = wtcounts/sum(wtcounts)
 koprop = kocounts/sum(kocounts)
 
-# plt.figure()
-# plt.title('Remapping Correlation')
-# plt.plot(xcenters, np.cumsum(wtprop), color = 'royalblue', label  = 'WT')
-# plt.plot(xcenters, np.cumsum(koprop), color = 'indianred', label  = 'KO')
-# plt.axvline(0, linestyle = '--', color = 'silver')
-# plt.xlabel('Correlation (R)')
-# plt.ylabel('% cells')
-# plt.legend(loc = 'upper left')
-# plt.gca().set_box_aspect(1)
+plt.figure()
+plt.title('Remapping Correlation')
+plt.plot(xcenters, np.cumsum(wtprop), color = 'royalblue', label  = 'WT')
+plt.plot(xcenters, np.cumsum(koprop), color = 'indianred', label  = 'KO')
+plt.axvline(0, linestyle = '--', color = 'silver')
+plt.xlabel('Correlation (R)')
+plt.ylabel('% cells')
+plt.legend(loc = 'upper left')
+plt.gca().set_box_aspect(1)
 
 #%% 
 
@@ -1088,8 +1106,8 @@ allinfos3 = pd.DataFrame(data = [sinfos1, genotype], index = ['PVCorr', 'genotyp
 
 #%% 
 
-# bins = np.linspace(-0.05, 0.2, 100) ###CA1
-bins = np.linspace(-0.2, 0.3, 100) ###CA3
+bins = np.linspace(-0.05, 0.2, 100) ###CA1
+# bins = np.linspace(-0.2, 0.3, 100) ###CA3
 
 
 xcenters = np.mean(np.vstack([bins[:-1], bins[1:]]), axis = 0)
@@ -1116,8 +1134,8 @@ z_pvcorr_ko, p_pvcorr_ko = wilcoxon(np.array(pvcorr_ko)-0)
 
 #%% 
 
-# bins = np.linspace(-0.4, 1, 30) ###CA1 
-bins = np.linspace(-0.2, 1, 30) ###CA3
+bins = np.linspace(-0.4, 1, 30) ###CA1 
+# bins = np.linspace(-0.2, 1, 30) ###CA3
 
 xcenters = np.mean(np.vstack([bins[:-1], bins[1:]]), axis = 0)
 wtcounts, _ = np.histogram(oddevencorr_wt, bins)
@@ -1133,8 +1151,8 @@ plt.plot(xcenters, np.cumsum(wtprop), color = 'royalblue', label  = 'WT')
 plt.plot(xcenters, np.cumsum(koprop), color = 'indianred', label  = 'KO')
 
 
-# plt.axvline(0.53, linestyle = '--', color = 'silver') ### CA1
-plt.axvline(0.54, linestyle = '--', color = 'silver') ### CA3
+plt.axvline(0.53, linestyle = '--', color = 'silver') ### CA1
+# plt.axvline(0.54, linestyle = '--', color = 'silver') ### CA3
 
 plt.xlabel('odd-even correlation (R)')
 plt.ylabel('% cells')

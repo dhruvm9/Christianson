@@ -16,8 +16,9 @@ import pickle
 
 #%% 
 
-data_directory = '/media/dhruv/Expansion/Processed'
+# data_directory = '/media/dhruv/Expansion/Processed'
 # data_directory = '/media/dhruv/Expansion/Processed/CA3'
+data_directory = '/media/dhruv/Expansion/Processed/LinearTrack'
 datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
 ripplechannels = np.genfromtxt(os.path.join(data_directory,'ripplechannel.list'), delimiter = '\n', dtype = str, comments = '#')
 
@@ -25,6 +26,8 @@ fs = 1250
 
 sessions_WT = pd.DataFrame()
 sessions_KO = pd.DataFrame()
+
+KOmice = ['B2613', 'B2618', 'B2627', 'B2628', 'B3805', 'B3813', 'B4701', 'B4704', 'B4709']
 
 for r,s in enumerate(datasets):
     print(s)
@@ -35,7 +38,7 @@ for r,s in enumerate(datasets):
     data.load_neurosuite_xml(path)
     epochs = data.epochs
     
-    if name == 'B2613' or name == 'B2618' or name == 'B2627' or name == 'B2628' or name == 'B3805' or name == 'B3813':
+    if name in KOmice:
         isWT = 0
     else: isWT = 1 
     
@@ -44,8 +47,8 @@ for r,s in enumerate(datasets):
     file = os.path.join(path, s +'.sws.evt')
     sws_ep = data.read_neuroscope_intervals(name = 'SWS', path2file = file)
     
-    file = os.path.join(path, s +'.rem.evt')
-    rem_ep = data.read_neuroscope_intervals(name = 'REM', path2file = file)
+    # file = os.path.join(path, s +'.rem.evt')
+    # rem_ep = data.read_neuroscope_intervals(name = 'REM', path2file = file)
     
     file = os.path.join(path, s +'.evt.py.rip')
     rip_ep = data.read_neuroscope_intervals(name = 'rip', path2file = file)

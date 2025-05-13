@@ -42,7 +42,8 @@ def compare_correlations(r1, n1, r2, n2):
 
 warnings.filterwarnings("ignore")
 
-data_directory = '/media/dhruv/Expansion/Processed'
+# data_directory = '/media/dhruv/Expansion/Processed'
+data_directory = '/media/dhruv/Expansion/Processed/LinearTrack'
 
 datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
 ripplechannels = np.genfromtxt(os.path.join(data_directory,'ripplechannel.list'), delimiter = '\n', dtype = str, comments = '#')
@@ -70,6 +71,8 @@ riprates_ko = []
 peakfreq_wt = []
 peakfreq_ko = []
 
+KOmice = ['B2613', 'B2618', 'B2627', 'B2628', 'B3805', 'B3813', 'B4701', 'B4704', 'B4709']
+
 for r,s in enumerate(datasets):
     print(s)
     name = s.split('-')[0]
@@ -79,7 +82,7 @@ for r,s in enumerate(datasets):
     data.load_neurosuite_xml(path)
     epochs = data.epochs
     
-    if name == 'B2613' or name == 'B2618' or name == 'B2627' or name == 'B2628' or name == 'B3805' or name == 'B3813':
+    if name in KOmice:
         isWT = 0
     else: isWT = 1 
     
@@ -88,9 +91,7 @@ for r,s in enumerate(datasets):
     file = os.path.join(path, s +'.sws.evt')
     sws_ep = data.read_neuroscope_intervals(name = 'SWS', path2file = file)
     
-    file = os.path.join(path, s +'.rem.evt')
-    rem_ep = data.read_neuroscope_intervals(name = 'REM', path2file = file)
-    
+        
     file = os.path.join(path, s +'.evt.py.rip')
     rip_ep = data.read_neuroscope_intervals(name = 'rip', path2file = file)
     
@@ -99,11 +100,13 @@ for r,s in enumerate(datasets):
 
 #%% Load spikes 
         
-    sp2 = np.load(os.path.join(path, 'spikedata_0.55.npz'), allow_pickle = True)
-    time_support = nap.IntervalSet(sp2['start'], sp2['end'])
-    tsd = nap.Tsd(t=sp2['t'], d=sp2['index'], time_support = time_support)
-    spikes = tsd.to_tsgroup()
-    spikes.set_info(group = sp2['group'], location = sp2['location'], celltype = sp2['celltype'], tr2pk = sp2['tr2pk'])
+    # sp2 = np.load(os.path.join(path, 'spikedata_0.55.npz'), allow_pickle = True)
+    # time_support = nap.IntervalSet(sp2['start'], sp2['end'])
+    # tsd = nap.Tsd(t=sp2['t'], d=sp2['index'], time_support = time_support)
+    # spikes = tsd.to_tsgroup()
+    # spikes.set_info(group = sp2['group'], location = sp2['location'], celltype = sp2['celltype'], tr2pk = sp2['tr2pk'])
+    
+    spikes = nap.load_file(os.path.join(path, 'spikedata_0.55.npz'))
         
 #%% Create MUA
 
@@ -286,100 +289,100 @@ tmaxrate, pmaxrate = mannwhitneyu(maxwt, maxko)
 
 #%% 
 
-plt.figure()
-plt.title('Time of min rate')
-sns.set_style('white')
-palette = ['royalblue','indianred']
-ax = sns.violinplot( x = allinfos['type'], y=allinfos['corr'].astype(float) , data = allinfos, dodge=False,
-                    palette = palette,cut = 2,
-                    scale="width", inner=None)
-ax.tick_params(bottom=True, left=True)
-xlim = ax.get_xlim()
-ylim = ax.get_ylim()
-for violin in ax.collections:
-    x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
-    violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
-sns.boxplot(x = allinfos['type'], y=allinfos['corr'] , data = allinfos, saturation=1, showfliers=False,
-            width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
-sns.stripplot(x = allinfos['type'], y = allinfos['corr'].astype(float), data = allinfos, color = 'k', dodge=False, ax=ax, alpha = 0.2)
-plt.ylabel('Time (s)')
-ax.set_box_aspect(1)
+# plt.figure()
+# plt.title('Time of min rate')
+# sns.set_style('white')
+# palette = ['royalblue','indianred']
+# ax = sns.violinplot( x = allinfos['type'], y=allinfos['corr'].astype(float) , data = allinfos, dodge=False,
+#                     palette = palette,cut = 2,
+#                     scale="width", inner=None)
+# ax.tick_params(bottom=True, left=True)
+# xlim = ax.get_xlim()
+# ylim = ax.get_ylim()
+# for violin in ax.collections:
+#     x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
+#     violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
+# sns.boxplot(x = allinfos['type'], y=allinfos['corr'] , data = allinfos, saturation=1, showfliers=False,
+#             width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
+# sns.stripplot(x = allinfos['type'], y = allinfos['corr'].astype(float), data = allinfos, color = 'k', dodge=False, ax=ax, alpha = 0.2)
+# plt.ylabel('Time (s)')
+# ax.set_box_aspect(1)
 
-plt.figure()
-plt.title('Time of onset')
-sns.set_style('white')
-palette = ['royalblue', 'indianred']
-ax = sns.violinplot( x = allinfos2['type'], y=allinfos2['corr'].astype(float) , data = allinfos2, dodge=False,
-                    palette = palette,cut = 2,
-                    scale="width", inner=None)
-ax.tick_params(bottom=True, left=True)
-xlim = ax.get_xlim()
-ylim = ax.get_ylim()
-for violin in ax.collections:
-    x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
-    violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
-sns.boxplot(x = allinfos2['type'], y=allinfos2['corr'] , data = allinfos2, saturation=1, showfliers=False,
-            width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
-sns.stripplot(x = allinfos2['type'], y = allinfos2['corr'].astype(float), data = allinfos2, color = 'k', dodge=False, ax=ax, alpha = 0.2)
-plt.ylabel('Time (s)')
-ax.set_box_aspect(1)
+# plt.figure()
+# plt.title('Time of onset')
+# sns.set_style('white')
+# palette = ['royalblue', 'indianred']
+# ax = sns.violinplot( x = allinfos2['type'], y=allinfos2['corr'].astype(float) , data = allinfos2, dodge=False,
+#                     palette = palette,cut = 2,
+#                     scale="width", inner=None)
+# ax.tick_params(bottom=True, left=True)
+# xlim = ax.get_xlim()
+# ylim = ax.get_ylim()
+# for violin in ax.collections:
+#     x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
+#     violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
+# sns.boxplot(x = allinfos2['type'], y=allinfos2['corr'] , data = allinfos2, saturation=1, showfliers=False,
+#             width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
+# sns.stripplot(x = allinfos2['type'], y = allinfos2['corr'].astype(float), data = allinfos2, color = 'k', dodge=False, ax=ax, alpha = 0.2)
+# plt.ylabel('Time (s)')
+# ax.set_box_aspect(1)
 
-plt.figure()
-plt.title('Duration of recovery')
-sns.set_style('white')
-palette = ['royalblue', 'indianred']
-ax = sns.violinplot( x = allinfos3['type'], y=allinfos3['corr'].astype(float) , data = allinfos3, dodge=False,
-                    palette = palette,cut = 2,
-                    scale="width", inner=None)
-ax.tick_params(bottom=True, left=True)
-xlim = ax.get_xlim()
-ylim = ax.get_ylim()
-for violin in ax.collections:
-    x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
-    violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
-sns.boxplot(x = allinfos3['type'], y=allinfos3['corr'] , data = allinfos3, saturation=1, showfliers=False,
-            width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
-sns.stripplot(x = allinfos3['type'], y = allinfos3['corr'].astype(float), data = allinfos3, color = 'k', dodge=False, ax=ax, alpha = 0.2)
-plt.ylabel('Time (s)')
-ax.set_box_aspect(1)
+# plt.figure()
+# plt.title('Duration of recovery')
+# sns.set_style('white')
+# palette = ['royalblue', 'indianred']
+# ax = sns.violinplot( x = allinfos3['type'], y=allinfos3['corr'].astype(float) , data = allinfos3, dodge=False,
+#                     palette = palette,cut = 2,
+#                     scale="width", inner=None)
+# ax.tick_params(bottom=True, left=True)
+# xlim = ax.get_xlim()
+# ylim = ax.get_ylim()
+# for violin in ax.collections:
+#     x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
+#     violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
+# sns.boxplot(x = allinfos3['type'], y=allinfos3['corr'] , data = allinfos3, saturation=1, showfliers=False,
+#             width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
+# sns.stripplot(x = allinfos3['type'], y = allinfos3['corr'].astype(float), data = allinfos3, color = 'k', dodge=False, ax=ax, alpha = 0.2)
+# plt.ylabel('Time (s)')
+# ax.set_box_aspect(1)
 
-plt.figure()
-plt.title('Rate at minima')
-sns.set_style('white')
-palette = ['royalblue', 'indianred']
-ax = sns.violinplot( x = allinfos4['type'], y=allinfos4['corr'].astype(float) , data = allinfos3, dodge=False,
-                    palette = palette,cut = 2,
-                    scale="width", inner=None)
-ax.tick_params(bottom=True, left=True)
-xlim = ax.get_xlim()
-ylim = ax.get_ylim()
-for violin in ax.collections:
-    x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
-    violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
-sns.boxplot(x = allinfos4['type'], y=allinfos4['corr'] , data = allinfos4, saturation=1, showfliers=False,
-            width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
-sns.stripplot(x = allinfos4['type'], y = allinfos4['corr'].astype(float), data = allinfos4, color = 'k', dodge=False, ax=ax, alpha = 0.2)
-plt.ylabel('Norm rate')
-ax.set_box_aspect(1)
+# plt.figure()
+# plt.title('Rate at minima')
+# sns.set_style('white')
+# palette = ['royalblue', 'indianred']
+# ax = sns.violinplot( x = allinfos4['type'], y=allinfos4['corr'].astype(float) , data = allinfos3, dodge=False,
+#                     palette = palette,cut = 2,
+#                     scale="width", inner=None)
+# ax.tick_params(bottom=True, left=True)
+# xlim = ax.get_xlim()
+# ylim = ax.get_ylim()
+# for violin in ax.collections:
+#     x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
+#     violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
+# sns.boxplot(x = allinfos4['type'], y=allinfos4['corr'] , data = allinfos4, saturation=1, showfliers=False,
+#             width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
+# sns.stripplot(x = allinfos4['type'], y = allinfos4['corr'].astype(float), data = allinfos4, color = 'k', dodge=False, ax=ax, alpha = 0.2)
+# plt.ylabel('Norm rate')
+# ax.set_box_aspect(1)
 
-plt.figure()
-plt.title('Max rate')
-sns.set_style('white')
-palette = ['royalblue', 'indianred']
-ax = sns.violinplot( x = allinfos5['type'], y=allinfos5['corr'].astype(float) , data = allinfos5, dodge=False,
-                    palette = palette,cut = 2,
-                    scale="width", inner=None)
-ax.tick_params(bottom=True, left=True)
-xlim = ax.get_xlim()
-ylim = ax.get_ylim()
-for violin in ax.collections:
-    x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
-    violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
-sns.boxplot(x = allinfos5['type'], y=allinfos5['corr'] , data = allinfos5, saturation=1, showfliers=False,
-            width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
-sns.stripplot(x = allinfos5['type'], y = allinfos5['corr'].astype(float), data = allinfos5, color = 'k', dodge=False, ax=ax, alpha = 0.2)
-plt.ylabel('Norm rate')
-ax.set_box_aspect(1)
+# plt.figure()
+# plt.title('Max rate')
+# sns.set_style('white')
+# palette = ['royalblue', 'indianred']
+# ax = sns.violinplot( x = allinfos5['type'], y=allinfos5['corr'].astype(float) , data = allinfos5, dodge=False,
+#                     palette = palette,cut = 2,
+#                     scale="width", inner=None)
+# ax.tick_params(bottom=True, left=True)
+# xlim = ax.get_xlim()
+# ylim = ax.get_ylim()
+# for violin in ax.collections:
+#     x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
+#     violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
+# sns.boxplot(x = allinfos5['type'], y=allinfos5['corr'] , data = allinfos5, saturation=1, showfliers=False,
+#             width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
+# sns.stripplot(x = allinfos5['type'], y = allinfos5['corr'].astype(float), data = allinfos5, color = 'k', dodge=False, ax=ax, alpha = 0.2)
+# plt.ylabel('Norm rate')
+# ax.set_box_aspect(1)
 
 #%% 
 
@@ -412,6 +415,6 @@ plt.figure()
 plt.scatter(peakfreq_wt, maxwt, color = 'royalblue', label = 'WT')
 plt.scatter(peakfreq_ko, maxko, color = 'indianred', label = 'KO')
 plt.xlabel('SWR peak freq (Hz)')
-plt.ylabel('Rate at minima of ripple AHP')
+plt.ylabel('Rate at maxima of ripple AHP')
 plt.legend(loc = 'upper left')
 plt.gca().set_box_aspect(1)

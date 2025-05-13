@@ -22,7 +22,8 @@ import warnings
 
 warnings.filterwarnings("ignore")
 
-data_directory = '/media/dhruv/Expansion/Processed'
+# data_directory = '/media/dhruv/Expansion/Processed'
+data_directory = '/media/dhruv/Expansion/Processed/LinearTrack'
 datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
 ripplechannels = np.genfromtxt(os.path.join(data_directory,'ripplechannel.list'), delimiter = '\n', dtype = str, comments = '#')
 
@@ -60,6 +61,7 @@ evdiff_rest_ko = []
 pre_dur = []
 post_dur = []
 
+KOmice = ['B2613', 'B2618', 'B2627', 'B2628', 'B3805', 'B3813', 'B4701', 'B4704', 'B4709']
 
 for s in datasets:
     print(s)
@@ -73,7 +75,7 @@ for s in datasets:
     epochs = data.epochs
     position = data.position
     
-    if name == 'B2613' or name == 'B2618' or name == 'B2627' or name == 'B2628' or name == 'B3805' or name == 'B3813':
+    if name in KOmice:
         isWT = 0
     else: isWT = 1 
     
@@ -97,12 +99,14 @@ for s in datasets:
 #%% Load classified spikes 
 
     # t = time.time()
-    sp2 = np.load(os.path.join(path, 'spikedata_0.55.npz'), allow_pickle = True)
-    time_support = nap.IntervalSet(sp2['start'], sp2['end'])
-    tsd = nap.Tsd(t=sp2['t'], d=sp2['index'], time_support = time_support)
-    spikes = tsd.to_tsgroup()
-    spikes.set_info(group = sp2['group'], location = sp2['location'], celltype = sp2['celltype'], tr2pk = sp2['tr2pk'])
+    # sp2 = np.load(os.path.join(path, 'spikedata_0.55.npz'), allow_pickle = True)
+    # time_support = nap.IntervalSet(sp2['start'], sp2['end'])
+    # tsd = nap.Tsd(t=sp2['t'], d=sp2['index'], time_support = time_support)
+    # spikes = tsd.to_tsgroup()
+    # spikes.set_info(group = sp2['group'], location = sp2['location'], celltype = sp2['celltype'], tr2pk = sp2['tr2pk'])
     # print(time.time() - t)
+    
+    spikes = nap.load_file(os.path.join(path, 'spikedata_0.55.npz'))
     
 #%% Get only high-firing PYR cells for EV
     

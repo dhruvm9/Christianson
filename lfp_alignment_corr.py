@@ -157,8 +157,8 @@ colnames_KO = np.arange(0, len(sessions_KO.columns))
 sessions_WT.columns = colnames_WT
 sessions_KO.columns = colnames_KO
 
-colors_wt = plt.cm.PuBu((np.array(peakfreq_wt) - np.min(peakfreq_wt)) / (np.max(peakfreq_wt) - np.min(peakfreq_wt)))
-colors_ko = plt.cm.OrRd((np.array(peakfreq_ko) - np.min(peakfreq_ko)) / (np.max(peakfreq_ko) - np.min(peakfreq_ko)))
+colors_wt = plt.cm.winter((np.array(peakfreq_wt) - np.min(peakfreq_wt)) / (np.max(peakfreq_wt) - np.min(peakfreq_wt)))
+colors_ko = plt.cm.autumn((np.array(peakfreq_ko) - np.min(peakfreq_ko)) / (np.max(peakfreq_ko) - np.min(peakfreq_ko)))
 
 plt.figure()
 plt.suptitle('Avg LFP around ripple')
@@ -178,3 +178,11 @@ for i in sessions_KO.columns:
     plt.ylim([-1700, 3500])
     plt.gca().set_box_aspect(1)
     # plt.legend(loc = 'upper right')
+    
+    
+# a = np.array([[0,1]])
+# plt.figure(figsize=(9, 1.5))
+# img = plt.imshow(a, cmap='autumn')
+# plt.gca().set_visible(False)
+# cax = plt.axes([0.1, 0.2, 0.8, 0.6])
+# plt.colorbar(orientation="horizontal", cax=cax)
