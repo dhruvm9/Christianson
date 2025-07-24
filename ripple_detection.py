@@ -16,9 +16,9 @@ from scipy.signal import filtfilt
 
 #%%
 
-# data_directory = '/media/dhruv/Expansion/Processed'
+data_directory = '/media/dhruv/Expansion/Processed'
 # data_directory = '/media/dhruv/Expansion/Processed/CA3'
-data_directory = '/media/dhruv/Expansion/Processed/LinearTrack'
+# data_directory = '/media/dhruv/Expansion/Processed/LinearTrack'
 datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
 # datasets = np.genfromtxt(os.path.join(data_directory,'dataset_new_toadd.list'), delimiter = '\n', dtype = str, comments = '#')
 # datasets = np.genfromtxt(os.path.join(data_directory,'dataset_test.list'), delimiter = '\n', dtype = str, comments = '#')
@@ -124,18 +124,16 @@ for r,s in enumerate(datasets):
 
     minRipLen = 20 # ms
     maxRipLen = 200 # ms
+    minInterRippleInterval = 20 # ms
 
     rip_ep = nSS3.time_support
+    rip_ep = rip_ep.merge_close_intervals(minInterRippleInterval, time_units = 'ms')
+    # rip_ep = rip_ep.reset_index(drop=True)
+    
     rip_ep = rip_ep.drop_short_intervals(minRipLen, time_units = 'ms')
     rip_ep = rip_ep.drop_long_intervals(maxRipLen, time_units = 'ms')
 
     # print(rip_ep)
-
-#%% 
-
-    minInterRippleInterval = 20 # ms
-    rip_ep = rip_ep.merge_close_intervals(minInterRippleInterval, time_units = 'ms')
-    # rip_ep = rip_ep.reset_index(drop=True)
 
 #%% 
 

@@ -23,6 +23,7 @@ from scipy.stats import mannwhitneyu
 warnings.filterwarnings("ignore")
 
 data_directory = '/media/dhruv/Expansion/Processed'
+# data_directory = '/media/dhruv/Expansion/Processed/LinearTrack'
 datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
 
 all_xc_pyr_wt = pd.DataFrame()
@@ -50,22 +51,26 @@ lor_pyr_ko = []
 lor_fs_wt = []
 lor_fs_ko = []
 
+KOmice = ['B2613', 'B2618', 'B2627', 'B2628', 'B3805', 'B3813', 'B4701', 'B4704', 'B4709']
+
 for s in datasets:
     print(s)
     name = s.split('-')[0]
        
     path = os.path.join(data_directory, s)
     
-    if name == 'B2613' or name == 'B2618' or name == 'B2627' or name == 'B2628' or name == 'B3805' or name == 'B3813':
+    if name in KOmice:
         isWT = 0
     else: isWT = 1 
 
     # sp2 = np.load(os.path.join(path, 'spikedata.npz'), allow_pickle = True)
-    sp2 = np.load(os.path.join(path, 'spikedata_0.55.npz'), allow_pickle = True)
-    time_support = nap.IntervalSet(sp2['start'], sp2['end'])
-    tsd = nap.Tsd(t=sp2['t'], d=sp2['index'], time_support = time_support)
-    spikes = tsd.to_tsgroup()
-    spikes.set_info(group = sp2['group'], location = sp2['location'], celltype = sp2['celltype'], tr2pk = sp2['tr2pk'])
+    # sp2 = np.load(os.path.join(path, 'spikedata_0.55.npz'), allow_pickle = True)
+    # time_support = nap.IntervalSet(sp2['start'], sp2['end'])
+    # tsd = nap.Tsd(t=sp2['t'], d=sp2['index'], time_support = time_support)
+    # spikes = tsd.to_tsgroup()
+    # spikes.set_info(group = sp2['group'], location = sp2['location'], celltype = sp2['celltype'], tr2pk = sp2['tr2pk'])
+    
+    spikes = nap.load_file(os.path.join(path, 'spikedata_0.55.npz'))
     
     data = ntm.load_session(path, 'neurosuite')
     epochs = data.epochs
@@ -101,6 +106,7 @@ for s in datasets:
     if len(pyr2) > 0:
         
         xc_pyr = nap.compute_eventcorrelogram(pyr2, rip, binsize = 0.005, windowsize = 0.2 , ep = nap.IntervalSet(sws_ep), norm = True)
+        xc_pyr = xc_pyr.rolling(window=8, win_type='gaussian',center=True,min_periods=1).mean(std = 2)
         # xc_pyr = nap.compute_eventcorrelogram(pyr, nap.Ts(np.array(rip_trough)), binsize = 0.0005, windowsize = 0.1 , ep = nap.IntervalSet(sws_ep), norm = True)
         
         minp_pyr = xc_pyr.mean(axis=1)[0:0.105].idxmin()
@@ -124,6 +130,7 @@ for s in datasets:
         fs = spikes_by_celltype['fs']
         
         xc_fs = nap.compute_eventcorrelogram(fs, rip, binsize = 0.005, windowsize = 0.2 , ep = nap.IntervalSet(sws_ep), norm = True)
+        xc_fs = xc_fs.rolling(window=8, win_type='gaussian',center=True,min_periods=1).mean(std = 2)
         # xc_fs = nap.compute_eventcorrelogram(fs, nap.Ts(np.array(rip_trough)), binsize = 0.0005, windowsize = 0.1 , ep = nap.IntervalSet(sws_ep), norm = True)
         all_xc_pyr_wt.mean(axis=1)
         minp_fs = xc_fs.mean(axis=1)[0:0.105].idxmin()
@@ -182,16 +189,18 @@ plt.subplot(121)
 plt.title('PYR')
 plt.xlabel('Time from SWR (s)')
 plt.ylabel('norm. rate')
+# plt.plot(all_xc_pyr_wt, color = 'lightsteelblue')
 plt.plot(all_xc_pyr_wt.mean(axis=1), color = 'lightsteelblue', label = 'WT')
 err = all_xc_pyr_wt.sem(axis=1)
 plt.fill_between(all_xc_pyr_wt.index.values, all_xc_pyr_wt.mean(axis=1) - err, all_xc_pyr_wt.mean(axis=1) + err, alpha = 0.2, color = 'lightsteelblue') 
 
 plt.plot(all_xc_pyr_ko.mean(axis=1), color = 'lightcoral', label = 'KO')
+# plt.plot(all_xc_pyr_ko, color = 'lightcoral')
 err = all_xc_pyr_ko.sem(axis=1)
 plt.fill_between(all_xc_pyr_ko.index.values, all_xc_pyr_ko.mean(axis=1) - err, all_xc_pyr_ko.mean(axis=1) + err, alpha = 0.2, color = 'lightcoral') 
-plt.legend(loc = 'upper right')
+# plt.legend(loc = 'upper right')
 # plt.xticks([-0.1, 0, 0.1])
-plt.yticks([1,5])
+# plt.yticks([1,5])
 plt.gca().set_box_aspect(1)
 
         
@@ -200,15 +209,17 @@ plt.title('FS')
 plt.xlabel('Time from SWR (s)')
 # plt.ylabel('norm. rate')
 plt.plot(all_xc_fs_wt.mean(axis=1), color = 'royalblue', label = 'WT')
+# plt.plot(all_xc_fs_wt, color = 'lightsteelblue')
 err = all_xc_fs_wt.sem(axis=1)
 plt.fill_between(all_xc_fs_wt.index.values, all_xc_fs_wt.mean(axis=1) - err, all_xc_fs_wt.mean(axis=1) + err, alpha = 0.2, color = 'royalblue') 
 
 plt.plot(all_xc_fs_ko.mean(axis=1), color = 'indianred', label = 'KO')
+# plt.plot(all_xc_fs_ko, color = 'lightcoral')
 err = all_xc_fs_ko.sem(axis=1)
 plt.fill_between(all_xc_fs_ko.index.values, all_xc_fs_ko.mean(axis=1) - err, all_xc_fs_ko.mean(axis=1) + err, alpha = 0.2, color = 'indianred') 
-plt.legend(loc = 'upper right')
+# plt.legend(loc = 'upper right')
 # plt.xticks([-0.1, 0, 0.1])
-plt.yticks([1,4.5])
+# plt.yticks([1,4.5])
 plt.gca().set_box_aspect(1)
 
 

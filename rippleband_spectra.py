@@ -20,12 +20,12 @@ from scipy.stats import mannwhitneyu
 #%% 
 
 # data_directory = '/media/dhruv/Expansion/Processed'
-# data_directory = '/media/dhruv/Expansion/Processed/CA3'
-data_directory = '/media/dhruv/Expansion/Processed/LinearTrack'
-# datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
-datasets = np.genfromtxt(os.path.join(data_directory,'dataset_LTreplay.list'), delimiter = '\n', dtype = str, comments = '#')
-# ripplechannels = np.genfromtxt(os.path.join(data_directory,'ripplechannel.list'), delimiter = '\n', dtype = str, comments = '#')
-ripplechannels = np.genfromtxt(os.path.join(data_directory,'ripplechannel_LTreplay.list'), delimiter = '\n', dtype = str, comments = '#')
+data_directory = '/media/dhruv/Expansion/Processed/CA3'
+# data_directory = '/media/dhruv/Expansion/Processed/LinearTrack'
+datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
+# datasets = np.genfromtxt(os.path.join(data_directory,'dataset_LTreplay.list'), delimiter = '\n', dtype = str, comments = '#')
+ripplechannels = np.genfromtxt(os.path.join(data_directory,'ripplechannel.list'), delimiter = '\n', dtype = str, comments = '#')
+# ripplechannels = np.genfromtxt(os.path.join(data_directory,'ripplechannel_LTreplay.list'), delimiter = '\n', dtype = str, comments = '#')
 
 fs = 1250
 
@@ -55,11 +55,15 @@ for r,s in enumerate(datasets):
     # file = os.path.join(path, s +'.sws.evt')
     # sws_ep = data.read_neuroscope_intervals(name = 'SWS', path2file = file)
     
-    # file = os.path.join(path, s +'.rem.evt')
-    # rem_ep = data.read_neuroscope_intervals(name = 'REM', path2file = file)
-    
+      
     file = os.path.join(path, s +'.evt.py.rip')
     rip_ep = data.read_neuroscope_intervals(name = 'rip', path2file = file)
+    
+    # file = os.path.join(path, s +'.evt.py.wpb')
+    # if os.path.isfile(file):
+    #         rip_ep = data.read_neuroscope_intervals(name = 'wpb', path2file = file)
+    # else: 
+    #     continue
     
     # with open(os.path.join(path, 'riptsd.pickle'), 'rb') as pickle_file:
     #     rip_tsd = pickle.load(pickle_file)
@@ -109,15 +113,15 @@ ix = np.where((freqs >= 10) & (freqs <= 200))
 ##Wake 
 plt.figure()
 # plt.title('During SWRs')
-plt.semilogx(freqs[ix], 10*np.log10(PSD_rip_wt.iloc[ix].mean(axis=1)), 'o-', label = 'WT', color = 'royalblue')
-# plt.semilogx(freqs[ix], 10*np.log10(PSD_rip_wt.iloc[ix]), 'o-', label = 'WT', color = 'royalblue')
+# plt.semilogx(freqs[ix], 10*np.log10(PSD_rip_wt.iloc[ix].mean(axis=1)), 'o-', label = 'WT', color = 'royalblue')
+plt.semilogx(freqs[ix], 10*np.log10(PSD_rip_wt.iloc[ix]), 'o-', label = 'WT', color = 'royalblue')
 # err = 10*np.log10(PSD_rip_wt.iloc[ix].sem(axis=1))
 # plt.fill_between(freqs[ix],
 #                   10*np.log10(PSD_rip_wt.iloc[ix].mean(axis=1))-err, 
 #                   10*np.log10(PSD_rip_wt.iloc[ix].mean(axis=1))+err, color = 'royalblue', alpha = 0.2)
 
-plt.semilogx(freqs[ix], 10*np.log10(PSD_rip_ko.iloc[ix].mean(axis=1)), 'o-', label = 'KO', color = 'indianred')
-# plt.semilogx(freqs[ix], 10*np.log10(PSD_rip_ko.iloc[ix]), 'o-', label = 'KO', color = 'indianred')
+# plt.semilogx(freqs[ix], 10*np.log10(PSD_rip_ko.iloc[ix].mean(axis=1)), 'o-', label = 'KO', color = 'indianred')
+plt.semilogx(freqs[ix], 10*np.log10(PSD_rip_ko.iloc[ix]), 'o-', label = 'KO', color = 'indianred')
 # err = 10*np.log10(PSD_rip_ko.iloc[ix].sem(axis=1))
 # plt.fill_between(freqs[ix],
 #                   10*np.log10(PSD_rip_ko.iloc[ix].mean(axis=1))-err, 

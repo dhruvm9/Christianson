@@ -15,13 +15,13 @@ import scipy.io
 import os, sys
 import seaborn as sns
 import matplotlib.pyplot as plt 
-from scipy.stats import mannwhitneyu
+from scipy.stats import mannwhitneyu, pearsonr
 from functions_DM import *
 
 #%% 
 
-# data_directory = '/media/dhruv/Expansion/Processed'
-data_directory = '/media/dhruv/Expansion/Processed/LinearTrack'
+data_directory = '/media/dhruv/Expansion/Processed'
+# data_directory = '/media/dhruv/Expansion/Processed/LinearTrack'
 datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
 ripplechannels = np.genfromtxt(os.path.join(data_directory,'ripplechannel.list'), delimiter = '\n', dtype = str, comments = '#')
 
@@ -41,6 +41,12 @@ part_all_fs_ko = []
 
 npyr3_wt = []
 npyr3_ko = []
+
+pyr_nrem_rate_wt = []
+fs_nrem_rate_wt = []
+
+pyr_nrem_rate_ko = []
+fs_nrem_rate_ko = []
 
 KOmice = ['B2613', 'B2618', 'B2627', 'B2628', 'B3805', 'B3813', 'B4701', 'B4704', 'B4709']
 
@@ -73,11 +79,11 @@ for s in datasets:
     # spikes = tsd.to_tsgroup()
     # spikes.set_info(group = sp2['group'], location = sp2['location'], celltype = sp2['celltype'], tr2pk = sp2['tr2pk'])
     spikes = nap.load_file(os.path.join(path, 'spikedata_0.55.npz'))
-    
+        
     data = ntm.load_session(path, 'neurosuite')
     epochs = data.epochs
     position = data.position
-    
+        
 #%% Rotate position 
 
 #     rot_pos = []
@@ -144,8 +150,16 @@ for s in datasets:
     else: fs = []        
                
     if len(pyr2) > 0: 
-               
+                      
         for i in pyr2:
+            
+            rate_pyr = pyr2[i].restrict(sws_ep).rate
+            
+            if isWT == 1:
+                pyr_nrem_rate_wt.append(rate_pyr)
+            else: 
+                pyr_nrem_rate_ko.append(rate_pyr)
+            
             count = 0
             
             for j in range(len(rip_ep)):
@@ -159,6 +173,15 @@ for s in datasets:
     if len(fs) > 0: 
             
         for i in fs:
+            
+            rate_fs = fs[i].restrict(sws_ep).rate
+            
+            if isWT == 1:
+                fs_nrem_rate_wt.append(rate_fs)
+            else: 
+                fs_nrem_rate_ko.append(rate_fs)
+            
+            
             count = 0
             
             for j in range(len(rip_ep)):
@@ -263,24 +286,57 @@ t_fs, p_fs = mannwhitneyu(s4[s4['type']=='fs_wt']['sync'].values.astype(float), 
 # plt.ylabel('Proportion of ripples')
 # ax.set_box_aspect(1)
 
+# plt.figure()
+# plt.title('Ripple Participation of individual cells')
+# sns.set_style('white')
+# palette = ['royalblue', 'lightsteelblue', 'indianred', 'lightcoral']
+# ax = sns.violinplot( x = s4['type'], y=s4['sync'].astype(float) , data = s4, dodge=False,
+#                     palette = palette,cut = 2,
+#                     scale="width", inner=None)
+# ax.tick_params(bottom=True, left=True)
+# xlim = ax.get_xlim()
+# ylim = ax.get_ylim()
+# for violin in ax.collections:
+#     x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
+#     violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
+# sns.boxplot(x = s4['type'], y=s4['sync'] , data = s4, saturation=1, showfliers=False,
+#             width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
+# sns.stripplot(x = s4['type'], y = s4['sync'].astype(float), data = s4, color = 'k', dodge=False, ax=ax, alpha = 0.2)
+# plt.ylabel('Proportion of ripples')
+# ax.set_box_aspect(1)
+
+#%% 
+
+r_pyr_wt, p_pyr_wt = pearsonr(part_all_pyr_wt, pyr_nrem_rate_wt)
+r_pyr_ko, p_pyr_ko = pearsonr(part_all_pyr_ko, pyr_nrem_rate_ko)
+
+r_fs_wt, p_fs_wt = pearsonr(part_all_fs_wt, fs_nrem_rate_wt)
+r_fs_ko, p_fs_ko = pearsonr(part_all_fs_ko, fs_nrem_rate_ko)
+
 plt.figure()
-plt.title('Ripple Participation of individual cells')
-sns.set_style('white')
-palette = ['royalblue', 'lightsteelblue', 'indianred', 'lightcoral']
-ax = sns.violinplot( x = s4['type'], y=s4['sync'].astype(float) , data = s4, dodge=False,
-                    palette = palette,cut = 2,
-                    scale="width", inner=None)
-ax.tick_params(bottom=True, left=True)
-xlim = ax.get_xlim()
-ylim = ax.get_ylim()
-for violin in ax.collections:
-    x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
-    violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
-sns.boxplot(x = s4['type'], y=s4['sync'] , data = s4, saturation=1, showfliers=False,
-            width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
-sns.stripplot(x = s4['type'], y = s4['sync'].astype(float), data = s4, color = 'k', dodge=False, ax=ax, alpha = 0.2)
-plt.ylabel('Proportion of ripples')
-ax.set_box_aspect(1)
+plt.suptitle('Rate-participation correlation')
+plt.subplot(121)
+plt.title('PYR')
+plt.loglog(part_all_pyr_wt, pyr_nrem_rate_wt, 'o', color = 'royalblue', label = 'WT', alpha = 0.4) 
+plt.loglog(part_all_pyr_ko, pyr_nrem_rate_ko, 'o', color = 'indianred', label = 'KO', alpha = 0.4)
+plt.xlim([0.005, 1.5])
+plt.ylim([0.1, 30])
+plt.xlabel('SWR participation')
+plt.ylabel('NREM firing rate (Hz)')
+plt.grid(True)
+plt.legend(loc = 'upper left')
+plt.gca().set_box_aspect(1)
+plt.subplot(122)
+plt.title('FS')
+plt.loglog(part_all_fs_wt, fs_nrem_rate_wt, 'o', color = 'royalblue', label = 'WT', alpha = 0.4) 
+plt.loglog(part_all_fs_ko, fs_nrem_rate_ko, 'o', color = 'indianred', label = 'KO', alpha = 0.4)
+plt.xlim([0.15, 1.1])
+plt.ylim([1, 100])
+plt.grid(True)
+plt.xlabel('SWR participation')
+plt.ylabel('NREM firing rate (Hz)')
+plt.legend(loc = 'upper left')
+plt.gca().set_box_aspect(1)
 
 #%% 
 

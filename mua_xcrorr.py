@@ -42,8 +42,8 @@ def compare_correlations(r1, n1, r2, n2):
 
 warnings.filterwarnings("ignore")
 
-# data_directory = '/media/dhruv/Expansion/Processed'
-data_directory = '/media/dhruv/Expansion/Processed/LinearTrack'
+data_directory = '/media/dhruv/Expansion/Processed'
+# data_directory = '/media/dhruv/Expansion/Processed/LinearTrack'
 
 datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
 ripplechannels = np.genfromtxt(os.path.join(data_directory,'ripplechannel.list'), delimiter = '\n', dtype = str, comments = '#')
@@ -125,6 +125,7 @@ for r,s in enumerate(datasets):
     #%% Cross correlogram
     
         xc_mua = nap.compute_eventcorrelogram(mua, rip, binsize = 0.005, windowsize = 0.2 , ep = nap.IntervalSet(sws_ep), norm = True)
+        xc_mua = xc_mua.rolling(window=8, win_type='gaussian',center=True,min_periods=1).mean(std = 2)
         minpr = xc_mua[0:].min()
         maxpr = xc_mua.max()
                 
@@ -146,6 +147,8 @@ for r,s in enumerate(datasets):
         
         ix2 = np.where((freqs>=100) & (freqs <= 200))
         peakfreq = freqs[ix2][np.argmax(P_xx[ix2])]
+        
+        riprate = len(rip_ep)/sws_ep.tot_length('s')
              
         if isWT == 1:
             peakfreq_wt.append(peakfreq) 
@@ -154,6 +157,7 @@ for r,s in enumerate(datasets):
             min2wt.append(min2pr.values[0])
             max2wt.append(max2pr.values[0])
             durwt.append(durpr.values[0])
+            riprates_wt.append(riprate)
                     
         else: 
             peakfreq_ko.append(peakfreq) 
@@ -162,7 +166,7 @@ for r,s in enumerate(datasets):
             min2ko.append(min2pr.values[0])
             max2ko.append(max2pr.values[0])
             durko.append(durpr.values[0])
-            
+            riprates_ko.append(riprate)
     
 #%% Plotting 
 
@@ -346,43 +350,43 @@ tmaxrate, pmaxrate = mannwhitneyu(maxwt, maxko)
 # plt.ylabel('Time (s)')
 # ax.set_box_aspect(1)
 
-# plt.figure()
-# plt.title('Rate at minima')
-# sns.set_style('white')
-# palette = ['royalblue', 'indianred']
-# ax = sns.violinplot( x = allinfos4['type'], y=allinfos4['corr'].astype(float) , data = allinfos3, dodge=False,
-#                     palette = palette,cut = 2,
-#                     scale="width", inner=None)
-# ax.tick_params(bottom=True, left=True)
-# xlim = ax.get_xlim()
-# ylim = ax.get_ylim()
-# for violin in ax.collections:
-#     x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
-#     violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
-# sns.boxplot(x = allinfos4['type'], y=allinfos4['corr'] , data = allinfos4, saturation=1, showfliers=False,
-#             width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
-# sns.stripplot(x = allinfos4['type'], y = allinfos4['corr'].astype(float), data = allinfos4, color = 'k', dodge=False, ax=ax, alpha = 0.2)
-# plt.ylabel('Norm rate')
-# ax.set_box_aspect(1)
+plt.figure()
+plt.title('Rate at minima')
+sns.set_style('white')
+palette = ['royalblue', 'indianred']
+ax = sns.violinplot( x = allinfos4['type'], y=allinfos4['corr'].astype(float) , data = allinfos3, dodge=False,
+                    palette = palette,cut = 2,
+                    scale="width", inner=None)
+ax.tick_params(bottom=True, left=True)
+xlim = ax.get_xlim()
+ylim = ax.get_ylim()
+for violin in ax.collections:
+    x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
+    violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
+sns.boxplot(x = allinfos4['type'], y=allinfos4['corr'] , data = allinfos4, saturation=1, showfliers=False,
+            width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
+sns.stripplot(x = allinfos4['type'], y = allinfos4['corr'].astype(float), data = allinfos4, color = 'k', dodge=False, ax=ax, alpha = 0.2)
+plt.ylabel('Norm rate')
+ax.set_box_aspect(1)
 
-# plt.figure()
-# plt.title('Max rate')
-# sns.set_style('white')
-# palette = ['royalblue', 'indianred']
-# ax = sns.violinplot( x = allinfos5['type'], y=allinfos5['corr'].astype(float) , data = allinfos5, dodge=False,
-#                     palette = palette,cut = 2,
-#                     scale="width", inner=None)
-# ax.tick_params(bottom=True, left=True)
-# xlim = ax.get_xlim()
-# ylim = ax.get_ylim()
-# for violin in ax.collections:
-#     x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
-#     violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
-# sns.boxplot(x = allinfos5['type'], y=allinfos5['corr'] , data = allinfos5, saturation=1, showfliers=False,
-#             width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
-# sns.stripplot(x = allinfos5['type'], y = allinfos5['corr'].astype(float), data = allinfos5, color = 'k', dodge=False, ax=ax, alpha = 0.2)
-# plt.ylabel('Norm rate')
-# ax.set_box_aspect(1)
+plt.figure()
+plt.title('Max rate')
+sns.set_style('white')
+palette = ['royalblue', 'indianred']
+ax = sns.violinplot( x = allinfos5['type'], y=allinfos5['corr'].astype(float) , data = allinfos5, dodge=False,
+                    palette = palette,cut = 2,
+                    scale="width", inner=None)
+ax.tick_params(bottom=True, left=True)
+xlim = ax.get_xlim()
+ylim = ax.get_ylim()
+for violin in ax.collections:
+    x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
+    violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
+sns.boxplot(x = allinfos5['type'], y=allinfos5['corr'] , data = allinfos5, saturation=1, showfliers=False,
+            width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
+sns.stripplot(x = allinfos5['type'], y = allinfos5['corr'].astype(float), data = allinfos5, color = 'k', dodge=False, ax=ax, alpha = 0.2)
+plt.ylabel('Norm rate')
+ax.set_box_aspect(1)
 
 #%% 
 
@@ -396,6 +400,14 @@ plt.xlabel('SWR peak freq (Hz)')
 plt.ylabel('Rate at minima of ripple AHP')
 plt.legend(loc = 'upper right')
 plt.gca().set_box_aspect(1)
+
+# plt.figure()
+# plt.scatter(riprates_wt, minwt, color = 'royalblue', label = 'WT')
+# plt.scatter(riprates_ko, minko, color = 'indianred', label = 'KO')
+# plt.xlabel('SWR occurrence rate (Hz)')
+# plt.ylabel('Rate at minima of ripple AHP')
+# plt.legend(loc = 'upper right')
+# plt.gca().set_box_aspect(1)
 
 a = []
 a.extend(peakfreq_wt)

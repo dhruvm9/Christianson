@@ -26,47 +26,6 @@ warnings.filterwarnings("ignore")
 data_directory = '/media/dhruv/Expansion/Processed/LinearTrack'
 datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
 
-env_stability_wt = []
-env_stability_ko = []
-
-halfsession1_corr_wt = []
-halfsession1_corr_ko = []
-
-halfsession2_corr_wt = []
-halfsession2_corr_ko = []
-
-SI1_wt = []
-SI1_ko = []
-
-SI2_wt = []
-SI2_ko = []
-
-SI3_wt = []
-SI3_ko = []
-
-SI4_wt = []
-SI4_ko = []
-
-allspatialinfo_wt = []
-allspatialinfo_ko = []
-
-pvcorr_wt = []
-pvcorr_ko = []
-
-pvec1_wt = []
-pvec2_wt = []
-pvec1_ko = []
-pvec2_ko = []
-
-pvsess_wt = []
-pvsess_ko = []
-
-sess_wt = []
-sess_ko = []
-
-oddevencorr_wt = []
-oddevencorr_ko = []
-
 npyr2_wt = []
 npyr2_ko = []
 
@@ -94,6 +53,34 @@ sigfrac_fwd_ko = []
 
 sigfrac_rev_wt = []
 sigfrac_rev_ko = []
+
+pos_slope_fwd_wt = []
+pos_slope_fwd_ko = []
+neg_slope_fwd_wt = []
+neg_slope_fwd_ko = []
+pos_slope_rev_wt = []
+pos_slope_rev_ko = []
+neg_slope_rev_wt = []
+neg_slope_rev_ko = []
+
+pos_dist_fwd_wt = []
+pos_dist_fwd_ko = []
+neg_dist_fwd_wt = []
+neg_dist_fwd_ko = []
+pos_dist_rev_wt = []
+pos_dist_rev_ko = []
+neg_dist_rev_wt = []
+neg_dist_rev_ko = []
+
+pos_cell_fwd_wt = []
+pos_cell_fwd_ko = []
+neg_cell_fwd_wt = []
+neg_cell_fwd_ko = []
+pos_cell_rev_wt = []
+pos_cell_rev_ko = []
+neg_cell_rev_wt = []
+neg_cell_rev_ko = []
+
 
 KOmice = ['B2613', 'B2618', 'B2627', 'B2628', 'B3805', 'B3813', 'B4701', 'B4704', 'B4709']
 
@@ -262,13 +249,13 @@ for s in datasets:
         # plt.plot(pos_x.restrict(fwd),'o')
         # plt.plot(pos_x.restrict(rev),'o')
 
-        plt.figure()
-        plt.title(s)
-        plt.plot(rot_pos['x'], rot_pos['z'], color = 'silver')
-        for i in range(len(fwd)):
-            plt.plot(rot_pos['x'].restrict(fwd[i]), rot_pos['z'].restrict(fwd[i]), color = 'k')
-        for i in range(len(rev)):
-            plt.plot(rot_pos['x'].restrict(rev[i]), rot_pos['z'].restrict(rev[i]), color = 'r')
+        # plt.figure()
+        # plt.title(s)
+        # plt.plot(rot_pos['x'], rot_pos['z'], color = 'silver')
+        # for i in range(len(fwd)):
+        #     plt.plot(rot_pos['x'].restrict(fwd[i]), rot_pos['z'].restrict(fwd[i]), color = 'k')
+        # for i in range(len(rev)):
+        #     plt.plot(rot_pos['x'].restrict(rev[i]), rot_pos['z'].restrict(rev[i]), color = 'r')
            
     
 #%% Compute place fields
@@ -386,13 +373,16 @@ for s in datasets:
         
 #%% Rank correlation during population bursts
         
-        file = os.path.join(path, s +'.evt.py.wpb')
-        pb_ep = data.read_neuroscope_intervals(name = 'wpb', path2file = file)
+        # file = os.path.join(path, s +'.evt.py.wpb')
+        # pb_ep = data.read_neuroscope_intervals(name = 'wpb', path2file = file)
         
-        zone_intervals = peaks_ts.union(troughs_ts)
+        # zone_intervals = peaks_ts.union(troughs_ts)
                           
-        pb_reward = zone_intervals.intersect(pb_ep)
-                   
+        # pb_reward = zone_intervals.intersect(pb_ep)
+               
+        file = os.path.join(path, s +'.evt.py.rip')
+        pb_reward = data.read_neuroscope_intervals(name = 'rip', path2file = file)
+                                 
         corrs_f = []
         sig_f = []
         
@@ -428,11 +418,28 @@ for s in datasets:
                         rshu, pshu = kendalltau(firstspk, fxmax_shu.loc[tokeep])
                         corrs_shu.append(rshu)
                         
-                    if (r_fwd > np.percentile(corrs_shu, 95)) or (r_fwd < np.percentile(corrs_shu, 5)) :
+                    if (r_fwd > np.percentile(corrs_shu, 95)): 
+                    
+                        m_fwd, b_fwd = np.polyfit(firstspk - pb_reward[i]['start'], fxmax.loc[tokeep], 1)
+                        ybin = m_fwd*(firstspk - pb_reward[i]['start'])
+                        
+                        dist = fxmax.loc[tokeep].max() - fxmax.loc[tokeep].min()
+                                                
+                        if isWT == 1:
+                            pos_slope_fwd_wt.append(m_fwd[0]*(0.35/24)) ###35 cm maze, 24 bins
+                            pos_dist_fwd_wt.append(dist.values[0]*(35/24)) ###35 cm maze, 24 bins
+                            pos_cell_fwd_wt.append(len(tokeep))
+                            
+                        else: 
+                            pos_slope_fwd_ko.append(m_fwd[0]*(0.35/24)) ###35 cm maze, 24 bins
+                            pos_dist_fwd_ko.append(dist.values[0]*(35/24))
+                            pos_cell_fwd_ko.append(len(tokeep))
+                                            
                         # plt.figure()
                         # plt.subplot(121)
                         # plt.title('R = ' + str(round(r_fwd,2)) + ', p = ' + str(round(p_fwd,2)))
-                        # plt.scatter(firstspk, fxmax.loc[tokeep], marker = '|', color = colorf[fxmax.index.get_indexer(tokeep)], s = 500)
+                        # plt.scatter(firstspk - pb_reward[i]['start'], fxmax.loc[tokeep], marker = '|', color = colorf[fxmax.index.get_indexer(tokeep)], s = 500)
+                        # plt.plot(firstspk - pb_reward[i]['start'], ybin + b_fwd, color = 'k')
                         # plt.ylabel('Max X bin')
                         # plt.ylim([-1, 25])
                         # plt.xlabel ('Time (s)')
@@ -443,6 +450,40 @@ for s in datasets:
                         # plt.gca().set_box_aspect(1)
                                         
                         sig_f.append(1)
+                    
+                    elif (r_fwd < np.percentile(corrs_shu, 5)):
+                        
+                        m_fwd, b_fwd = np.polyfit(firstspk - pb_reward[i]['start'], fxmax.loc[tokeep], 1)
+                        ybin = m_fwd*(firstspk - pb_reward[i]['start'])
+                        
+                        dist = fxmax.loc[tokeep].max() - fxmax.loc[tokeep].min()
+                        
+                        if isWT == 1:
+                            neg_slope_fwd_wt.append(m_fwd[0]*(0.35/24))
+                            neg_dist_fwd_wt.append(dist.values[0]*(35/24))
+                            neg_cell_fwd_wt.append(len(tokeep))
+                            
+                        else: 
+                            neg_slope_fwd_ko.append(m_fwd[0]*(0.35/24))
+                            neg_dist_fwd_ko.append(dist.values[0]*(35/24))
+                            neg_cell_fwd_ko.append(len(tokeep))
+                                                                        
+                        # plt.figure()
+                        # plt.subplot(121)
+                        # plt.title('R = ' + str(round(r_fwd,2)) + ', p = ' + str(round(p_fwd,2)))
+                        # plt.scatter(firstspk - pb_reward[i]['start'], fxmax.loc[tokeep], marker = '|', color = colorf[fxmax.index.get_indexer(tokeep)], s = 500)
+                        # plt.plot(firstspk - pb_reward[i]['start'], ybin + b_fwd, color = 'k')
+                        # plt.ylabel('Max X bin')
+                        # plt.ylim([-1, 25])
+                        # plt.xlabel ('Time (s)')
+                        # plt.gca().set_box_aspect(1)
+                        # plt.subplot(122)
+                        # plt.hist(corrs_shu, bins = 10)                
+                        # plt.axvline(r_fwd, color = 'k')
+                        # plt.gca().set_box_aspect(1)
+                                        
+                        sig_f.append(1)
+                                               
                     else: 
                         sig_f.append(0)
                         
@@ -457,11 +498,64 @@ for s in datasets:
                         rshu, pshu = kendalltau(firstspk, rxmax_shu.loc[tokeep])
                         corrs_shu.append(rshu)
                         
-                    if (r_rev > np.percentile(corrs_shu, 95)) or (r_rev < np.percentile(corrs_shu, 5)) :
+                    if (r_rev > np.percentile(corrs_shu, 95)): 
+                    
+                        m_rev, b_rev = np.polyfit(firstspk - pb_reward[i]['start'], rxmax.loc[tokeep], 1)
+                        ybin = m_rev*(firstspk - pb_reward[i]['start'])
+                        
+                        dist = rxmax.loc[tokeep].max() - rxmax.loc[tokeep].min()
+                        
+                        if isWT == 1:
+                            pos_slope_rev_wt.append(m_rev[0]*(0.35/24))
+                            pos_dist_rev_wt.append(dist.values[0]*(35/24))
+                            pos_cell_rev_wt.append(len(tokeep))
+                            # if m_rev[0] < 0:
+                            #     sys.exit()
+                            
+                        else: 
+                            pos_slope_rev_ko.append(m_rev[0]*(0.35/24))
+                            pos_dist_rev_ko.append(dist.values[0]*(35/24))
+                            pos_cell_rev_ko.append(len(tokeep))
+                        
                         # plt.figure()
                         # plt.subplot(121)
                         # plt.title('R = ' + str(round(r_rev,2)) + ', p = ' + str(round(p_rev,2)))
-                        # plt.scatter(firstspk, rxmax.loc[tokeep], marker = '|', color = colorr[rxmax.index.get_indexer(tokeep)], s = 500)
+                        # plt.scatter(firstspk - pb_reward[i]['start'], rxmax.loc[tokeep], marker = '|', color = colorr[rxmax.index.get_indexer(tokeep)], s = 500)
+                        # plt.plot(firstspk - pb_reward[i]['start'], ybin + b_rev, color = 'k')
+                        # plt.ylabel('Max X bin')
+                        # plt.ylim([-1, 25])
+                        # plt.xlabel ('Time (s)')
+                        # plt.gca().set_box_aspect(1)
+                        # plt.subplot(122)
+                        # plt.hist(corrs_shu, bins = 10)                
+                        # plt.axvline(r_rev, color = 'k')
+                        # plt.gca().set_box_aspect(1)
+                       
+                                        
+                        sig_r.append(1)
+                                      
+                    
+                    elif (r_rev < np.percentile(corrs_shu, 5)) :
+                        
+                        m_rev, b_rev = np.polyfit(firstspk - pb_reward[i]['start'], rxmax.loc[tokeep], 1)
+                        ybin = m_rev*(firstspk - pb_reward[i]['start'])
+                        
+                        dist = rxmax.loc[tokeep].max() - rxmax.loc[tokeep].min()
+                        
+                        if isWT == 1:
+                            neg_slope_rev_wt.append(m_rev[0]*(0.35/24))
+                            neg_dist_rev_wt.append(dist.values[0]*(35/24))
+                            neg_cell_rev_wt.append(len(tokeep))
+                        else: 
+                            neg_slope_rev_ko.append(m_rev[0]*(0.35/24))
+                            neg_dist_rev_ko.append(dist.values[0]*(35/24))
+                            neg_cell_rev_ko.append(len(tokeep))
+                                                
+                        # plt.figure()
+                        # plt.subplot(121)
+                        # plt.title('R = ' + str(round(r_rev,2)) + ', p = ' + str(round(p_rev,2)))
+                        # plt.scatter(firstspk - pb_reward[i]['start'], rxmax.loc[tokeep], marker = '|', color = colorr[rxmax.index.get_indexer(tokeep)], s = 500)
+                        # plt.plot(firstspk - pb_reward[i]['start'], ybin + b_rev, color = 'k')
                         # plt.ylabel('Max X bin')
                         # plt.ylim([-1, 25])
                         # plt.xlabel ('Time (s)')
@@ -504,49 +598,49 @@ for s in datasets:
         
 #%% Organize corrs from all sessions (fwd and rev separately)
 
-label = ['all events', 'significant events']
+# label = ['all events', 'significant events']
 
-plt.figure()
-plt.suptitle('Inbound (towards the centre)')
-plt.subplot(121)
-plt.title('WT')
-a = [c for s, c in zip(fwd_sig_wt, fwd_corrs_wt) if s == 1]
-x_multi = [fwd_corrs_wt, a]
-plt.hist(x_multi, 20, histtype = 'bar', label = label)
-plt.xlabel('R')
-plt.ylabel('Counts')
-plt.legend(loc = 'upper right')
-plt.gca().set_box_aspect(1)
-plt.subplot(122)
-plt.title('KO')
-a = [c for s, c in zip(fwd_sig_ko, fwd_corrs_ko) if s == 1]
-x_multi = [fwd_corrs_ko, a]
-plt.hist(x_multi, 20, histtype = 'bar', label = label)
-plt.xlabel('R')
-plt.ylabel('Counts')
-plt.legend(loc = 'upper right')
-plt.gca().set_box_aspect(1)
+# plt.figure()
+# plt.suptitle('Inbound (towards the centre)')
+# plt.subplot(121)
+# plt.title('WT')
+# a = [c for s, c in zip(fwd_sig_wt, fwd_corrs_wt) if s == 1]
+# x_multi = [fwd_corrs_wt, a]
+# plt.hist(x_multi, 20, histtype = 'bar', label = label)
+# plt.xlabel('R')
+# plt.ylabel('Counts')
+# plt.legend(loc = 'upper right')
+# plt.gca().set_box_aspect(1)
+# plt.subplot(122)
+# plt.title('KO')
+# a = [c for s, c in zip(fwd_sig_ko, fwd_corrs_ko) if s == 1]
+# x_multi = [fwd_corrs_ko, a]
+# plt.hist(x_multi, 20, histtype = 'bar', label = label)
+# plt.xlabel('R')
+# plt.ylabel('Counts')
+# plt.legend(loc = 'upper right')
+# plt.gca().set_box_aspect(1)
 
-plt.figure()
-plt.suptitle('Outbound (towards the edge)')
-plt.subplot(121)
-plt.title('WT')
-a = [c for s, c in zip(rev_sig_wt, rev_corrs_wt) if s == 1]
-x_multi = [rev_corrs_wt, a]
-plt.hist(x_multi, 20, histtype = 'bar', label = label)
-plt.xlabel('R')
-plt.ylabel('Counts')
-plt.legend(loc = 'upper right')
-plt.gca().set_box_aspect(1)
-plt.subplot(122)
-plt.title('KO')
-a = [c for s, c in zip(rev_sig_ko, rev_corrs_ko) if s == 1]
-x_multi = [rev_corrs_ko, a]
-plt.hist(x_multi, 20, histtype = 'bar', label = label)
-plt.xlabel('R')
-plt.ylabel('Counts')
-plt.legend(loc = 'upper right')
-plt.gca().set_box_aspect(1)
+# plt.figure()
+# plt.suptitle('Outbound (towards the edge)')
+# plt.subplot(121)
+# plt.title('WT')
+# a = [c for s, c in zip(rev_sig_wt, rev_corrs_wt) if s == 1]
+# x_multi = [rev_corrs_wt, a]
+# plt.hist(x_multi, 20, histtype = 'bar', label = label)
+# plt.xlabel('R')
+# plt.ylabel('Counts')
+# plt.legend(loc = 'upper right')
+# plt.gca().set_box_aspect(1)
+# plt.subplot(122)
+# plt.title('KO')
+# a = [c for s, c in zip(rev_sig_ko, rev_corrs_ko) if s == 1]
+# x_multi = [rev_corrs_ko, a]
+# plt.hist(x_multi, 20, histtype = 'bar', label = label)
+# plt.xlabel('R')
+# plt.ylabel('Counts')
+# plt.legend(loc = 'upper right')
+# plt.gca().set_box_aspect(1)
       
         
 #%% Organize spatial information data 
@@ -593,4 +687,494 @@ plt.gca().set_box_aspect(1)
 
 # t_SI, p_SI = mannwhitneyu(allspatialinfo_wt, allspatialinfo_ko)
 
-#%%
+#%% Organize replay slope data
+
+wt1 = np.array(['WT' for x in range(len(pos_slope_fwd_wt))])
+ko1 = np.array(['KO' for x in range(len(pos_slope_fwd_ko))])
+wt2 = np.array(['WT' for x in range(len(neg_slope_fwd_wt))])
+ko2 = np.array(['KO' for x in range(len(neg_slope_fwd_ko))])
+wt3 = np.array(['WT' for x in range(len(pos_slope_rev_wt))])
+ko3 = np.array(['KO' for x in range(len(pos_slope_rev_ko))])
+wt4 = np.array(['WT' for x in range(len(neg_slope_rev_wt))])
+ko4 = np.array(['KO' for x in range(len(neg_slope_rev_ko))])
+genotype = np.hstack([wt1, ko1, wt2, ko2, wt3, ko3, wt4, ko4])
+
+p1 = np.array(['pos' for x in range(len(pos_slope_fwd_wt))])
+p2 = np.array(['pos' for x in range(len(pos_slope_fwd_ko))])
+n1 = np.array(['neg' for x in range(len(neg_slope_fwd_wt))])
+n2 = np.array(['neg' for x in range(len(neg_slope_fwd_ko))])
+p3 = np.array(['pos' for x in range(len(pos_slope_rev_wt))])
+p4 = np.array(['pos' for x in range(len(pos_slope_rev_ko))])
+n3 = np.array(['neg' for x in range(len(neg_slope_rev_wt))])
+n4 = np.array(['neg' for x in range(len(neg_slope_rev_ko))])
+slopesign = np.hstack([p1, p2, n1, n2, p3, p4, n3, n4])
+
+f1 = np.array(['fwd' for x in range(len(pos_slope_fwd_wt))])
+f2 = np.array(['fwd' for x in range(len(pos_slope_fwd_ko))])
+f3 = np.array(['fwd' for x in range(len(neg_slope_fwd_wt))])
+f4 = np.array(['fwd' for x in range(len(neg_slope_fwd_ko))])
+r1 = np.array(['rev' for x in range(len(pos_slope_rev_wt))])
+r2 = np.array(['rev' for x in range(len(pos_slope_rev_ko))])
+r3 = np.array(['rev' for x in range(len(neg_slope_rev_wt))])
+r4 = np.array(['rev' for x in range(len(neg_slope_rev_ko))])
+direction = np.hstack([f1, f2, f3, f4, r1, r2, r3, r4])
+
+sinfos1 = []
+sinfos1.extend(pos_slope_fwd_wt)
+sinfos1.extend(pos_slope_fwd_ko)
+sinfos1.extend(neg_slope_fwd_wt)
+sinfos1.extend(neg_slope_fwd_ko)
+sinfos1.extend(pos_slope_rev_wt)
+sinfos1.extend(pos_slope_rev_ko)
+sinfos1.extend(neg_slope_rev_wt)
+sinfos1.extend(neg_slope_rev_ko)
+
+allinfos1 = pd.DataFrame(data = [sinfos1, slopesign, direction, genotype], index = ['slope', 'sign', 'direction', 'genotype']).T
+
+t_slope_f, p_slope_f = mannwhitneyu(allinfos1['slope'][(allinfos1['sign'] == 'pos') & (allinfos1['genotype'] == 'WT')].values.astype(float)
+                                    , allinfos1['slope'][(allinfos1['sign'] == 'pos') & (allinfos1['genotype'] == 'KO')].values.astype(float)) 
+
+t_slope_r, p_slope_r = mannwhitneyu(allinfos1['slope'][(allinfos1['sign'] == 'neg') & (allinfos1['genotype'] == 'WT')].values.astype(float)
+                                    , allinfos1['slope'][(allinfos1['sign'] == 'neg') & (allinfos1['genotype'] == 'KO')].values.astype(float)) 
+
+print(len(allinfos1['slope'][(allinfos1['sign'] == 'pos') & (allinfos1['genotype'] == 'WT')]), len(allinfos1['slope'][(allinfos1['sign'] == 'pos') & (allinfos1['genotype'] == 'KO')]))
+print(len(allinfos1['slope'][(allinfos1['sign'] == 'neg') & (allinfos1['genotype'] == 'WT')]), len(allinfos1['slope'][(allinfos1['sign'] == 'neg') & (allinfos1['genotype'] == 'KO')]))
+
+#%% Plot replay slope 
+
+plt.figure()
+plt.suptitle('Replay Speed')
+sns.set_style('white')
+palette = ['royalblue', 'indianred'] 
+plt.subplot(121)
+plt.title('Forward Replay')
+ax = sns.violinplot( x = allinfos1['genotype'], y=allinfos1['slope'][(allinfos1['sign'] == 'pos')].astype(float), 
+                    data = allinfos1, dodge=False,
+                    palette = palette,cut = 2,
+                    scale="width", inner=None)
+ax.tick_params(bottom=True, left=True)
+xlim = ax.get_xlim()
+ylim = ax.get_ylim()
+for violin in ax.collections:
+    x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
+    violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
+sns.boxplot(x = allinfos1['genotype'], y=allinfos1['slope'][(allinfos1['sign'] == 'pos')].astype(float), 
+            data = allinfos1, saturation=1, showfliers=False,
+            width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
+old_len_collections = len(ax.collections)
+sns.stripplot(x = allinfos1['genotype'], y = allinfos1['slope'][(allinfos1['sign'] == 'pos')].astype(float), 
+              data = allinfos1, color = 'k', dodge=False, ax=ax, alpha = 0.2)
+for dots in ax.collections[old_len_collections:]:
+    dots.set_offsets(dots.get_offsets())
+ax.set_xlim(xlim)
+ax.set_ylim(ylim)
+plt.ylabel('Replay speed (m/s)')
+ax.set_box_aspect(1)
+
+plt.subplot(122)
+plt.title('Reverse Replay')
+ax = sns.violinplot( x = allinfos1['genotype'], y=allinfos1['slope'][(allinfos1['sign'] == 'neg')].astype(float), 
+                    data = allinfos1, dodge=False,
+                    palette = palette,cut = 2,
+                    scale="width", inner=None)
+ax.tick_params(bottom=True, left=True)
+xlim = ax.get_xlim()
+ylim = ax.get_ylim()
+for violin in ax.collections:
+    x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
+    violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
+sns.boxplot(x = allinfos1['genotype'], y=allinfos1['slope'][(allinfos1['sign'] == 'neg')].astype(float), 
+            data = allinfos1, saturation=1, showfliers=False,
+            width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
+old_len_collections = len(ax.collections)
+sns.stripplot(x = allinfos1['genotype'], y = allinfos1['slope'][(allinfos1['sign'] == 'neg')].astype(float), 
+              data = allinfos1, color = 'k', dodge=False, ax=ax, alpha = 0.2)
+for dots in ax.collections[old_len_collections:]:
+    dots.set_offsets(dots.get_offsets())
+ax.set_xlim(xlim)
+ax.set_ylim(ylim)
+plt.ylabel('Replay speed (m/s)')
+ax.set_box_aspect(1)
+
+###Outbound 
+
+# plt.figure()
+# plt.suptitle('Replay Slope - Outbound')
+# sns.set_style('white')
+# palette = ['royalblue', 'indianred'] 
+# plt.subplot(121)
+# plt.title('Forward Replay')
+# ax = sns.violinplot( x = allinfos1['genotype'], y=allinfos1['slope'][(allinfos1['direction'] == 'rev') & (allinfos1['sign'] == 'pos')].astype(float), 
+#                     data = allinfos1, dodge=False,
+#                     palette = palette,cut = 2,
+#                     scale="width", inner=None)
+# ax.tick_params(bottom=True, left=True)
+# xlim = ax.get_xlim()
+# ylim = ax.get_ylim()
+# for violin in ax.collections:
+#     x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
+#     violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
+# sns.boxplot(x = allinfos1['genotype'], y=allinfos1['slope'][(allinfos1['direction'] == 'rev') & (allinfos1['sign'] == 'pos')].astype(float), 
+#             data = allinfos1, saturation=1, showfliers=False,
+#             width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
+# old_len_collections = len(ax.collections)
+# sns.stripplot(x = allinfos1['genotype'], y = allinfos1['slope'][(allinfos1['direction'] == 'rev') & (allinfos1['sign'] == 'pos')].astype(float), 
+#               data = allinfos1, color = 'k', dodge=False, ax=ax, alpha = 0.2)
+# for dots in ax.collections[old_len_collections:]:
+#     dots.set_offsets(dots.get_offsets())
+# ax.set_xlim(xlim)
+# ax.set_ylim(ylim)
+# plt.ylabel('Replay slope')
+# ax.set_box_aspect(1)
+
+# plt.subplot(122)
+# plt.title('Reverse Replay')
+# ax = sns.violinplot( x = allinfos1['genotype'], y=allinfos1['slope'][(allinfos1['direction'] == 'rev') & (allinfos1['sign'] == 'neg')].astype(float), 
+#                     data = allinfos1, dodge=False,
+#                     palette = palette,cut = 2,
+#                     scale="width", inner=None)
+# ax.tick_params(bottom=True, left=True)
+# xlim = ax.get_xlim()
+# ylim = ax.get_ylim()
+# for violin in ax.collections:
+#     x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
+#     violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
+# sns.boxplot(x = allinfos1['genotype'], y=allinfos1['slope'][(allinfos1['direction'] == 'rev') & (allinfos1['sign'] == 'neg')].astype(float), 
+#             data = allinfos1, saturation=1, showfliers=False,
+#             width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
+# old_len_collections = len(ax.collections)
+# sns.stripplot(x = allinfos1['genotype'], y = allinfos1['slope'][(allinfos1['direction'] == 'rev') & (allinfos1['sign'] == 'neg')].astype(float), 
+#               data = allinfos1, color = 'k', dodge=False, ax=ax, alpha = 0.2)
+# for dots in ax.collections[old_len_collections:]:
+#     dots.set_offsets(dots.get_offsets())
+# ax.set_xlim(xlim)
+# ax.set_ylim(ylim)
+# plt.ylabel('Replay slope')
+# ax.set_box_aspect(1)
+
+#%% Organize replay distance data
+
+wt1 = np.array(['WT' for x in range(len(pos_dist_fwd_wt))])
+ko1 = np.array(['KO' for x in range(len(pos_dist_fwd_ko))])
+wt2 = np.array(['WT' for x in range(len(neg_dist_fwd_wt))])
+ko2 = np.array(['KO' for x in range(len(neg_dist_fwd_ko))])
+wt3 = np.array(['WT' for x in range(len(pos_dist_rev_wt))])
+ko3 = np.array(['KO' for x in range(len(pos_dist_rev_ko))])
+wt4 = np.array(['WT' for x in range(len(neg_dist_rev_wt))])
+ko4 = np.array(['KO' for x in range(len(neg_dist_rev_ko))])
+genotype = np.hstack([wt1, ko1, wt2, ko2, wt3, ko3, wt4, ko4])
+
+p1 = np.array(['pos' for x in range(len(pos_dist_fwd_wt))])
+p2 = np.array(['pos' for x in range(len(pos_dist_fwd_ko))])
+n1 = np.array(['neg' for x in range(len(neg_dist_fwd_wt))])
+n2 = np.array(['neg' for x in range(len(neg_dist_fwd_ko))])
+p3 = np.array(['pos' for x in range(len(pos_dist_rev_wt))])
+p4 = np.array(['pos' for x in range(len(pos_dist_rev_ko))])
+n3 = np.array(['neg' for x in range(len(neg_dist_rev_wt))])
+n4 = np.array(['neg' for x in range(len(neg_dist_rev_ko))])
+slopesign = np.hstack([p1, p2, n1, n2, p3, p4, n3, n4])
+
+f1 = np.array(['fwd' for x in range(len(pos_dist_fwd_wt))])
+f2 = np.array(['fwd' for x in range(len(pos_dist_fwd_ko))])
+f3 = np.array(['fwd' for x in range(len(neg_dist_fwd_wt))])
+f4 = np.array(['fwd' for x in range(len(neg_dist_fwd_ko))])
+r1 = np.array(['rev' for x in range(len(pos_dist_rev_wt))])
+r2 = np.array(['rev' for x in range(len(pos_dist_rev_ko))])
+r3 = np.array(['rev' for x in range(len(neg_dist_rev_wt))])
+r4 = np.array(['rev' for x in range(len(neg_dist_rev_ko))])
+direction = np.hstack([f1, f2, f3, f4, r1, r2, r3, r4])
+
+sinfos1 = []
+sinfos1.extend(pos_dist_fwd_wt)
+sinfos1.extend(pos_dist_fwd_ko)
+sinfos1.extend(neg_dist_fwd_wt)
+sinfos1.extend(neg_dist_fwd_ko)
+sinfos1.extend(pos_dist_rev_wt)
+sinfos1.extend(pos_dist_rev_ko)
+sinfos1.extend(neg_dist_rev_wt)
+sinfos1.extend(neg_dist_rev_ko)
+
+allinfos1 = pd.DataFrame(data = [sinfos1, slopesign, direction, genotype], index = ['dist', 'sign', 'direction', 'genotype']).T
+
+t_dist_f, p_dist_f = mannwhitneyu(allinfos1['dist'][(allinfos1['sign'] == 'pos') & (allinfos1['genotype'] == 'WT')].values.astype(float)
+                                    , allinfos1['dist'][(allinfos1['sign'] == 'pos') & (allinfos1['genotype'] == 'KO')].values.astype(float)) 
+
+t_dist_r, p_dist_r = mannwhitneyu(allinfos1['dist'][(allinfos1['sign'] == 'neg') & (allinfos1['genotype'] == 'WT')].values.astype(float)
+                                    , allinfos1['dist'][(allinfos1['sign'] == 'neg') & (allinfos1['genotype'] == 'KO')].values.astype(float)) 
+
+
+
+#%% Plot replay distance 
+
+plt.figure()
+plt.suptitle('Replay Distance')
+sns.set_style('white')
+palette = ['royalblue', 'indianred'] 
+plt.subplot(121)
+plt.title('Forward Replay')
+ax = sns.violinplot( x = allinfos1['genotype'], y=allinfos1['dist'][(allinfos1['sign'] == 'pos')].astype(float), 
+                    data = allinfos1, dodge=False,
+                    palette = palette,cut = 2,
+                    scale="width", inner=None)
+ax.tick_params(bottom=True, left=True)
+xlim = ax.get_xlim()
+ylim = ax.get_ylim()
+for violin in ax.collections:
+    x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
+    violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
+sns.boxplot(x = allinfos1['genotype'], y=allinfos1['dist'][(allinfos1['sign'] == 'pos')].astype(float), 
+            data = allinfos1, saturation=1, showfliers=False,
+            width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
+old_len_collections = len(ax.collections)
+sns.stripplot(x = allinfos1['genotype'], y = allinfos1['dist'][(allinfos1['sign'] == 'pos')].astype(float), 
+              data = allinfos1, color = 'k', dodge=False, ax=ax, alpha = 0.2)
+for dots in ax.collections[old_len_collections:]:
+    dots.set_offsets(dots.get_offsets())
+ax.set_xlim(xlim)
+ax.set_ylim(ylim)
+plt.ylabel('Replay distance (cm)')
+ax.set_box_aspect(1)
+
+plt.subplot(122)
+plt.title('Reverse Replay')
+ax = sns.violinplot( x = allinfos1['genotype'], y=allinfos1['dist'][(allinfos1['sign'] == 'neg')].astype(float), 
+                    data = allinfos1, dodge=False,
+                    palette = palette,cut = 2,
+                    scale="width", inner=None)
+ax.tick_params(bottom=True, left=True)
+xlim = ax.get_xlim()
+ylim = ax.get_ylim()
+for violin in ax.collections:
+    x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
+    violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
+sns.boxplot(x = allinfos1['genotype'], y=allinfos1['dist'][(allinfos1['sign'] == 'neg')].astype(float), 
+            data = allinfos1, saturation=1, showfliers=False,
+            width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
+old_len_collections = len(ax.collections)
+sns.stripplot(x = allinfos1['genotype'], y = allinfos1['dist'][(allinfos1['direction'] == 'fwd') & (allinfos1['sign'] == 'neg')].astype(float), 
+              data = allinfos1, color = 'k', dodge=False, ax=ax, alpha = 0.2)
+for dots in ax.collections[old_len_collections:]:
+    dots.set_offsets(dots.get_offsets())
+ax.set_xlim(xlim)
+ax.set_ylim(ylim)
+plt.ylabel('Replay distance (cm)')
+ax.set_box_aspect(1)
+
+###Outbound 
+
+# plt.figure()
+# plt.suptitle('Replay Distance - Outbound')
+# sns.set_style('white')
+# palette = ['royalblue', 'indianred'] 
+# plt.subplot(121)
+# plt.title('Forward Replay')
+# ax = sns.violinplot( x = allinfos1['genotype'], y=allinfos1['dist'][(allinfos1['direction'] == 'rev') & (allinfos1['sign'] == 'pos')].astype(float), 
+#                     data = allinfos1, dodge=False,
+#                     palette = palette,cut = 2,
+#                     scale="width", inner=None)
+# ax.tick_params(bottom=True, left=True)
+# xlim = ax.get_xlim()
+# ylim = ax.get_ylim()
+# for violin in ax.collections:
+#     x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
+#     violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
+# sns.boxplot(x = allinfos1['genotype'], y=allinfos1['dist'][(allinfos1['direction'] == 'rev') & (allinfos1['sign'] == 'pos')].astype(float), 
+#             data = allinfos1, saturation=1, showfliers=False,
+#             width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
+# old_len_collections = len(ax.collections)
+# sns.stripplot(x = allinfos1['genotype'], y = allinfos1['dist'][(allinfos1['direction'] == 'rev') & (allinfos1['sign'] == 'pos')].astype(float), 
+#               data = allinfos1, color = 'k', dodge=False, ax=ax, alpha = 0.2)
+# for dots in ax.collections[old_len_collections:]:
+#     dots.set_offsets(dots.get_offsets())
+# ax.set_xlim(xlim)
+# ax.set_ylim(ylim)
+# plt.ylabel('Replay distance (bins)')
+# ax.set_box_aspect(1)
+
+# plt.subplot(122)
+# plt.title('Reverse Replay')
+# ax = sns.violinplot( x = allinfos1['genotype'], y=allinfos1['dist'][(allinfos1['direction'] == 'rev') & (allinfos1['sign'] == 'neg')].astype(float), 
+#                     data = allinfos1, dodge=False,
+#                     palette = palette,cut = 2,
+#                     scale="width", inner=None)
+# ax.tick_params(bottom=True, left=True)
+# xlim = ax.get_xlim()
+# ylim = ax.get_ylim()
+# for violin in ax.collections:
+#     x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
+#     violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
+# sns.boxplot(x = allinfos1['genotype'], y=allinfos1['dist'][(allinfos1['direction'] == 'rev') & (allinfos1['sign'] == 'neg')].astype(float), 
+#             data = allinfos1, saturation=1, showfliers=False,
+#             width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
+# old_len_collections = len(ax.collections)
+# sns.stripplot(x = allinfos1['genotype'], y = allinfos1['dist'][(allinfos1['direction'] == 'rev') & (allinfos1['sign'] == 'neg')].astype(float), 
+#               data = allinfos1, color = 'k', dodge=False, ax=ax, alpha = 0.2)
+# for dots in ax.collections[old_len_collections:]:
+#     dots.set_offsets(dots.get_offsets())
+# ax.set_xlim(xlim)
+# ax.set_ylim(ylim)
+# plt.ylabel('Replay distance (bins)')
+# ax.set_box_aspect(1)
+
+#%% Organize nCells data
+
+wt1 = np.array(['WT' for x in range(len(pos_cell_fwd_wt))])
+ko1 = np.array(['KO' for x in range(len(pos_cell_fwd_ko))])
+wt2 = np.array(['WT' for x in range(len(neg_cell_fwd_wt))])
+ko2 = np.array(['KO' for x in range(len(neg_cell_fwd_ko))])
+wt3 = np.array(['WT' for x in range(len(pos_cell_rev_wt))])
+ko3 = np.array(['KO' for x in range(len(pos_cell_rev_ko))])
+wt4 = np.array(['WT' for x in range(len(neg_cell_rev_wt))])
+ko4 = np.array(['KO' for x in range(len(neg_cell_rev_ko))])
+genotype = np.hstack([wt1, ko1, wt2, ko2, wt3, ko3, wt4, ko4])
+
+p1 = np.array(['pos' for x in range(len(pos_cell_fwd_wt))])
+p2 = np.array(['pos' for x in range(len(pos_cell_fwd_ko))])
+n1 = np.array(['neg' for x in range(len(neg_cell_fwd_wt))])
+n2 = np.array(['neg' for x in range(len(neg_cell_fwd_ko))])
+p3 = np.array(['pos' for x in range(len(pos_cell_rev_wt))])
+p4 = np.array(['pos' for x in range(len(pos_cell_rev_ko))])
+n3 = np.array(['neg' for x in range(len(neg_cell_rev_wt))])
+n4 = np.array(['neg' for x in range(len(neg_cell_rev_ko))])
+slopesign = np.hstack([p1, p2, n1, n2, p3, p4, n3, n4])
+
+f1 = np.array(['fwd' for x in range(len(pos_cell_fwd_wt))])
+f2 = np.array(['fwd' for x in range(len(pos_cell_fwd_ko))])
+f3 = np.array(['fwd' for x in range(len(neg_cell_fwd_wt))])
+f4 = np.array(['fwd' for x in range(len(neg_cell_fwd_ko))])
+r1 = np.array(['rev' for x in range(len(pos_cell_rev_wt))])
+r2 = np.array(['rev' for x in range(len(pos_cell_rev_ko))])
+r3 = np.array(['rev' for x in range(len(neg_cell_rev_wt))])
+r4 = np.array(['rev' for x in range(len(neg_cell_rev_ko))])
+direction = np.hstack([f1, f2, f3, f4, r1, r2, r3, r4])
+
+sinfos1 = []
+sinfos1.extend(pos_cell_fwd_wt)
+sinfos1.extend(pos_cell_fwd_ko)
+sinfos1.extend(neg_cell_fwd_wt)
+sinfos1.extend(neg_cell_fwd_ko)
+sinfos1.extend(pos_cell_rev_wt)
+sinfos1.extend(pos_cell_rev_ko)
+sinfos1.extend(neg_cell_rev_wt)
+sinfos1.extend(neg_cell_rev_ko)
+
+allinfos1 = pd.DataFrame(data = [sinfos1, slopesign, direction, genotype], index = ['cell', 'sign', 'direction', 'genotype']).T
+
+t_cell_f, p_cell_f = mannwhitneyu(allinfos1['cell'][(allinfos1['sign'] == 'pos') & (allinfos1['genotype'] == 'WT')].values.astype(float)
+                                    , allinfos1['cell'][(allinfos1['sign'] == 'pos') & (allinfos1['genotype'] == 'KO')].values.astype(float)) 
+
+t_cell_r, p_cell_r = mannwhitneyu(allinfos1['cell'][(allinfos1['sign'] == 'neg') & (allinfos1['genotype'] == 'WT')].values.astype(float)
+                                    , allinfos1['cell'][(allinfos1['sign'] == 'neg') & (allinfos1['genotype'] == 'KO')].values.astype(float)) 
+
+
+#%% Plot nCells
+
+plt.figure()
+plt.suptitle('Replay nCells')
+sns.set_style('white')
+palette = ['royalblue', 'indianred'] 
+plt.subplot(121)
+plt.title('Forward Replay')
+ax = sns.violinplot( x = allinfos1['genotype'], y=allinfos1['cell'][(allinfos1['sign'] == 'pos')].astype(float), 
+                    data = allinfos1, dodge=False,
+                    palette = palette,cut = 2,
+                    scale="width", inner=None)
+ax.tick_params(bottom=True, left=True)
+xlim = ax.get_xlim()
+ylim = ax.get_ylim()
+for violin in ax.collections:
+    x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
+    violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
+sns.boxplot(x = allinfos1['genotype'], y=allinfos1['cell'][(allinfos1['sign'] == 'pos')].astype(float), 
+            data = allinfos1, saturation=1, showfliers=False,
+            width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
+old_len_collections = len(ax.collections)
+sns.stripplot(x = allinfos1['genotype'], y = allinfos1['cell'][(allinfos1['sign'] == 'pos')].astype(float), 
+              data = allinfos1, color = 'k', dodge=False, ax=ax, alpha = 0.2)
+for dots in ax.collections[old_len_collections:]:
+    dots.set_offsets(dots.get_offsets())
+ax.set_xlim(xlim)
+ax.set_ylim(ylim)
+plt.ylabel('#cells per event')
+ax.set_box_aspect(1)
+
+plt.subplot(122)
+plt.title('Reverse Replay')
+ax = sns.violinplot( x = allinfos1['genotype'], y=allinfos1['cell'][(allinfos1['sign'] == 'neg')].astype(float), 
+                    data = allinfos1, dodge=False,
+                    palette = palette,cut = 2,
+                    scale="width", inner=None)
+ax.tick_params(bottom=True, left=True)
+xlim = ax.get_xlim()
+ylim = ax.get_ylim()
+for violin in ax.collections:
+    x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
+    violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
+sns.boxplot(x = allinfos1['genotype'], y=allinfos1['cell'][(allinfos1['sign'] == 'neg')].astype(float), 
+            data = allinfos1, saturation=1, showfliers=False,
+            width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
+old_len_collections = len(ax.collections)
+sns.stripplot(x = allinfos1['genotype'], y = allinfos1['cell'][(allinfos1['sign'] == 'neg')].astype(float), 
+              data = allinfos1, color = 'k', dodge=False, ax=ax, alpha = 0.2)
+for dots in ax.collections[old_len_collections:]:
+    dots.set_offsets(dots.get_offsets())
+ax.set_xlim(xlim)
+ax.set_ylim(ylim)
+plt.ylabel('#cells per event')
+ax.set_box_aspect(1)
+
+###Outbound 
+
+# plt.figure()
+# plt.suptitle('Replay nCells - Outbound')
+# sns.set_style('white')
+# palette = ['royalblue', 'indianred'] 
+# plt.subplot(121)
+# plt.title('Forward Replay')
+# ax = sns.violinplot( x = allinfos1['genotype'], y=allinfos1['cell'][(allinfos1['direction'] == 'rev') & (allinfos1['sign'] == 'pos')].astype(float), 
+#                     data = allinfos1, dodge=False,
+#                     palette = palette,cut = 2,
+#                     scale="width", inner=None)
+# ax.tick_params(bottom=True, left=True)
+# xlim = ax.get_xlim()
+# ylim = ax.get_ylim()
+# for violin in ax.collections:
+#     x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
+#     violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
+# sns.boxplot(x = allinfos1['genotype'], y=allinfos1['cell'][(allinfos1['direction'] == 'rev') & (allinfos1['sign'] == 'pos')].astype(float), 
+#             data = allinfos1, saturation=1, showfliers=False,
+#             width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
+# old_len_collections = len(ax.collections)
+# sns.stripplot(x = allinfos1['genotype'], y = allinfos1['cell'][(allinfos1['direction'] == 'rev') & (allinfos1['sign'] == 'pos')].astype(float), 
+#               data = allinfos1, color = 'k', dodge=False, ax=ax, alpha = 0.2)
+# for dots in ax.collections[old_len_collections:]:
+#     dots.set_offsets(dots.get_offsets())
+# ax.set_xlim(xlim)
+# ax.set_ylim(ylim)
+# plt.ylabel('#cells per event')
+# ax.set_box_aspect(1)
+
+# plt.subplot(122)
+# plt.title('Reverse Replay')
+# ax = sns.violinplot( x = allinfos1['genotype'], y=allinfos1['cell'][(allinfos1['direction'] == 'rev') & (allinfos1['sign'] == 'neg')].astype(float), 
+#                     data = allinfos1, dodge=False,
+#                     palette = palette,cut = 2,
+#                     scale="width", inner=None)
+# ax.tick_params(bottom=True, left=True)
+# xlim = ax.get_xlim()
+# ylim = ax.get_ylim()
+# for violin in ax.collections:
+#     x0, y0, width, height = violin.get_paths()[0].get_extents().bounds
+#     violin.set_clip_path(plt.Rectangle((x0, y0), width / 2, height, transform=ax.transData))
+# sns.boxplot(x = allinfos1['genotype'], y=allinfos1['cell'][(allinfos1['direction'] == 'rev') & (allinfos1['sign'] == 'neg')].astype(float), 
+#             data = allinfos1, saturation=1, showfliers=False,
+#             width=0.3, boxprops={'zorder': 3, 'facecolor': 'none'}, ax=ax)
+# old_len_collections = len(ax.collections)
+# sns.stripplot(x = allinfos1['genotype'], y = allinfos1['cell'][(allinfos1['direction'] == 'rev') & (allinfos1['sign'] == 'neg')].astype(float), 
+#               data = allinfos1, color = 'k', dodge=False, ax=ax, alpha = 0.2)
+# for dots in ax.collections[old_len_collections:]:
+#     dots.set_offsets(dots.get_offsets())
+# ax.set_xlim(xlim)
+# ax.set_ylim(ylim)
+# plt.ylabel('#cells per event')
+# ax.set_box_aspect(1)

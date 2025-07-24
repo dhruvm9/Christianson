@@ -21,8 +21,8 @@ from scipy.stats import mannwhitneyu
 warnings.filterwarnings("ignore")
 
 # data_directory = '/media/dhruv/Expansion/Processed'
-# data_directory = '/media/dhruv/Expansion/Processed/CA3'
-data_directory = '/media/dhruv/Expansion/Processed/LinearTrack'
+data_directory = '/media/dhruv/Expansion/Processed/CA3'
+# data_directory = '/media/dhruv/Expansion/Processed/LinearTrack'
 datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
 
 allripdurs_wt = []

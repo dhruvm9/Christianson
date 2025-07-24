@@ -21,8 +21,8 @@ from functions_DM import *
 
 warnings.filterwarnings("ignore")
 
-# data_directory = '/media/dhruv/Expansion/Processed'
-data_directory = '/media/dhruv/Expansion/Processed/LinearTrack'
+data_directory = '/media/dhruv/Expansion/Processed'
+# data_directory = '/media/dhruv/Expansion/Processed/LinearTrack'
 datasets = np.genfromtxt(os.path.join(data_directory,'dataset_DM.list'), delimiter = '\n', dtype = str, comments = '#')
 # datasets = np.genfromtxt(os.path.join(data_directory,'dataset_new_toadd.list'), delimiter = '\n', dtype = str, comments = '#')
 ripplechannels = np.genfromtxt(os.path.join(data_directory,'ripplechannel.list'), delimiter = '\n', dtype = str, comments = '#')
@@ -127,7 +127,7 @@ for r,s in enumerate(datasets):
         # pb_ep = pb_ep.drop_short_intervals(bin_size)
         pb_ep = pb_ep.merge_close_intervals(bin_size*2)
         pb_ep = pb_ep.drop_short_intervals(bin_size*3)
-        pb_ep = pb_ep.drop_long_intervals(bin_size*50)
+        pb_ep = pb_ep.drop_long_intervals(bin_size*30)
        
         # sys.exit() 
        

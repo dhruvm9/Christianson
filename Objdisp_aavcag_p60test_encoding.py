@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Jan 29 10:50:06 2025
+Created on Thu Jul 24 14:34:27 2025
 
 @author: dhruv
 """
@@ -31,8 +31,7 @@ from statsmodels.stats.multicomp import pairwise_tukeyhsd
 warnings.filterwarnings("ignore")
 
 ##Add path to data folder
-# data_directory = '/media/DataDhruv/Recordings/Christianson/encoding_cohort3'
-# data_directory = '/media/DataDhruv/Recordings/Christianson/encodingF_cohort4'
+data_directory = '/media/DataDhruv/Recordings/Christianson/AAVCAG_Cohort1/Encoding'
 
 ##File with list of all sessions
 datasets = np.genfromtxt(os.path.normpath(os.path.join(data_directory,'dataset.list')), delimiter = '\n', dtype = str, comments = '#')
@@ -135,8 +134,8 @@ for s in datasets:
     x = mouseposition[:,0]
     y = mouseposition[:,1]
     
-    #30 frames per second
-    fs = 30
+    #60 frames per second
+    fs = 60
     
     #Using the above sampling create, assign a timestamp to each frame
     timestamps = x_cent.index.values/fs
@@ -170,91 +169,91 @@ for s in datasets:
 
     if sex == 'M':
 
-        rectL_inner = patches.Rectangle((x_objL - 26, y_objL - 28), 77, 120, linewidth=1, edgecolor='g', facecolor='none')
-        rectL = patches.Rectangle((x_objL - 47.5, y_objL - 49.5), 120, 163, linewidth=1, edgecolor='b', facecolor='none')
+        rectL_inner = patches.Rectangle((x_objL - 45, y_objL - 95), 85, 150, linewidth=1, edgecolor='g', facecolor='none')
+        rectL = patches.Rectangle((x_objL - 66.5, y_objL - 116.5), 128, 193, linewidth=1, edgecolor='b', facecolor='none')
         
-        rectR_inner = patches.Rectangle((x_objR - 31, y_objR - 26), 75, 125, linewidth=1, edgecolor='g', facecolor='none')
-        rectR = patches.Rectangle((x_objR - 52.5, y_objR - 47.5), 118, 168, linewidth=1, edgecolor='b', facecolor='none')
+        rectR_inner = patches.Rectangle((x_objR - 55, y_objR - 90), 85, 144, linewidth=1, edgecolor='g', facecolor='none')
+        rectR = patches.Rectangle((x_objR - 76.5, y_objR - 111.5), 128, 190, linewidth=1, edgecolor='b', facecolor='none')
 
 ### COHORT4 FEMALE
     
-    else: 
+    # else: 
         
-        splcases = ['647', '650', '1102', '1114', '1121', '1122', '2698', '1097', '1103', '1112', '1113', '1115', '2710']
+    #     splcases = ['647', '650', '1102', '1114', '1121', '1122', '2698', '1097', '1103', '1112', '1113', '1115', '2710']
         
-        if mousename not in splcases:
+    #     if mousename not in splcases:
         
-            rectL_inner = patches.Rectangle((x_objL - 26, y_objL - 22), 77, 120, linewidth=1, edgecolor='g', facecolor='none')
-            rectL = patches.Rectangle((x_objL - 47.5, y_objL - 43.5), 120, 163, linewidth=1, edgecolor='b', facecolor='none')
+    #         rectL_inner = patches.Rectangle((x_objL - 26, y_objL - 22), 77, 120, linewidth=1, edgecolor='g', facecolor='none')
+    #         rectL = patches.Rectangle((x_objL - 47.5, y_objL - 43.5), 120, 163, linewidth=1, edgecolor='b', facecolor='none')
             
-            rectR_inner = patches.Rectangle((x_objR - 31, y_objR - 26), 75, 125, linewidth=1, edgecolor='g', facecolor='none')
-            rectR = patches.Rectangle((x_objR - 52.5, y_objR - 47.5), 118, 168, linewidth=1, edgecolor='b', facecolor='none')
+    #         rectR_inner = patches.Rectangle((x_objR - 31, y_objR - 26), 75, 125, linewidth=1, edgecolor='g', facecolor='none')
+    #         rectR = patches.Rectangle((x_objR - 52.5, y_objR - 47.5), 118, 168, linewidth=1, edgecolor='b', facecolor='none')
         
-        elif mousename in ['647', '1114']:
+    #     elif mousename in ['647', '1114']:
             
-            rectL_inner = patches.Rectangle((x_objL - 30, y_objL - 22), 77, 120, linewidth=1, edgecolor='g', facecolor='none')
-            rectL = patches.Rectangle((x_objL - 51.5, y_objL - 43.5), 120, 163, linewidth=1, edgecolor='b', facecolor='none')
+    #         rectL_inner = patches.Rectangle((x_objL - 30, y_objL - 22), 77, 120, linewidth=1, edgecolor='g', facecolor='none')
+    #         rectL = patches.Rectangle((x_objL - 51.5, y_objL - 43.5), 120, 163, linewidth=1, edgecolor='b', facecolor='none')
             
-            rectR_inner = patches.Rectangle((x_objR - 31, y_objR - 26), 75, 125, linewidth=1, edgecolor='g', facecolor='none')
-            rectR = patches.Rectangle((x_objR - 52.5, y_objR - 47.5), 118, 168, linewidth=1, edgecolor='b', facecolor='none')
+    #         rectR_inner = patches.Rectangle((x_objR - 31, y_objR - 26), 75, 125, linewidth=1, edgecolor='g', facecolor='none')
+    #         rectR = patches.Rectangle((x_objR - 52.5, y_objR - 47.5), 118, 168, linewidth=1, edgecolor='b', facecolor='none')
         
-        elif mousename in ['650', '1102', '1121', '1122', '2698']:
+    #     elif mousename in ['650', '1102', '1121', '1122', '2698']:
             
-            rectL_inner = patches.Rectangle((x_objL - 35, y_objL - 22), 77, 120, linewidth=1, edgecolor='g', facecolor='none')
-            rectL = patches.Rectangle((x_objL - 56.5, y_objL - 43.5), 120, 163, linewidth=1, edgecolor='b', facecolor='none')
+    #         rectL_inner = patches.Rectangle((x_objL - 35, y_objL - 22), 77, 120, linewidth=1, edgecolor='g', facecolor='none')
+    #         rectL = patches.Rectangle((x_objL - 56.5, y_objL - 43.5), 120, 163, linewidth=1, edgecolor='b', facecolor='none')
             
-            rectR_inner = patches.Rectangle((x_objR - 31, y_objR - 26), 75, 125, linewidth=1, edgecolor='g', facecolor='none')
-            rectR = patches.Rectangle((x_objR - 52.5, y_objR - 47.5), 118, 168, linewidth=1, edgecolor='b', facecolor='none')
+    #         rectR_inner = patches.Rectangle((x_objR - 31, y_objR - 26), 75, 125, linewidth=1, edgecolor='g', facecolor='none')
+    #         rectR = patches.Rectangle((x_objR - 52.5, y_objR - 47.5), 118, 168, linewidth=1, edgecolor='b', facecolor='none')
                     
             
-        elif mousename == '1103':
+    #     elif mousename == '1103':
             
-            rectL_inner = patches.Rectangle((x_objL - 30, y_objL - 22), 77, 120, linewidth=1, edgecolor='g', facecolor='none')
-            rectL = patches.Rectangle((x_objL - 51.5, y_objL - 43.5), 120, 163, linewidth=1, edgecolor='b', facecolor='none')
+    #         rectL_inner = patches.Rectangle((x_objL - 30, y_objL - 22), 77, 120, linewidth=1, edgecolor='g', facecolor='none')
+    #         rectL = patches.Rectangle((x_objL - 51.5, y_objL - 43.5), 120, 163, linewidth=1, edgecolor='b', facecolor='none')
             
-            rectR_inner = patches.Rectangle((x_objR - 28, y_objR - 26), 75, 125, linewidth=1, edgecolor='g', facecolor='none')
-            rectR = patches.Rectangle((x_objR - 49.5, y_objR - 47.5), 118, 168, linewidth=1, edgecolor='b', facecolor='none')
+    #         rectR_inner = patches.Rectangle((x_objR - 28, y_objR - 26), 75, 125, linewidth=1, edgecolor='g', facecolor='none')
+    #         rectR = patches.Rectangle((x_objR - 49.5, y_objR - 47.5), 118, 168, linewidth=1, edgecolor='b', facecolor='none')
             
-        elif mousename == '1115':
+    #     elif mousename == '1115':
             
-            rectL_inner = patches.Rectangle((x_objL - 35, y_objL - 22), 77, 120, linewidth=1, edgecolor='g', facecolor='none')
-            rectL = patches.Rectangle((x_objL - 56.5, y_objL - 43.5), 120, 163, linewidth=1, edgecolor='b', facecolor='none')
+    #         rectL_inner = patches.Rectangle((x_objL - 35, y_objL - 22), 77, 120, linewidth=1, edgecolor='g', facecolor='none')
+    #         rectL = patches.Rectangle((x_objL - 56.5, y_objL - 43.5), 120, 163, linewidth=1, edgecolor='b', facecolor='none')
             
-            rectR_inner = patches.Rectangle((x_objR - 28, y_objR - 26), 75, 125, linewidth=1, edgecolor='g', facecolor='none')
-            rectR = patches.Rectangle((x_objR - 49.5, y_objR - 47.5), 118, 168, linewidth=1, edgecolor='b', facecolor='none')
+    #         rectR_inner = patches.Rectangle((x_objR - 28, y_objR - 26), 75, 125, linewidth=1, edgecolor='g', facecolor='none')
+    #         rectR = patches.Rectangle((x_objR - 49.5, y_objR - 47.5), 118, 168, linewidth=1, edgecolor='b', facecolor='none')
                         
                         
-        elif mousename == '1097': 
+    #     elif mousename == '1097': 
             
-            rectL_inner = patches.Rectangle((x_objL - 30, y_objL - 22), 77, 120, linewidth=1, edgecolor='g', facecolor='none')
-            rectL = patches.Rectangle((x_objL - 51.5, y_objL - 43.5), 120, 163, linewidth=1, edgecolor='b', facecolor='none')
+    #         rectL_inner = patches.Rectangle((x_objL - 30, y_objL - 22), 77, 120, linewidth=1, edgecolor='g', facecolor='none')
+    #         rectL = patches.Rectangle((x_objL - 51.5, y_objL - 43.5), 120, 163, linewidth=1, edgecolor='b', facecolor='none')
             
-            rectR_inner = patches.Rectangle((x_objR - 35, y_objR - 26), 75, 125, linewidth=1, edgecolor='g', facecolor='none')
-            rectR = patches.Rectangle((x_objR - 56.5, y_objR - 47.5), 118, 168, linewidth=1, edgecolor='b', facecolor='none')
+    #         rectR_inner = patches.Rectangle((x_objR - 35, y_objR - 26), 75, 125, linewidth=1, edgecolor='g', facecolor='none')
+    #         rectR = patches.Rectangle((x_objR - 56.5, y_objR - 47.5), 118, 168, linewidth=1, edgecolor='b', facecolor='none')
             
-        elif mousename == '1113': 
+    #     elif mousename == '1113': 
             
-            rectL_inner = patches.Rectangle((x_objL - 27, y_objL - 22), 77, 120, linewidth=1, edgecolor='g', facecolor='none')
-            rectL = patches.Rectangle((x_objL - 48.5, y_objL - 43.5), 120, 163, linewidth=1, edgecolor='b', facecolor='none')
+    #         rectL_inner = patches.Rectangle((x_objL - 27, y_objL - 22), 77, 120, linewidth=1, edgecolor='g', facecolor='none')
+    #         rectL = patches.Rectangle((x_objL - 48.5, y_objL - 43.5), 120, 163, linewidth=1, edgecolor='b', facecolor='none')
             
-            rectR_inner = patches.Rectangle((x_objR - 35, y_objR - 26), 75, 125, linewidth=1, edgecolor='g', facecolor='none')
-            rectR = patches.Rectangle((x_objR - 56.5, y_objR - 47.5), 118, 168, linewidth=1, edgecolor='b', facecolor='none')
+    #         rectR_inner = patches.Rectangle((x_objR - 35, y_objR - 26), 75, 125, linewidth=1, edgecolor='g', facecolor='none')
+    #         rectR = patches.Rectangle((x_objR - 56.5, y_objR - 47.5), 118, 168, linewidth=1, edgecolor='b', facecolor='none')
         
-        elif mousename == '2710': 
-            # print('yes')
-            rectL_inner = patches.Rectangle((x_objL - 32, y_objL - 22), 77, 120, linewidth=1, edgecolor='g', facecolor='none')
-            rectL = patches.Rectangle((x_objL - 53.5, y_objL - 43.5), 120, 163, linewidth=1, edgecolor='b', facecolor='none')
+    #     elif mousename == '2710': 
+    #         # print('yes')
+    #         rectL_inner = patches.Rectangle((x_objL - 32, y_objL - 22), 77, 120, linewidth=1, edgecolor='g', facecolor='none')
+    #         rectL = patches.Rectangle((x_objL - 53.5, y_objL - 43.5), 120, 163, linewidth=1, edgecolor='b', facecolor='none')
             
-            rectR_inner = patches.Rectangle((x_objR - 35, y_objR - 25), 75, 125, linewidth=1, edgecolor='g', facecolor='none')
-            rectR = patches.Rectangle((x_objR - 56.5, y_objR - 46.5), 118, 168, linewidth=1, edgecolor='b', facecolor='none')
+    #         rectR_inner = patches.Rectangle((x_objR - 35, y_objR - 25), 75, 125, linewidth=1, edgecolor='g', facecolor='none')
+    #         rectR = patches.Rectangle((x_objR - 56.5, y_objR - 46.5), 118, 168, linewidth=1, edgecolor='b', facecolor='none')
        
-        else: #Animal 1112 
+    #     else: #Animal 1112 
             
-            rectL_inner = patches.Rectangle((x_objL - 24, y_objL - 22), 77, 120, linewidth=1, edgecolor='g', facecolor='none')
-            rectL = patches.Rectangle((x_objL - 45.5, y_objL - 43.5), 120, 163, linewidth=1, edgecolor='b', facecolor='none')
+    #         rectL_inner = patches.Rectangle((x_objL - 24, y_objL - 22), 77, 120, linewidth=1, edgecolor='g', facecolor='none')
+    #         rectL = patches.Rectangle((x_objL - 45.5, y_objL - 43.5), 120, 163, linewidth=1, edgecolor='b', facecolor='none')
             
-            rectR_inner = patches.Rectangle((x_objR - 35, y_objR - 25), 75, 125, linewidth=1, edgecolor='g', facecolor='none')
-            rectR = patches.Rectangle((x_objR - 56.5, y_objR - 46.5), 118, 168, linewidth=1, edgecolor='b', facecolor='none')
+    #         rectR_inner = patches.Rectangle((x_objR - 35, y_objR - 25), 75, 125, linewidth=1, edgecolor='g', facecolor='none')
+    #         rectR = patches.Rectangle((x_objR - 56.5, y_objR - 46.5), 118, 168, linewidth=1, edgecolor='b', facecolor='none')
                    
                 
       
@@ -292,13 +291,13 @@ for s in datasets:
     
     # if dispobj == 'left':
     
-        # plt.figure()
-        # plt.title(s)
-        # plt.imshow(im, origin = 'lower')
-        # plt.gca().add_patch(rectL)
-        # plt.gca().add_patch(rectL_inner)
-        # plt.gca().add_patch(rectR)
-        # plt.gca().add_patch(rectR_inner)
+    # plt.figure()
+    # plt.title(s)
+    # plt.imshow(im, origin = 'lower')
+    # plt.gca().add_patch(rectL)
+    # plt.gca().add_patch(rectL_inner)
+    # plt.gca().add_patch(rectR)
+    # plt.gca().add_patch(rectR_inner)
         
     
     
@@ -478,7 +477,7 @@ for s in datasets:
     
     allmice.append(mousename)
 
-    if s[0] == '2':
+    if int(mousename) > 730: #s[0] == '2':
                 
         all_lefts_wt.append(objL_dur)
         all_rights_wt.append(objR_dur)

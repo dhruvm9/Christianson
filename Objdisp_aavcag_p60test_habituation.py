@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Nov 28 09:56:44 2024
+Created on Thu Jul 24 15:18:33 2025
 
 @author: dhruv
 """
@@ -24,8 +24,7 @@ from scipy.stats import mannwhitneyu, wilcoxon
 #%% 
 
 ##Add path to data folder
-data_directory = '/media/DataDhruv/Recordings/Christianson/H3_cohort3'
-# data_directory = '/media/DataDhruv/Recordings/Christianson/H3F_cohort4'
+data_directory = '/media/DataDhruv/Recordings/Christianson/AAVCAG_Cohort1/H3'
 
 ##File with list of all sessions
 datasets = np.genfromtxt(os.path.normpath(os.path.join(data_directory,'dataset.list')), delimiter = '\n', dtype = str, comments = '#')
@@ -91,8 +90,10 @@ for s in datasets:
     x = mouseposition[:,0]
     y = mouseposition[:,1]
     
-    #30 frames per second
-    fs = 30
+    #frames per second
+    if mousename in ['700', '714', '743', '745']:
+        fs = 60
+    else: fs = 30
     
     #Using the above sampling create, assign a timestamp to each frame
     timestamps = x_cent.index.values/fs
@@ -112,13 +113,12 @@ for s in datasets:
 #%% Compute distance between positions of consecutive frames 
 
     distance = np.sqrt(np.power(np.diff(position['x']), 2) + np.power(np.diff(position['y']), 2)) 
-    tot_dist = (sum(distance) * 60) / 430 ##approx conversion to cm
-    
-    
+    tot_dist = (sum(distance) * 60) / 540 ##approx conversion to cm
     
 #%% Sort results by genotype
         
-    if s[0] == '2':
+    #if s[0] == '2':
+    if int(mousename) > 730:
         allmice.append(mousename)
         genotype.append('WT')
         alldist.append(tot_dist)

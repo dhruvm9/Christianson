@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Nov 28 09:56:44 2024
+Created on Tue Jul 15 15:55:34 2025
 
 @author: dhruv
 """
@@ -24,8 +24,7 @@ from scipy.stats import mannwhitneyu, wilcoxon
 #%% 
 
 ##Add path to data folder
-data_directory = '/media/DataDhruv/Recordings/Christianson/H3_cohort3'
-# data_directory = '/media/DataDhruv/Recordings/Christianson/H3F_cohort4'
+data_directory = '/media/DataDhruv/Recordings/Christianson/AAVCAG_P21/H3'
 
 ##File with list of all sessions
 datasets = np.genfromtxt(os.path.normpath(os.path.join(data_directory,'dataset.list')), delimiter = '\n', dtype = str, comments = '#')
@@ -112,13 +111,11 @@ for s in datasets:
 #%% Compute distance between positions of consecutive frames 
 
     distance = np.sqrt(np.power(np.diff(position['x']), 2) + np.power(np.diff(position['y']), 2)) 
-    tot_dist = (sum(distance) * 60) / 430 ##approx conversion to cm
-    
-    
+    tot_dist = (sum(distance) * 60) / 840 ##approx conversion to cm
     
 #%% Sort results by genotype
         
-    if s[0] == '2':
+    if len(mousename) == 3: #s[0] == '2':
         allmice.append(mousename)
         genotype.append('WT')
         alldist.append(tot_dist)
@@ -160,14 +157,20 @@ label = ['Genotype']
 x = np.arange(len(label))  # the label locations
 width = 0.35  # the width of the bars
 
+wt_data = info[info['genotype'] == 'WT']['dist'].values
+ko_data = info[info['genotype'] == 'KO']['dist'].values
+means = [np.mean(wt_data), np.mean(ko_data)]
+sems = [scipy.stats.sem(wt_data), scipy.stats.sem(ko_data)]
+
 fig, ax = plt.subplots()
-rects1 = ax.bar(x - width/2, info[info['genotype'] == 'WT']['dist'].mean(), width, label = 'WT', color = 'royalblue')
-rects2 = ax.bar(x + width/2, info[info['genotype'] == 'KO']['dist'].mean(), width, label = 'KO', color = 'indianred')
-pval = np.vstack([(info[info['genotype'] == 'WT']['dist'].values), (info[info['genotype'] == 'KO']['dist'].values)])
-x2 = [x-width/2, x+width/2]
-plt.plot(x2, np.vstack(pval), 'o', fillstyle = 'none', color = 'k', zorder = 5)
-plt.errorbar(x2[0], np.mean(pval[0]), yerr = scipy.stats.sem(pval[0]) , fmt = 'o', color="k", linewidth = 2, capsize = 6)
-plt.errorbar(x2[1], np.mean(pval[1]), yerr = scipy.stats.sem(pval[1]) , fmt = 'o', color="k", linewidth = 2, capsize = 6)
+rects1 = ax.bar(x - width/2, means[0], width, label='WT', color='royalblue', yerr=sems[0], capsize=6)
+rects2 = ax.bar(x + width/2, means[1], width, label='KO', color='indianred', yerr=sems[1], capsize=6)
+
+ax.plot(np.full_like(wt_data, x - width/2), wt_data, 'ko', fillstyle='none', zorder=5)
+ax.plot(np.full_like(ko_data, x + width/2), ko_data, 'ko', fillstyle='none', zorder=5)
+ax.plot(x - width/2, means[0], 'ko', zorder=6)
+ax.plot(x + width/2, means[1], 'ko', zorder=6)
+
 # Add some text for labels, title and custom x-axis tick labels, etc.
 ax.set_ylabel('Distance travelled (cm)')
 ax.set_xticks(x)
@@ -178,11 +181,8 @@ fig.tight_layout()
 
 
 
+
+
 #%% 
 
 t, p = mannwhitneyu(np.array(info['dist'][info['genotype'] == 'WT']), np.array(info['dist'][info['genotype'] == 'KO']))
-
-    
-    
-    
-    
