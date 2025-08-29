@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Dec  6 09:40:59 2024
+Created on Mon Aug 18 10:24:31 2025
 
 @author: dhruv
 """
@@ -32,9 +32,7 @@ from statsmodels.stats.multicomp import pairwise_tukeyhsd
 warnings.filterwarnings("ignore")
 
 ##Add path to data folder
-data_directory = '/media/DataDhruv/Recordings/Christianson/test_cohort3'
-# data_directory = '/media/DataDhruv/Recordings/Christianson/testF_cohort4'
-
+data_directory = '/media/DataDhruv/Recordings/Christianson/AAVCAG_P60/Recall'
 
 ##File with list of all sessions
 datasets = np.genfromtxt(os.path.normpath(os.path.join(data_directory,'dataset.list')), delimiter = '\n', dtype = str, comments = '#')
@@ -184,48 +182,48 @@ for r, s in enumerate(datasets):
 
         if dispobj == 'right':    
     
-            rectL_inner = patches.Rectangle((x_objL - 26, y_objL - 28), 77, 120, linewidth=1, edgecolor='g', facecolor='none')
-            rectL = patches.Rectangle((x_objL - 47.5, y_objL - 49.5), 120, 163, linewidth=1, edgecolor='b', facecolor='none')
+            rectL_inner = patches.Rectangle((x_objL - 37, y_objL - 25), 77, 140, linewidth=1, edgecolor='g', facecolor='none')
+            rectL = patches.Rectangle((x_objL - 53.5, y_objL - 41.5), 110, 173, linewidth=1, edgecolor='b', facecolor='none')
             
-            rectR_inner = patches.Rectangle((x_objR - 31, y_objR - 35), 75, 125, linewidth=1, edgecolor='g', facecolor='none')
-            rectR = patches.Rectangle((x_objR - 52.5, y_objR - 56.5), 118, 168, linewidth=1, edgecolor='b', facecolor='none')
+            rectR_inner = patches.Rectangle((x_objR - 50, y_objR - 37), 85, 140, linewidth=1, edgecolor='g', facecolor='none')
+            rectR = patches.Rectangle((x_objR - 66.5, y_objR - 53.5), 118, 173, linewidth=1, edgecolor='b', facecolor='none')
         
         else: 
             
-            rectL_inner = patches.Rectangle((x_objL - 26, y_objL - 35), 77, 120, linewidth=1, edgecolor='g', facecolor='none')
-            rectL = patches.Rectangle((x_objL - 47.5, y_objL - 56.5), 120, 163, linewidth=1, edgecolor='b', facecolor='none')
+            rectL_inner = patches.Rectangle((x_objL - 40, y_objL - 37), 85, 140, linewidth=1, edgecolor='g', facecolor='none')
+            rectL = patches.Rectangle((x_objL - 56.5, y_objL - 53.5), 118, 173, linewidth=1, edgecolor='b', facecolor='none')
             
-            rectR_inner = patches.Rectangle((x_objR - 31, y_objR - 25), 75, 125, linewidth=1, edgecolor='g', facecolor='none')
-            rectR = patches.Rectangle((x_objR - 52.5, y_objR - 46.5), 118, 168, linewidth=1, edgecolor='b', facecolor='none')
+            rectR_inner = patches.Rectangle((x_objR - 50, y_objR - 25), 77, 140, linewidth=1, edgecolor='g', facecolor='none')
+            rectR = patches.Rectangle((x_objR - 66.5, y_objR - 41.5), 110, 173, linewidth=1, edgecolor='b', facecolor='none')
         
 
 ### COHORT4 FEMALE
 
-    else: 
+    # else: 
 
-        if dispobj == 'right' and (mousename not in ['1103', '1114', '1115', '1122', '2710', '2711']):  
+    #     if dispobj == 'right' and (mousename not in ['1103', '1114', '1115', '1122', '2710', '2711']):  
             
-            rectL_inner = patches.Rectangle((x_objL - 29, y_objL - 23), 77, 120, linewidth=1, edgecolor='g', facecolor='none')
-            rectL = patches.Rectangle((x_objL - 50.5, y_objL - 44.5), 120, 163, linewidth=1, edgecolor='b', facecolor='none')
+    #         rectL_inner = patches.Rectangle((x_objL - 29, y_objL - 23), 77, 120, linewidth=1, edgecolor='g', facecolor='none')
+    #         rectL = patches.Rectangle((x_objL - 50.5, y_objL - 44.5), 120, 163, linewidth=1, edgecolor='b', facecolor='none')
          
-            rectR_inner = patches.Rectangle((x_objR - 30, y_objR - 35), 75, 125, linewidth=1, edgecolor='g', facecolor='none')
-            rectR = patches.Rectangle((x_objR - 51.5, y_objR - 56.5), 118, 168, linewidth=1, edgecolor='b', facecolor='none')
+    #         rectR_inner = patches.Rectangle((x_objR - 30, y_objR - 35), 75, 125, linewidth=1, edgecolor='g', facecolor='none')
+    #         rectR = patches.Rectangle((x_objR - 51.5, y_objR - 56.5), 118, 168, linewidth=1, edgecolor='b', facecolor='none')
             
-        elif (dispobj == 'right') and (mousename in ['1103', '1114', '1115', '1122', '2710', '2711']):
+    #     elif (dispobj == 'right') and (mousename in ['1103', '1114', '1115', '1122', '2710', '2711']):
                     
-            rectL_inner = patches.Rectangle((x_objL - 29, y_objL - 23), 77, 120, linewidth=1, edgecolor='g', facecolor='none')
-            rectL = patches.Rectangle((x_objL - 50.5, y_objL - 44.5), 120, 163, linewidth=1, edgecolor='b', facecolor='none')
+    #         rectL_inner = patches.Rectangle((x_objL - 29, y_objL - 23), 77, 120, linewidth=1, edgecolor='g', facecolor='none')
+    #         rectL = patches.Rectangle((x_objL - 50.5, y_objL - 44.5), 120, 163, linewidth=1, edgecolor='b', facecolor='none')
          
-            rectR_inner = patches.Rectangle((x_objR - 35, y_objR - 36), 75, 125, linewidth=1, edgecolor='g', facecolor='none')
-            rectR = patches.Rectangle((x_objR - 56.5, y_objR - 57.5), 118, 168, linewidth=1, edgecolor='b', facecolor='none')
+    #         rectR_inner = patches.Rectangle((x_objR - 35, y_objR - 36), 75, 125, linewidth=1, edgecolor='g', facecolor='none')
+    #         rectR = patches.Rectangle((x_objR - 56.5, y_objR - 57.5), 118, 168, linewidth=1, edgecolor='b', facecolor='none')
                
-        else: 
+    #     else: 
             
-            rectL_inner = patches.Rectangle((x_objL - 26, y_objL - 32), 77, 120, linewidth=1, edgecolor='g', facecolor='none')
-            rectL = patches.Rectangle((x_objL - 47.5, y_objL - 53.5), 120, 163, linewidth=1, edgecolor='b', facecolor='none')
+    #         rectL_inner = patches.Rectangle((x_objL - 26, y_objL - 32), 77, 120, linewidth=1, edgecolor='g', facecolor='none')
+    #         rectL = patches.Rectangle((x_objL - 47.5, y_objL - 53.5), 120, 163, linewidth=1, edgecolor='b', facecolor='none')
             
-            rectR_inner = patches.Rectangle((x_objR - 36, y_objR - 25), 75, 125, linewidth=1, edgecolor='g', facecolor='none')
-            rectR = patches.Rectangle((x_objR - 57.5, y_objR - 46.5), 118, 168, linewidth=1, edgecolor='b', facecolor='none')
+    #         rectR_inner = patches.Rectangle((x_objR - 36, y_objR - 25), 75, 125, linewidth=1, edgecolor='g', facecolor='none')
+    #         rectR = patches.Rectangle((x_objR - 57.5, y_objR - 46.5), 118, 168, linewidth=1, edgecolor='b', facecolor='none')
 
       
     rectL_coords = rectL.get_corners()
@@ -260,15 +258,15 @@ for r, s in enumerate(datasets):
    
     #%% Plot 
     
-    # if dispobj == 'right':
+    # if dispobj == 'left':
     
-        # plt.figure()
-        # plt.title(s)
-        # plt.imshow(im, origin = 'lower')
-        # plt.gca().add_patch(rectL)
-        # plt.gca().add_patch(rectL_inner)
-        # plt.gca().add_patch(rectR)
-        # plt.gca().add_patch(rectR_inner)
+    #     plt.figure()
+    #     plt.title(s)
+    #     plt.imshow(im, origin = 'lower')
+    #     plt.gca().add_patch(rectL)
+    #     plt.gca().add_patch(rectL_inner)
+    #     plt.gca().add_patch(rectR)
+    #     plt.gca().add_patch(rectR_inner)
         
     
     
@@ -475,7 +473,7 @@ for r, s in enumerate(datasets):
         
         
         #Sort results by genotype (not relevant for now)
-        if s[0] == '2':
+        if len(mousename) == 3: #s[0] == '2':
             genotype_phase1.append('WT')
             # print('WT')
         else: 
@@ -488,7 +486,7 @@ for r, s in enumerate(datasets):
         allDI_phase2.append(DI)
         allmice_phase2.append(mousename)
                 
-        if s[0] == '2':
+        if len(mousename) == 3: #s[0] == '2':
             genotype_phase2.append('WT')
             # print('WT')
         else: 
